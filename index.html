@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="da">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EasyON | Hent appen til Android</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="blob blob-orange"></div>
+    <div class="blob blob-cyan"></div>
+
+    <main class="container">
+        <div class="glass-card" id="easyon-card">
+            <img src="easyon_app_icon.png" alt="EasyON Ikon" class="app-icon" id="appIcon">
+            <h1>Easy<span>ON</span></h1>
+            <p class="subtitle">Innovativ Vedligeholdelse. Altid lige ved hånden.</p>
+
+            <div class="features">
+                <div class="feature-item">
+                    <span class="icon">⚡</span>
+                    <p>Hurtig og sikker</p>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">🔒</span>
+                    <p>Intern adgang</p>
+                </div>
+            </div>
+
+            <a href="easyon-app.apk" download="easyon-app.apk" class="download-btn" id="downloadBtn">
+                <svg viewBox="0 0 24 24" fill="none" width="24" height="24" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span style="margin-left:8px;">Download APK</span>
+            </a>
+
+            <p class="install-instructions">
+                Husk at <a href="#"
+                    onclick="alert('Efter download: Åbn filen, og tryk Tillad installation fra ukendte kilder.')">tillade
+                    installation fra ukendte kilder</a>.
+            </p>
+        </div>
+    </main>
+    <script src="script.js"></script>
+</body>
+
+</html>
