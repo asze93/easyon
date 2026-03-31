@@ -280,15 +280,36 @@ function dashTab(tab) {
 
 async function fetchTeam() {
     const { data } = await supabaseClient.from('brugere').select('*').eq('firma_id', currentFirmaId);
+    window.teamUsers = data;
     const body = document.getElementById('teamBody');
     body.innerHTML = (data || []).map(u => `
         <tr>
             <td>${u.navn}</td>
             <td>${u.arbejdsnummer}</td>
             <td><span class="badge ${u.rolle}">${u.rolle}</span></td>
-            <td><button class="btn-xs" onclick="deleteUser('${u.id}')">Slet</button></td>
+            <td>
+                <button class="btn-xs" onclick="editUser('${u.id}')">Rediger</button>
+                <button class="btn-xs" onclick="deleteItem('brugere', '${u.id}', fetchTeam)">Slet</button>
+            </td>
         </tr>
     `).join('');
+}
+
+function editUser(id) {
+    const user = window.teamUsers.find(u => u.id === id);
+    if (!user) return;
+    document.getElementById('userId').value = user.id;
+    document.getElementById('userName').value = user.navn;
+    document.getElementById('userNum').value = user.arbejdsnummer;
+    document.getElementById('userPin').value = user.adgangskode;
+    document.getElementById('userRole').value = user.rolle.toLowerCase();
+    document.getElementById('userTitle').value = user.titel || '';
+    
+    const titleEl = document.querySelector('#modal-team h3');
+    if(titleEl) titleEl.innerText = "Rediger Medarbejder";
+    
+    document.getElementById('modal-overlay').classList.remove('hidden');
+    document.getElementById('modal-team').classList.remove('hidden');
 }
 
 async function fetchAssets() {
@@ -326,6 +347,14 @@ function showQR(name, id) {
 
 // ---------------- MANAGEMENT LOGIC ----------------
 function openModal(id) {
+    if (id === 'modal-team') {
+        document.getElementById('userId').value = '';
+        const form = document.querySelector('#modal-team form');
+        if (form) form.reset();
+        const titleEl = document.querySelector('#modal-team h3');
+        if(titleEl) titleEl.innerText = "Tilføj Medarbejder";
+    }
+
     document.getElementById('modal-overlay').classList.remove('hidden');
     document.getElementById(id).classList.remove('hidden');
     
@@ -382,27 +411,38 @@ async function handleLocationSubmit(e) {
 
 async function handleTeamSubmit(e) {
     e.preventDefault();
+    const id = document.getElementById('userId').value;
     const name = document.getElementById('userName').value;
     const num = document.getElementById('userNum').value;
     const role = document.getElementById('userRole').value;
     const pin = document.getElementById('userPin').value;
+    const title = document.getElementById('userTitle').value;
 
-    const { error } = await supabaseClient.from('brugere').insert({
+    const payload = {
         navn: name,
         arbejdsnummer: num,
         adgangskode: pin,
         rolle: role,
         firma_id: currentFirmaId,
-        afdeling: 'Produktion'
-    });
+        titel: title
+    };
+
+    let error;
+    if (id) {
+        const res = await supabaseClient.from('brugere').update(payload).eq('id', id);
+        error = res.error;
+    } else {
+        const res = await supabaseClient.from('brugere').insert(payload);
+        error = res.error;
+    }
 
     if (!error) {
         closeAllModals();
         fetchTeam();
         e.target.reset();
-        showSnackbar("Medarbejder oprettet succesfuldt");
+        showSnackbar(id ? "Medarbejder opdateret succesfuldt" : "Medarbejder oprettet succesfuldt");
     } else {
-        showSnackbar("Fejl ved oprettelse af medarbejder");
+        showSnackbar("Fejl ved gemning af medarbejder");
     }
 }
 

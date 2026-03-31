@@ -12,7 +12,7 @@
     <!-- NAVIGATION -->
     <nav class="main-nav">
         <div class="container">
-            <div class="logo">
+            <div class="logo" style="cursor:pointer;" onclick="showView('landing')">
                 <img src="easyon_app_icon.png" alt="Logo">
                 Easy<span>ON</span>
             </div>
@@ -24,6 +24,7 @@
             </div>
             <div class="nav-links hidden" id="userNav">
                 <span id="userNameDisplay">...</span>
+                <button class="btn-outline" onclick="showView('dashboard')">Dashboard</button>
                 <button class="btn-outline" onclick="logout()">Log ud</button>
             </div>
         </div>
@@ -251,6 +252,7 @@
             <button class="close-btn" onclick="closeAllModals()">&times;</button>
         </div>
         <form onsubmit="handleTeamSubmit(event)">
+            <input type="hidden" id="userId">
             <div class="input-group">
                 <label>Fulde Navn</label>
                 <input type="text" id="userName" required placeholder="Navn">
@@ -260,17 +262,22 @@
                 <input type="text" id="userNum" required placeholder="f.eks. 101">
             </div>
             <div class="input-group">
+                <label>Arbejdstitel</label>
+                <input type="text" id="userTitle" placeholder="f.eks. Elektriker eller Smed">
+            </div>
+            <div class="input-group">
                 <label>Adgangskode (PIN)</label>
                 <input type="password" id="userPin" required placeholder="Mindst 4 tal">
             </div>
             <div class="input-group">
                 <label>Rolle</label>
                 <select id="userRole">
-                    <option value="tekniker">Tekniker</option>
+                    <option value="bruger">Bruger</option>
+                    <option value="superbruger">Superbruger</option>
                     <option value="admin">Admin</option>
                 </select>
             </div>
-            <button type="submit" class="btn-primary w-100">Opret Medarbejder</button>
+            <button type="submit" class="btn-primary w-100">Gem Medarbejder</button>
         </form>
     </div>
 
