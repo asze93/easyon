@@ -345,14 +345,19 @@ function editUser(id) {
 
 async function fetchAssets() {
     const { data } = await supabaseClient.from('maskiner').select('*').eq('firma_id', currentFirmaId);
+    window.currentAssets = data || [];
     const body = document.getElementById('assetsBody');
-    body.innerHTML = (data || []).map(a => `
+    body.innerHTML = window.currentAssets.map(a => `
         <div class="asset-card">
             <div class="asset-img" style="background-image: url('${a.billede_path || 'placeholder.jpg'}')"></div>
             <div class="asset-info">
                 <h3>${a.navn}</h3>
-                <p>${a.placering}</p>
-                <button class="btn-outline btn-sm" onclick="showQR('${a.navn}', '${a.qr_kode_id}')">QR Kode</button>
+                <p>${a.placering || ''}</p>
+                ${a.sop_link ? `<a href="${a.sop_link}" target="_blank" style="text-decoration:none;font-size:12px;color:var(--primary);display:block;margin-bottom:5px;">SOP / Manual Link 🔗</a>` : ''}
+                <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:10px;">
+                    <button class="btn-outline btn-sm" onclick="showQR('${a.navn}', '${a.qr_kode_id}')">QR</button>
+                    <button class="btn-outline btn-sm" onclick="editAsset('${a.id}')">Rediger</button>
+                </div>
             </div>
         </div>
     `).join('');
@@ -360,11 +365,13 @@ async function fetchAssets() {
 
 async function fetchTasks() {
     const { data } = await supabaseClient.from('opgaver').select('*').eq('firma_id', currentFirmaId).order('id', { ascending: false });
+    window.currentTasks = data || [];
     const body = document.getElementById('tasksBody');
-    body.innerHTML = (data || []).map(t => `
-        <div class="task-row">
-            <div><strong>${t.titel}</strong><br><small>${t.status}</small></div>
-            <div class="prio-${t.prioritet}">${t.prioritet == 3 ? 'Høj' : 'Normal'}</div>
+    body.innerHTML = window.currentTasks.map(t => `
+        <div class="task-row" style="display:flex;align-items:center;">
+            <div style="flex:1;"><strong>${t.titel}</strong><br><small>${t.status} | Maskine: ${t.maskine_navn || '-'}</small></div>
+            <div class="prio-${t.prioritet}" style="margin-right: 15px;">${t.prioritet == 3 ? 'Høj' : 'Normal'}</div>
+            <button class="btn-outline btn-sm" onclick="editTask('${t.id}')">Rediger</button>
         </div>
     `).join('');
 }
@@ -387,21 +394,34 @@ function openModal(id) {
         if(titleEl) titleEl.innerText = "Tilføj Medarbejder";
     }
 
-    document.getElementById('modal-overlay').classList.remove('hidden');
-    document.getElementById(id).classList.remove('hidden');
-    
-    if (id === 'modal-asset') populateLocationsDropdown();
+    if (id === 'modal-location') {
+        document.getElementById('locId').value = '';
+        const form = document.querySelector('#modal-location form');
+        if(form) form.reset();
+        document.querySelector('#modal-location h3').innerText = "Tilføj Lokation";
+    }
+
+    if (id === 'modal-asset') {
+        document.getElementById('assetId').value = '';
+        const form = document.querySelector('#modal-asset form');
+        if(form) form.reset();
+        document.querySelector('#modal-asset h3').innerText = "Opret Asset (Maskine)";
+        populateLocationsDropdown();
+    }
+
     if (id === 'modal-task') {
+        document.getElementById('taskId').value = '';
         const formT = document.querySelector('#modal-task form');
         if (formT) formT.reset();
-        document.getElementById('dynamicAssigneeContainer').innerHTML = `
-            <div class="assignee-row" style="display:flex; gap:10px; margin-bottom:10px;">
-                <input list="taskPersonOptions" class="taskAssigneeInput" placeholder="Søg person..." style="flex:1;">
-            </div>
-        `;
+        document.getElementById('dynamicAssigneeContainer').innerHTML = '';
+        addAssigneeField(); // Tilføj den første tomme person
+        document.querySelector('#modal-task h3').innerText = "Ny Arbejdsordre";
         populateAssetsDropdown();
-        populateTaskDropdowns(); // Det nye fulde opsæt
+        populateTaskDropdowns();
     }
+
+    document.getElementById('modal-overlay').classList.remove('hidden');
+    document.getElementById(id).classList.remove('hidden');
 }
 
 function closeAllModals() {
@@ -418,13 +438,17 @@ function closeModal(id) {
 async function fetchLocations() {
     if (!currentFirmaId) return;
     const { data } = await supabaseClient.from('lokationer').select('*').eq('firma_id', currentFirmaId);
+    window.currentLocations = data || [];
     const body = document.getElementById('locationsBody');
     if (body) {
-        body.innerHTML = (data || []).map(l => `
+        body.innerHTML = window.currentLocations.map(l => `
             <tr>
                 <td><strong>${l.navn}</strong></td>
                 <td>${l.beskrivelse || '-'}</td>
-                <td><button class="btn-xs" onclick="deleteItem('lokationer', '${l.id}', fetchLocations)">Slet</button></td>
+                <td>
+                    <button class="btn-xs" onclick="editLocation('${l.id}')">Rediger</button>
+                    <button class="btn-xs" style="background:var(--danger);color:white;" onclick="deleteItem('lokationer', '${l.id}', fetchLocations)">Slet</button>
+                </td>
             </tr>
         `).join('');
     }
@@ -669,7 +693,7 @@ function showSnackbar(message) {
     }, 3000);
 }
 
-function addAssigneeField() {
+function addAssigneeField(val = '') {
     const container = document.getElementById('dynamicAssigneeContainer');
     if (!container) return;
     const div = document.createElement('div');
@@ -678,11 +702,114 @@ function addAssigneeField() {
     div.style.gap = '10px';
     div.style.marginBottom = '10px';
     div.innerHTML = `
-        <input list="taskPersonOptions" class="taskAssigneeInput" placeholder="Søg person..." style="flex:1;">
+        <input list="taskPersonOptions" class="taskAssigneeInput" placeholder="Søg person..." style="flex:1;" value="${val}">
         <button type="button" class="btn-xs" style="background:var(--danger);color:white;" onclick="this.parentElement.remove()">X</button>
     `;
     container.appendChild(div);
 }
+
+// ---------------- EDIT FUNCTIONS ----------------
+function editLocation(id) {
+    const loc = window.currentLocations.find(l => l.id === id);
+    if (!loc) return;
+    document.getElementById('locId').value = loc.id;
+    document.getElementById('locName').value = loc.navn;
+    document.getElementById('locDesc').value = loc.beskrivelse || '';
+    document.querySelector('#modal-location h3').innerText = "Rediger Lokation";
+    
+    document.getElementById('modal-overlay').classList.remove('hidden');
+    document.getElementById('modal-location').classList.remove('hidden');
+}
+
+function editAsset(id) {
+    const asset = window.currentAssets.find(a => a.id === id);
+    if (!asset) return;
+    document.getElementById('assetId').value = asset.id;
+    document.getElementById('assetName').value = asset.navn;
+    document.getElementById('assetLoc').value = asset.placering || '';
+    document.getElementById('assetSop').value = asset.sop_link || '';
+    document.querySelector('#modal-asset h3').innerText = "Rediger Maskine";
+    populateLocationsDropdown();
+    
+    document.getElementById('modal-overlay').classList.remove('hidden');
+    document.getElementById('modal-asset').classList.remove('hidden');
+}
+
+function editTask(id) {
+    const task = window.currentTasks.find(t => t.id === id);
+    if (!task) return;
+    
+    const formT = document.querySelector('#modal-task form');
+    if (formT) formT.reset();
+    
+    document.getElementById('taskId').value = task.id;
+    document.getElementById('taskTitle').value = task.titel;
+    document.getElementById('taskDesc').value = task.beskrivelse || '';
+    document.getElementById('taskRequester').value = task.opretter_navn || '';
+    document.getElementById('taskLoc').value = task.placering || '';
+    document.getElementById('taskAsset').value = task.maskine_navn || '';
+    
+    const prioNode = document.querySelector(`input[name="taskPrio"][value="${task.prioritet}"]`);
+    if(prioNode) prioNode.checked = true;
+    
+    document.getElementById('dynamicAssigneeContainer').innerHTML = '';
+    const tildelinger = task.tildelt_titel ? task.tildelt_titel.split(',').map(s => s.trim()) : [];
+    if(tildelinger.length === 0) {
+        addAssigneeField();
+    } else {
+        tildelinger.forEach(t => addAssigneeField(t));
+    }
+
+    document.querySelector('#modal-task h3').innerText = "Rediger Opgave";
+    populateAssetsDropdown();
+    populateTaskDropdowns();
+    
+    document.getElementById('modal-overlay').classList.remove('hidden');
+    document.getElementById('modal-task').classList.remove('hidden');
+}
+
+// ---------------- AUTO FILL & EVENT LISTENERS ----------------
+document.addEventListener('DOMContentLoaded', () => {
+    // Asset change -> Lokation Auto-fill
+    const taskAssetInput = document.getElementById('taskAsset');
+    if (taskAssetInput) {
+        taskAssetInput.addEventListener('change', async (e) => {
+            const assetName = e.target.value;
+            if(!assetName || !currentFirmaId) return;
+            const { data } = await supabaseClient.from('maskiner').select('placering').eq('navn', assetName).eq('firma_id', currentFirmaId).maybeSingle();
+            if(data && data.placering) {
+                const locInput = document.getElementById('taskLoc');
+                // Sæt kun hvis feltet er tomt
+                if(locInput && !locInput.value) {
+                    locInput.value = data.placering;
+                }
+            }
+        });
+    }
+
+    // Person search -> Titel & Afdeling Auto-fill (tilføjes på dynamic container)
+    const container = document.getElementById('dynamicAssigneeContainer');
+    if(container) {
+        container.addEventListener('change', async (e) => {
+            if(e.target && e.target.classList.contains('taskAssigneeInput')) {
+                const val = e.target.value;
+                if(!val || !currentFirmaId) return;
+                // Ex: "Palle (621)"
+                let realNum = val;
+                if(val.includes('(') && val.includes(')')) {
+                    realNum = val.split('(')[1].replace(')','').trim();
+                }
+                const { data } = await supabaseClient.from('brugere').select('titel, afdeling').eq('arbejdsnummer', realNum).eq('firma_id', currentFirmaId).maybeSingle();
+                if(data) {
+                    const tInput = document.getElementById('taskTitleAssign');
+                    const dInput = document.getElementById('taskDept');
+                    if(tInput && !tInput.value && data.titel) tInput.value = data.titel;
+                    if(dInput && !dInput.value && data.afdeling) dInput.value = data.afdeling;
+                }
+            }
+        });
+    }
+});
 
 // ---------------- STATISTICS LOGIC ----------------
 async function renderStatistics() {

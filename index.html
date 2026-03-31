@@ -257,6 +257,7 @@
             <button class="close-btn" onclick="closeAllModals()">&times;</button>
         </div>
         <form onsubmit="handleLocationSubmit(event)">
+            <input type="hidden" id="locId">
             <div class="input-group">
                 <label>Navn</label>
                 <input type="text" id="locName" required placeholder="f.eks. Hal A">
@@ -315,6 +316,7 @@
             <button class="close-btn" onclick="closeAllModals()">&times;</button>
         </div>
         <form onsubmit="handleAssetSubmit(event)">
+            <input type="hidden" id="assetId">
             <div class="input-group">
                 <label>Navn / Udstyr</label>
                 <input type="text" id="assetName" required placeholder="Maskinnavn">
@@ -326,7 +328,12 @@
                     <!-- Injected by JS -->
                 </datalist>
             </div>
-            <button type="submit" class="btn-primary w-100">Opret Asset</button>
+            <div class="input-group">
+                <label>SOP / Manual Link (URL)</label>
+                <input type="url" id="assetSop" placeholder="https://drev.com/maskin-manual.pdf">
+                <small style="color:var(--text-muted); font-size: 12px;">Link til vejledning som operatøren kan skanne i appen.</small>
+            </div>
+            <button type="submit" class="btn-primary w-100">Gem Asset</button>
         </form>
     </div>
 
@@ -337,6 +344,7 @@
             <button class="close-btn" onclick="closeAllModals()">&times;</button>
         </div>
         <form onsubmit="handleTaskSubmit(event)">
+            <input type="hidden" id="taskId">
             <div class="input-group">
                 <label>Hvad skal der gøres? (Titel) *</label>
                 <input type="text" id="taskTitle" required placeholder="Kort beskrivelse">
@@ -362,9 +370,14 @@
             <hr style="border: 0; border-top: 1px solid var(--border); margin: 25px 0;">
 
             <div class="input-group">
-                <label>Tildel til Afdeling</label>
-                <input list="taskDeptOptions" id="taskDept" placeholder="f.eks. Produktion, Vedligehold...">
-                <datalist id="taskDeptOptions"></datalist>
+                <label>Tildel til specifik Person (Søg navn/nr)</label>
+                <div id="dynamicAssigneeContainer">
+                    <div class="assignee-row" style="display:flex; gap:10px; margin-bottom:10px;">
+                        <input list="taskPersonOptions" class="taskAssigneeInput" placeholder="Søg person..." style="flex:1;">
+                    </div>
+                </div>
+                <datalist id="taskPersonOptions"></datalist>
+                <button type="button" class="btn-outline btn-sm w-100" onclick="addAssigneeField()">+ Tilføj endnu en person</button>
             </div>
 
             <div class="input-group">
@@ -374,14 +387,9 @@
             </div>
 
             <div class="input-group">
-                <label>Tildel til specifik Person (Søg navn/nr)</label>
-                <div id="dynamicAssigneeContainer">
-                    <div class="assignee-row" style="display:flex; gap:10px; margin-bottom:10px;">
-                        <input list="taskPersonOptions" class="taskAssigneeInput" placeholder="Søg person..." style="flex:1;">
-                    </div>
-                </div>
-                <datalist id="taskPersonOptions"></datalist>
-                <button type="button" class="btn-outline btn-sm w-100" onclick="addAssigneeField()">+ Tilføj endnu en person</button>
+                <label>Tildel til Afdeling</label>
+                <input list="taskDeptOptions" id="taskDept" placeholder="f.eks. Produktion, Vedligehold...">
+                <datalist id="taskDeptOptions"></datalist>
             </div>
 
             <hr style="border: 0; border-top: 1px solid var(--border); margin: 25px 0;">
@@ -401,18 +409,18 @@
             </div>
 
             <div class="input-group">
-                <label>Placering (Valgfri)</label>
-                <input list="taskLocOptionsAssign" id="taskLoc" placeholder="f.eks. Hal 1">
-                <datalist id="taskLocOptionsAssign"></datalist>
-            </div>
-
-            <div class="input-group">
                 <label>Maskine / Udstyr *</label>
                 <input list="taskAssetOptions" id="taskAsset" required placeholder="Vælg fra liste eller skriv en ny...">
                 <datalist id="taskAssetOptions"></datalist>
             </div>
 
-            <button type="submit" class="btn-primary w-100" style="margin-top: 10px;">Opret Opgave</button>
+            <div class="input-group">
+                <label>Placering (Valgfri)</label>
+                <input list="taskLocOptionsAssign" id="taskLoc" placeholder="f.eks. Hal 1">
+                <datalist id="taskLocOptionsAssign"></datalist>
+            </div>
+
+            <button type="submit" class="btn-primary w-100" style="margin-top: 10px;">Gem Opgave</button>
         </form>
     </div>
 
