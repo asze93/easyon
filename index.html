@@ -287,9 +287,10 @@
             </div>
             <div class="input-group">
                 <label>Lokation</label>
-                <select id="assetLoc" required>
+                <input list="assetLocOptions" id="assetLoc" required placeholder="Vælg fra liste eller skriv en ny...">
+                <datalist id="assetLocOptions">
                     <!-- Injected by JS -->
-                </select>
+                </datalist>
             </div>
             <button type="submit" class="btn-primary w-100">Opret Asset</button>
         </form>
@@ -308,9 +309,10 @@
             </div>
             <div class="input-group">
                 <label>Maskine / Asset</label>
-                <select id="taskAsset" required>
+                <input list="taskAssetOptions" id="taskAsset" required placeholder="Vælg fra liste eller skriv en ny...">
+                <datalist id="taskAssetOptions">
                     <!-- Injected by JS -->
-                </select>
+                </datalist>
             </div>
             <div class="input-group">
                 <label>Prioritet</label>

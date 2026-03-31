@@ -411,6 +411,14 @@ async function handleAssetSubmit(e) {
     const name = document.getElementById('assetName').value;
     const loc = document.getElementById('assetLoc').value;
 
+    // Auto-opret lokation, hvis den gæstes/skrives manuelt og ikke findes
+    if (loc) {
+        const { data: locData } = await supabaseClient.from('lokationer').select('id').eq('navn', loc).eq('firma_id', currentFirmaId).maybeSingle();
+        if (!locData) {
+            await supabaseClient.from('lokationer').insert({ navn: loc, beskrivelse: 'Automatisk oprettet', firma_id: currentFirmaId });
+        }
+    }
+
     const { error } = await supabaseClient.from('maskiner').insert({
         navn: name,
         placering: loc,
@@ -435,6 +443,19 @@ async function handleTaskSubmit(e) {
     const prio = document.getElementById('taskPrio').value;
     const desc = document.getElementById('taskDesc').value;
 
+    // Auto-opret maskine, hvis den skrives manuelt og ikke findes
+    if (asset) {
+        const { data: assetData } = await supabaseClient.from('maskiner').select('id').eq('navn', asset).eq('firma_id', currentFirmaId).maybeSingle();
+        if (!assetData) {
+            await supabaseClient.from('maskiner').insert({
+                navn: asset,
+                placering: 'Oprettet fra opgave',
+                firma_id: currentFirmaId,
+                qr_kode_id: "QR_" + Date.now()
+            });
+        }
+    }
+
     const { error } = await supabaseClient.from('opgaver').insert({
         titel: title,
         maskine_navn: asset,
@@ -457,16 +478,14 @@ async function handleTaskSubmit(e) {
 
 async function populateLocationsDropdown() {
     const { data } = await supabaseClient.from('lokationer').select('navn').eq('firma_id', currentFirmaId);
-    const select = document.getElementById('assetLoc');
-    select.innerHTML = '<option value="">Vælg lokation...</option>' + 
-        (data || []).map(l => `<option value="${l.navn}">${l.navn}</option>`).join('');
+    const datalist = document.getElementById('assetLocOptions');
+    datalist.innerHTML = (data || []).map(l => `<option value="${l.navn}">`).join('');
 }
 
 async function populateAssetsDropdown() {
     const { data } = await supabaseClient.from('maskiner').select('navn').eq('firma_id', currentFirmaId);
-    const select = document.getElementById('taskAsset');
-    select.innerHTML = '<option value="">Vælg maskine...</option>' + 
-        (data || []).map(a => `<option value="${a.navn}">${a.navn}</option>`).join('');
+    const datalist = document.getElementById('taskAssetOptions');
+    datalist.innerHTML = (data || []).map(a => `<option value="${a.navn}">`).join('');
 }
 
 async function deleteItem(table, id, callback) {
