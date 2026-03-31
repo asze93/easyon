@@ -349,34 +349,29 @@
                 </datalist>
             </div>
             <div class="input-group">
-                <label>Uddel Opgave Til (Afdeling / Arbejdstitel)</label>
-                <input list="taskAssigneeOptions" id="taskAssignee" placeholder="f.eks. Smed, Elektriker...">
+                <label>Uddel Opgave Til (Afdeling eller Person)</label>
+                <div id="dynamicAssigneeContainer">
+                    <div class="assignee-row" style="display:flex; gap:10px; margin-bottom:10px;">
+                        <input list="taskAssigneeOptions" class="taskAssigneeInput" placeholder="f.eks. Smed, Palle..." style="flex:1;">
+                    </div>
+                </div>
                 <datalist id="taskAssigneeOptions">
                     <!-- Injected by JS -->
                 </datalist>
-            </div>
-            <div class="input-group">
-                <label>Uddel Opgave Til (Afdeling / Arbejdstitel)</label>
-                <input list="taskAssigneeOptions" id="taskAssignee" placeholder="f.eks. Smed, Elektriker...">
-                <datalist id="taskAssigneeOptions">
-                    <!-- Injected by JS -->
-                </datalist>
-            </div>
-            <div class="input-group">
-                <label>Uddel Opgave Til (Afdeling / Arbejdstitel)</label>
-                <input list="taskAssigneeOptions" id="taskAssignee" placeholder="f.eks. Smed, Elektriker...">
-                <datalist id="taskAssigneeOptions">
-                    <!-- Injected by JS -->
-                </datalist>
+                <button type="button" class="btn-outline btn-sm w-100" onclick="addAssigneeField()">+ Tilføj endnu en afdeling eller person</button>
             </div>
             <div class="input-group">
                 <label>Prioritet</label>
-                <select id="taskPrio">
-                    <option value="0">Ingen</option>
-                    <option value="1">Lav</option>
-                    <option value="2">Medium</option>
-                    <option value="3">Høj</option>
-                </select>
+                <div class="segmented-control">
+                    <input type="radio" name="taskPrio" id="prio-0" value="0">
+                    <label for="prio-0">Ingen</label>
+                    <input type="radio" name="taskPrio" id="prio-1" value="1" checked>
+                    <label for="prio-1">Lav</label>
+                    <input type="radio" name="taskPrio" id="prio-2" value="2">
+                    <label for="prio-2">Med</label>
+                    <input type="radio" name="taskPrio" id="prio-3" value="3">
+                    <label for="prio-3">Høj</label>
+                </div>
             </div>
             <div class="input-group">
                 <label>Detaljeret beskrivelse</label>

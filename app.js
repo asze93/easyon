@@ -392,6 +392,13 @@ function openModal(id) {
     
     if (id === 'modal-asset') populateLocationsDropdown();
     if (id === 'modal-task') {
+        const formT = document.querySelector('#modal-task form');
+        if (formT) formT.reset();
+        document.getElementById('dynamicAssigneeContainer').innerHTML = `
+            <div class="assignee-row" style="display:flex; gap:10px; margin-bottom:10px;">
+                <input list="taskAssigneeOptions" class="taskAssigneeInput" placeholder="f.eks. Smed, Palle..." style="flex:1;">
+            </div>
+        `;
         populateAssetsDropdown();
         populateTitlerDropdown();
     }
@@ -526,9 +533,16 @@ async function handleTaskSubmit(e) {
     e.preventDefault();
     const title = document.getElementById('taskTitle').value;
     const asset = document.getElementById('taskAsset').value;
-    const prio = document.getElementById('taskPrio').value;
+    const prioNode = document.querySelector('input[name="taskPrio"]:checked');
+    const prio = prioNode ? prioNode.value : "1";
     const desc = document.getElementById('taskDesc').value;
-    const assignee = document.getElementById('taskAssignee').value;
+    
+    const assigneeInputs = document.querySelectorAll('.taskAssigneeInput');
+    let signees = [];
+    assigneeInputs.forEach(input => {
+        if(input.value.trim() !== '') signees.push(input.value.trim());
+    });
+    const assignee = signees.length > 0 ? signees.join(', ') : null;
 
     // Auto-opret maskine, hvis den skrives manuelt og ikke findes
     if (asset) {
@@ -550,8 +564,8 @@ async function handleTaskSubmit(e) {
         beskrivelse: desc,
         firma_id: currentFirmaId,
         status: 'Afventer',
-        dato: new Date().toISOString(),
         tildelt_titel: assignee || null
+        // 'oprettet_dato' defaults from DB.
     });
 
     if (!error) {
@@ -560,7 +574,8 @@ async function handleTaskSubmit(e) {
         e.target.reset();
         showSnackbar("Opgave oprettet succesfuldt");
     } else {
-        showSnackbar("Fejl ved oprettelse af opgave");
+        console.error("DB Error:", error);
+        showSnackbar("Fejl: " + (error.message || "Kunne ikke oprette opgave"));
     }
 }
 
@@ -577,11 +592,15 @@ async function populateAssetsDropdown() {
 }
 
 async function populateTitlerDropdown() {
-    const { data } = await supabaseClient.from('brugere').select('titel').eq('firma_id', currentFirmaId);
+    const { data } = await supabaseClient.from('brugere').select('titel, navn').eq('firma_id', currentFirmaId);
     if (!data) return;
     const datalist = document.getElementById('taskAssigneeOptions');
+    
     const uniqueTitler = [...new Set(data.filter(u => u.titel).map(u => u.titel))];
-    datalist.innerHTML = uniqueTitler.map(t => `<option value="${t}">`).join('');
+    const userNames = data.filter(u => u.navn).map(u => u.navn);
+    const combined = [...new Set([...uniqueTitler, ...userNames])];
+    
+    datalist.innerHTML = combined.map(t => `<option value="${t}">`).join('');
 }
 
 function addPhoneField(navn = '', nummer = '') {
@@ -620,12 +639,27 @@ function showSnackbar(message) {
     }, 3000);
 }
 
+function addAssigneeField() {
+    const container = document.getElementById('dynamicAssigneeContainer');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'assignee-row';
+    div.style.display = 'flex';
+    div.style.gap = '10px';
+    div.style.marginBottom = '10px';
+    div.innerHTML = `
+        <input list="taskAssigneeOptions" class="taskAssigneeInput" placeholder="f.eks. Smed, Palle..." style="flex:1;">
+        <button type="button" class="btn-xs" style="background:var(--danger);color:white;" onclick="this.parentElement.remove()">X</button>
+    `;
+    container.appendChild(div);
+}
+
 // ---------------- STATISTICS LOGIC ----------------
 async function renderStatistics() {
     if (!supabaseClient || !currentFirmaId) return;
 
     // Hent alle opgaver fra Supabase
-    const { data: tasks } = await supabaseClient.from('opgaver').select('status, dato, tildelt_titel').eq('firma_id', currentFirmaId);
+    const { data: tasks } = await supabaseClient.from('opgaver').select('status, oprettet_dato, tildelt_titel').eq('firma_id', currentFirmaId);
     if (!tasks || tasks.length === 0) return;
 
     const assigneeMap = {};
@@ -653,8 +687,8 @@ async function renderStatistics() {
         else statusMap[st] = 1;
 
         // Timeline (Dage)
-        if (t.dato) {
-            const tDate = t.dato.split('T')[0];
+        if (t.oprettet_dato) {
+            const tDate = t.oprettet_dato.split('T')[0];
             if (dateMap[tDate] !== undefined) dateMap[tDate]++;
         }
     });
