@@ -396,11 +396,11 @@ function openModal(id) {
         if (formT) formT.reset();
         document.getElementById('dynamicAssigneeContainer').innerHTML = `
             <div class="assignee-row" style="display:flex; gap:10px; margin-bottom:10px;">
-                <input list="taskAssigneeOptions" class="taskAssigneeInput" placeholder="f.eks. Smed, Palle..." style="flex:1;">
+                <input list="taskPersonOptions" class="taskAssigneeInput" placeholder="Søg person..." style="flex:1;">
             </div>
         `;
         populateAssetsDropdown();
-        populateTitlerDropdown();
+        populateTaskDropdowns(); // Det nye fulde opsæt
     }
 }
 
@@ -532,16 +532,30 @@ async function handleAssetSubmit(e) {
 async function handleTaskSubmit(e) {
     e.preventDefault();
     const title = document.getElementById('taskTitle').value;
-    const asset = document.getElementById('taskAsset').value;
+    const desc = document.getElementById('taskDesc').value;
+    const reqName = document.getElementById('taskRequester').value;
     const prioNode = document.querySelector('input[name="taskPrio"]:checked');
     const prio = prioNode ? prioNode.value : "1";
-    const desc = document.getElementById('taskDesc').value;
+    const loc = document.getElementById('taskLoc').value;
+    const asset = document.getElementById('taskAsset').value;
     
-    const assigneeInputs = document.querySelectorAll('.taskAssigneeInput');
+    // Tildelinger opsamling
     let signees = [];
+    
+    // 1. Afdeling
+    const dept = document.getElementById('taskDept').value;
+    if(dept.trim()) signees.push(dept.trim());
+    
+    // 2. Titel
+    const titleAssign = document.getElementById('taskTitleAssign').value;
+    if(titleAssign.trim()) signees.push(titleAssign.trim());
+
+    // 3. Personer
+    const assigneeInputs = document.querySelectorAll('.taskAssigneeInput');
     assigneeInputs.forEach(input => {
         if(input.value.trim() !== '') signees.push(input.value.trim());
     });
+    
     const assignee = signees.length > 0 ? signees.join(', ') : null;
 
     // Auto-opret maskine, hvis den skrives manuelt og ikke findes
@@ -564,8 +578,9 @@ async function handleTaskSubmit(e) {
         beskrivelse: desc,
         firma_id: currentFirmaId,
         status: 'Afventer',
-        tildelt_titel: assignee || null
-        // 'oprettet_dato' defaults from DB.
+        tildelt_titel: assignee || null,
+        opretter_navn: reqName || null,
+        placering: loc || null
     });
 
     if (!error) {
@@ -591,16 +606,31 @@ async function populateAssetsDropdown() {
     datalist.innerHTML = (data || []).map(a => `<option value="${a.navn}">`).join('');
 }
 
-async function populateTitlerDropdown() {
-    const { data } = await supabaseClient.from('brugere').select('titel, navn').eq('firma_id', currentFirmaId);
+async function populateTaskDropdowns() {
+    const { data } = await supabaseClient.from('brugere').select('*').eq('firma_id', currentFirmaId);
     if (!data) return;
-    const datalist = document.getElementById('taskAssigneeOptions');
     
-    const uniqueTitler = [...new Set(data.filter(u => u.titel).map(u => u.titel))];
-    const userNames = data.filter(u => u.navn).map(u => u.navn);
-    const combined = [...new Set([...uniqueTitler, ...userNames])];
+    const uniqueDepts = [...new Set(data.filter(u => u.afdeling).map(u => u.afdeling))];
+    const deptList = document.getElementById('taskDeptOptions');
+    if (deptList) deptList.innerHTML = uniqueDepts.map(d => `<option value="${d}">`).join('');
     
-    datalist.innerHTML = combined.map(t => `<option value="${t}">`).join('');
+    const uniqueTitles = [...new Set(data.filter(u => u.titel).map(u => u.titel))];
+    const titleList = document.getElementById('taskTitleOptions');
+    if (titleList) titleList.innerHTML = uniqueTitles.map(t => `<option value="${t}">`).join('');
+    
+    const personList = document.getElementById('taskPersonOptions');
+    if (personList) {
+        personList.innerHTML = data.map(u => {
+            const display = `${u.navn} (${u.arbejdsnummer})`;
+            return `<option value="${display}">`;
+        }).join('');
+    }
+    
+    const { data: locs } = await supabaseClient.from('lokationer').select('navn').eq('firma_id', currentFirmaId);
+    const locList = document.getElementById('taskLocOptionsAssign');
+    if(locList && locs) {
+        locList.innerHTML = locs.map(l => `<option value="${l.navn}">`).join('');
+    }
 }
 
 function addPhoneField(navn = '', nummer = '') {
@@ -648,7 +678,7 @@ function addAssigneeField() {
     div.style.gap = '10px';
     div.style.marginBottom = '10px';
     div.innerHTML = `
-        <input list="taskAssigneeOptions" class="taskAssigneeInput" placeholder="f.eks. Smed, Palle..." style="flex:1;">
+        <input list="taskPersonOptions" class="taskAssigneeInput" placeholder="Søg person..." style="flex:1;">
         <button type="button" class="btn-xs" style="background:var(--danger);color:white;" onclick="this.parentElement.remove()">X</button>
     `;
     container.appendChild(div);

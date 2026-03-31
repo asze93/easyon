@@ -331,35 +331,61 @@
     </div>
 
     <!-- MODAL: TASK -->
-    <div id="modal-task" class="modal-card hidden">
+    <div id="modal-task" class="modal-card hidden" style="max-height: 90vh; overflow-y: auto;">
         <div class="modal-header">
             <h3>Ny Arbejdsordre</h3>
             <button class="close-btn" onclick="closeAllModals()">&times;</button>
         </div>
         <form onsubmit="handleTaskSubmit(event)">
             <div class="input-group">
-                <label>Titel</label>
+                <label>Hvad skal der gøres? (Titel) *</label>
                 <input type="text" id="taskTitle" required placeholder="Kort beskrivelse">
             </div>
+
             <div class="input-group">
-                <label>Maskine / Asset</label>
-                <input list="taskAssetOptions" id="taskAsset" required placeholder="Vælg fra liste eller skriv en ny...">
-                <datalist id="taskAssetOptions">
-                    <!-- Injected by JS -->
-                </datalist>
+                <div style="width: 100%; height: 100px; border: 2px dashed rgba(30,136,229,0.5); border-radius: 8px; background: rgba(30,136,229,0.05); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--primary); cursor: pointer; margin-bottom: 20px;">
+                    <i class="icon" style="font-size: 24px; margin-bottom: 5px;">📷</i>
+                    <span style="font-weight: 500;">Tilføj eller tag billeder (Kommer snart)</span>
+                </div>
             </div>
+
             <div class="input-group">
-                <label>Uddel Opgave Til (Afdeling eller Person)</label>
+                <label>Beskrivelse *</label>
+                <textarea id="taskDesc" required rows="3" style="width: 100%; border: 2px solid var(--border); border-radius: 12px; padding: 14px 18px; outline:none; transition: border-color 0.2s; font-family: 'Outfit', sans-serif;" placeholder="Uddybende detaljer..."></textarea>
+            </div>
+
+            <div class="input-group">
+                <label>Rekvirent / Anmoders navn</label>
+                <input type="text" id="taskRequester" placeholder="Indtast anmoders navn">
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 25px 0;">
+
+            <div class="input-group">
+                <label>Tildel til Afdeling</label>
+                <input list="taskDeptOptions" id="taskDept" placeholder="f.eks. Produktion, Vedligehold...">
+                <datalist id="taskDeptOptions"></datalist>
+            </div>
+
+            <div class="input-group">
+                <label>Tildel til Arbejdstitel</label>
+                <input list="taskTitleOptions" id="taskTitleAssign" placeholder="f.eks. Smed, Elektriker...">
+                <datalist id="taskTitleOptions"></datalist>
+            </div>
+
+            <div class="input-group">
+                <label>Tildel til specifik Person (Søg navn/nr)</label>
                 <div id="dynamicAssigneeContainer">
                     <div class="assignee-row" style="display:flex; gap:10px; margin-bottom:10px;">
-                        <input list="taskAssigneeOptions" class="taskAssigneeInput" placeholder="f.eks. Smed, Palle..." style="flex:1;">
+                        <input list="taskPersonOptions" class="taskAssigneeInput" placeholder="Søg person..." style="flex:1;">
                     </div>
                 </div>
-                <datalist id="taskAssigneeOptions">
-                    <!-- Injected by JS -->
-                </datalist>
-                <button type="button" class="btn-outline btn-sm w-100" onclick="addAssigneeField()">+ Tilføj endnu en afdeling eller person</button>
+                <datalist id="taskPersonOptions"></datalist>
+                <button type="button" class="btn-outline btn-sm w-100" onclick="addAssigneeField()">+ Tilføj endnu en person</button>
             </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 25px 0;">
+
             <div class="input-group">
                 <label>Prioritet</label>
                 <div class="segmented-control">
@@ -373,11 +399,20 @@
                     <label for="prio-3">Høj</label>
                 </div>
             </div>
+
             <div class="input-group">
-                <label>Detaljeret beskrivelse</label>
-                <textarea id="taskDesc" rows="3" style="width: 100%; border: 2px solid var(--border); border-radius: 12px; padding: 14px 18px; outline:none; transition: border-color 0.2s; font-family: 'Outfit', sans-serif;"></textarea>
+                <label>Placering (Valgfri)</label>
+                <input list="taskLocOptionsAssign" id="taskLoc" placeholder="f.eks. Hal 1">
+                <datalist id="taskLocOptionsAssign"></datalist>
             </div>
-            <button type="submit" class="btn-primary w-100">Opret Opgave</button>
+
+            <div class="input-group">
+                <label>Maskine / Udstyr *</label>
+                <input list="taskAssetOptions" id="taskAsset" required placeholder="Vælg fra liste eller skriv en ny...">
+                <datalist id="taskAssetOptions"></datalist>
+            </div>
+
+            <button type="submit" class="btn-primary w-100" style="margin-top: 10px;">Opret Opgave</button>
         </form>
     </div>
 
