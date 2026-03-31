@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <!-- NAVIGATION -->
@@ -134,10 +135,11 @@
         <section id="view-dashboard" class="view dashboard-layout">
             <aside class="sidebar">
                 <div class="sidebar-links">
-                        <li><a href="#" class="dash-nav" data-tab="locations" onclick="dashTab('locations')"><i class="icon">📍</i> Lokationer</a></li>
-                        <li><a href="#" class="dash-nav" data-tab="team" onclick="dashTab('team')"><i class="icon">👥</i> Team / Medarbejdere</a></li>
-                        <li><a href="#" class="dash-nav" data-tab="assets" onclick="dashTab('assets')"><i class="icon">🏗️</i> Maskiner & Assets</a></li>
-                        <li><a href="#" class="dash-nav" data-tab="tasks" onclick="dashTab('tasks')"><i class="icon">📋</i> Arbejdsordre</a></li>
+                    <li><a href="#" class="dash-nav" data-tab="locations" onclick="dashTab('locations')"><i class="icon">📍</i> Lokationer</a></li>
+                    <li><a href="#" class="dash-nav" data-tab="team" onclick="dashTab('team')"><i class="icon">👥</i> Team / Medarbejdere</a></li>
+                    <li><a href="#" class="dash-nav" data-tab="assets" onclick="dashTab('assets')"><i class="icon">🏗️</i> Maskiner & Assets</a></li>
+                    <li><a href="#" class="dash-nav" data-tab="tasks" onclick="dashTab('tasks')"><i class="icon">📋</i> Arbejdsordre</a></li>
+                    <li><a href="#" class="dash-nav" data-tab="statistics" onclick="dashTab('statistics')"><i class="icon">📈</i> Statistik & Analyse</a></li>
                 </div>
             </aside>
             <div class="dash-content">
@@ -148,6 +150,28 @@
                         <div class="stat-card"><h3>-</h3><p>Maskiner registreret</p></div>
                         <div class="stat-card"><h3>-</h3><p>Teknikere online</p></div>
                     </div>
+                </div>
+
+                <div id="dash-statistics" class="dash-tab">
+                     <div class="flex-between">
+                        <h2>Statistik & Opgavedata</h2>
+                        <button class="btn-outline" onclick="renderStatistics()">Opdater grafer</button>
+                     </div>
+                     <p class="text-muted">Få indsigt i vedligeholdelses-performance, tidsforbrug og opgavefordeling.</p>
+                     <div class="charts-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px;">
+                        <div class="chart-card" style="background:#fff; border-radius:12px; padding:20px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+                            <h4>Opgaver per afdeling (Rolle / Titel)</h4>
+                            <canvas id="chartAssignee"></canvas>
+                        </div>
+                        <div class="chart-card" style="background:#fff; border-radius:12px; padding:20px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+                            <h4>Opgavestatus Fordeling</h4>
+                            <canvas id="chartStatus"></canvas>
+                        </div>
+                        <div class="chart-card" style="background:#fff; border-radius:12px; padding:20px; box-shadow:0 4px 6px rgba(0,0,0,0.05); grid-column: span 2;">
+                            <h4>Opgaver oprettet de sidste 7 dage</h4>
+                            <canvas id="chartTimeline"></canvas>
+                        </div>
+                     </div>
                 </div>
                 <div id="dash-locations" class="dash-tab">
                      <div class="flex-between">
@@ -258,9 +282,12 @@
                 <input type="text" id="userName" required placeholder="Navn">
             </div>
             <div class="input-group">
-                <label>Arbejdsnummer / Login ID</label>
+                <label>Arbejdsnummer / Login ID (Primært nummer)</label>
                 <input type="text" id="userNum" required placeholder="f.eks. 101">
             </div>
+            
+            <div id="dynamicPhoneContainer"></div>
+            <button type="button" class="btn-outline btn-sm" onclick="addPhoneField()" style="margin-bottom: 20px; width: 100%;">+ Tilføj ekstra nummer (f.eks. 'Telefon' eller 'Nødnummer')</button>
             <div class="input-group">
                 <label>Arbejdstitel</label>
                 <input type="text" id="userTitle" placeholder="f.eks. Elektriker eller Smed">
@@ -318,6 +345,27 @@
                 <label>Maskine / Asset</label>
                 <input list="taskAssetOptions" id="taskAsset" required placeholder="Vælg fra liste eller skriv en ny...">
                 <datalist id="taskAssetOptions">
+                    <!-- Injected by JS -->
+                </datalist>
+            </div>
+            <div class="input-group">
+                <label>Uddel Opgave Til (Afdeling / Arbejdstitel)</label>
+                <input list="taskAssigneeOptions" id="taskAssignee" placeholder="f.eks. Smed, Elektriker...">
+                <datalist id="taskAssigneeOptions">
+                    <!-- Injected by JS -->
+                </datalist>
+            </div>
+            <div class="input-group">
+                <label>Uddel Opgave Til (Afdeling / Arbejdstitel)</label>
+                <input list="taskAssigneeOptions" id="taskAssignee" placeholder="f.eks. Smed, Elektriker...">
+                <datalist id="taskAssigneeOptions">
+                    <!-- Injected by JS -->
+                </datalist>
+            </div>
+            <div class="input-group">
+                <label>Uddel Opgave Til (Afdeling / Arbejdstitel)</label>
+                <input list="taskAssigneeOptions" id="taskAssignee" placeholder="f.eks. Smed, Elektriker...">
+                <datalist id="taskAssigneeOptions">
                     <!-- Injected by JS -->
                 </datalist>
             </div>

@@ -3,6 +3,9 @@ let supabaseClient;
 let currentUser = null;
 let currentFirmaId = null;
 let authMode = 'login'; // 'login' or 'signup'
+let chartAssigneeInst = null;
+let chartStatusInst = null;
+let chartTimelineInst = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     initSupabase();
@@ -295,6 +298,9 @@ function dashTab(tab) {
         fetchTasks();
         fetchAssets(); // For dropdowns
     }
+    if (tab === 'statistics') {
+        renderStatistics();
+    }
 }
 
 async function fetchTeam() {
@@ -323,6 +329,12 @@ function editUser(id) {
     document.getElementById('userPin').value = user.adgangskode;
     document.getElementById('userRole').value = user.rolle.toLowerCase();
     document.getElementById('userTitle').value = user.titel || '';
+
+    // Genopbyg dynamiske telefonnumre
+    document.getElementById('dynamicPhoneContainer').innerHTML = '';
+    if (user.ekstra_info && Array.isArray(user.ekstra_info)) {
+        user.ekstra_info.forEach(info => addPhoneField(info.navn, info.nummer));
+    }
     
     const titleEl = document.querySelector('#modal-team h3');
     if(titleEl) titleEl.innerText = "Rediger Medarbejder";
@@ -370,6 +382,7 @@ function openModal(id) {
         document.getElementById('userId').value = '';
         const form = document.querySelector('#modal-team form');
         if (form) form.reset();
+        document.getElementById('dynamicPhoneContainer').innerHTML = ''; // Nulstil dynamiske telefoner
         const titleEl = document.querySelector('#modal-team h3');
         if(titleEl) titleEl.innerText = "Tilføj Medarbejder";
     }
@@ -378,7 +391,10 @@ function openModal(id) {
     document.getElementById(id).classList.remove('hidden');
     
     if (id === 'modal-asset') populateLocationsDropdown();
-    if (id === 'modal-task') populateAssetsDropdown();
+    if (id === 'modal-task') {
+        populateAssetsDropdown();
+        populateTitlerDropdown();
+    }
 }
 
 function closeAllModals() {
@@ -437,13 +453,22 @@ async function handleTeamSubmit(e) {
     const pin = document.getElementById('userPin').value;
     const title = document.getElementById('userTitle').value;
 
+    const phoneItems = document.querySelectorAll('.dynamic-phone');
+    const ekstraInfo = [];
+    phoneItems.forEach(item => {
+        const pName = item.querySelector('.phone-name').value;
+        const pNum = item.querySelector('.phone-num').value;
+        if(pName || pNum) ekstraInfo.push({ navn: pName, nummer: pNum });
+    });
+
     const payload = {
         navn: name,
         arbejdsnummer: num,
         adgangskode: pin,
         rolle: role,
         firma_id: currentFirmaId,
-        titel: title
+        titel: title,
+        ekstra_info: ekstraInfo
     };
 
     let error;
@@ -501,6 +526,7 @@ async function handleTaskSubmit(e) {
     const asset = document.getElementById('taskAsset').value;
     const prio = document.getElementById('taskPrio').value;
     const desc = document.getElementById('taskDesc').value;
+    const assignee = document.getElementById('taskAssignee').value;
 
     // Auto-opret maskine, hvis den skrives manuelt og ikke findes
     if (asset) {
@@ -522,7 +548,8 @@ async function handleTaskSubmit(e) {
         beskrivelse: desc,
         firma_id: currentFirmaId,
         status: 'Afventer',
-        dato: new Date().toISOString()
+        dato: new Date().toISOString(),
+        tildelt_titel: assignee || null
     });
 
     if (!error) {
@@ -547,6 +574,29 @@ async function populateAssetsDropdown() {
     datalist.innerHTML = (data || []).map(a => `<option value="${a.navn}">`).join('');
 }
 
+async function populateTitlerDropdown() {
+    const { data } = await supabaseClient.from('brugere').select('titel').eq('firma_id', currentFirmaId);
+    if (!data) return;
+    const datalist = document.getElementById('taskAssigneeOptions');
+    const uniqueTitler = [...new Set(data.filter(u => u.titel).map(u => u.titel))];
+    datalist.innerHTML = uniqueTitler.map(t => `<option value="${t}">`).join('');
+}
+
+function addPhoneField(navn = '', nummer = '') {
+    const container = document.getElementById('dynamicPhoneContainer');
+    const div = document.createElement('div');
+    div.className = 'input-group dynamic-phone';
+    div.style.display = 'flex';
+    div.style.gap = '10px';
+    div.style.marginBottom = '10px';
+    div.innerHTML = `
+        <input type="text" class="phone-name" placeholder="Navn (f.eks. Mobil)" value="${navn}" required style="flex: 1;">
+        <input type="text" class="phone-num" placeholder="Nummer" value="${nummer}" required style="flex: 2;">
+        <button type="button" class="btn-xs" style="background:var(--danger);color:white;" onclick="this.parentElement.remove()">X</button>
+    `;
+    container.appendChild(div);
+}
+
 async function deleteItem(table, id, callback) {
     if (!confirm("Er du sikker?")) return;
     const { error } = await supabaseClient.from(table).delete().eq('id', id);
@@ -566,4 +616,93 @@ function showSnackbar(message) {
     setTimeout(() => {
         sb.className = sb.className.replace("show", "");
     }, 3000);
+}
+
+// ---------------- STATISTICS LOGIC ----------------
+async function renderStatistics() {
+    if (!supabaseClient || !currentFirmaId) return;
+
+    // Hent alle opgaver fra Supabase
+    const { data: tasks } = await supabaseClient.from('opgaver').select('status, dato, tildelt_titel').eq('firma_id', currentFirmaId);
+    if (!tasks || tasks.length === 0) return;
+
+    const assigneeMap = {};
+    const statusMap = { 'Venter': 0, 'Pause': 0, 'I gang': 0, 'Færdig': 0 };
+    const dateMap = {};
+
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    // Skab seneste 7 dage som 0
+    for(let i=6; i>=0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        dateMap[d.toISOString().split('T')[0]] = 0;
+    }
+
+    // Byg kort
+    tasks.forEach(t => {
+        // Assignee
+        const ass = (t.tildelt_titel && t.tildelt_titel.trim() !== "") ? t.tildelt_titel : 'Ufordelt';
+        assigneeMap[ass] = (assigneeMap[ass] || 0) + 1;
+        
+        // Status
+        const st = t.status || 'Venter';
+        if (statusMap[st] !== undefined) statusMap[st]++;
+        else statusMap[st] = 1;
+
+        // Timeline (Dage)
+        if (t.dato) {
+            const tDate = t.dato.split('T')[0];
+            if (dateMap[tDate] !== undefined) dateMap[tDate]++;
+        }
+    });
+
+    if (typeof Chart === 'undefined') return;
+
+    // 1. Doughnut: Afdeling / Titel
+    const ctxA = document.getElementById('chartAssignee');
+    if(chartAssigneeInst) chartAssigneeInst.destroy();
+    chartAssigneeInst = new Chart(ctxA, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(assigneeMap),
+            datasets: [{
+                data: Object.values(assigneeMap),
+                backgroundColor: ['#1E88E5', '#43A047', '#FFB300', '#E53935', '#E91E63', '#00ACC1', '#8E24AA']
+            }]
+        },
+        options: { plugins: { legend: { position: 'right' } } }
+    });
+
+    // 2. Pie: Status
+    const ctxS = document.getElementById('chartStatus');
+    if(chartStatusInst) chartStatusInst.destroy();
+    chartStatusInst = new Chart(ctxS, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(statusMap),
+            datasets: [{
+                data: Object.values(statusMap),
+                backgroundColor: ['#9E9E9E', '#FFB300', '#1E88E5', '#43A047']
+            }]
+        },
+        options: { plugins: { legend: { position: 'right' } } }
+    });
+
+    // 3. Bar Chart: Timeline (Dage)
+    const ctxT = document.getElementById('chartTimeline');
+    if(chartTimelineInst) chartTimelineInst.destroy();
+    chartTimelineInst = new Chart(ctxT, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(dateMap),
+            datasets: [{
+                label: 'Nye Opgaver oprettet',
+                data: Object.values(dateMap),
+                backgroundColor: '#1E88E5',
+                borderRadius: 4
+            }]
+        },
+        options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+    });
 }
