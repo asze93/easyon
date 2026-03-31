@@ -19,6 +19,7 @@ function initSupabase() {
 }
 
 async function checkSession() {
+    if (!supabaseClient) return;
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) {
         currentUser = session.user;
@@ -30,7 +31,6 @@ async function checkSession() {
 
 // ---------------- NAVIGATION ----------------
 function showView(viewId) {
-    console.log("Skifter til view:", viewId);
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     
     const target = document.getElementById('view-' + viewId);
@@ -39,7 +39,7 @@ function showView(viewId) {
         window.scrollTo(0, 0);
     }
     
-    // UI Updates
+    // Header UI updates
     if (viewId === 'landing') {
         document.getElementById('guestNav').classList.remove('hidden');
         document.getElementById('userNav').classList.add('hidden');
@@ -121,7 +121,6 @@ async function logout() {
     await supabaseClient.auth.signOut();
     currentUser = null;
     currentFirmaId = null;
-    localStorage.removeItem('supabase.auth.token');
     location.reload();
 }
 
@@ -147,10 +146,10 @@ async function startCloudProvisioning() {
     currentFirmaId = "FID_" + Math.random().toString(36).substr(2, 6).toUpperCase();
 
     const tasks = [
-        "Forbinder til sikker cloud...",
         "Opretter firma-id: " + currentFirmaId,
-        "Konfigurerer databasetabeller...",
-        "Tilføjer maskine: " + asset,
+        "Opsætter databasetabeller...",
+        "Konfigurerer " + asset + "...",
+        "Færdiggør Admin rettigheder...",
         "Klar!"
     ];
 
@@ -173,7 +172,7 @@ async function startCloudProvisioning() {
         // Create First Asset
         await supabaseClient.from('maskiner').insert({
             navn: asset,
-            placering: loc || "Hovedafdeling",
+            placering: loc || "Produktion",
             firma_id: currentFirmaId,
             qr_kode_id: "QR_" + Date.now()
         });
@@ -196,7 +195,7 @@ async function loadDashboard() {
         const { data } = await supabaseClient
             .from('brugere')
             .select('firma_id')
-            .eq('rolle', 'admin') // Simple check
+            .eq('rolle', 'admin')
             .limit(1)
             .maybeSingle();
         if (data) currentFirmaId = data.firma_id;
