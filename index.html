@@ -60,8 +60,12 @@
                         <input type="text" id="authEmail" placeholder="email@firma.dk eller nr." required>
                     </div>
                     <div class="input-group">
-                        <label>Adgangskode (PIN)</label>
+                        <label>Adgangskode (min. 6 tegn)</label>
                         <input type="password" id="authPass" placeholder="••••" required>
+                    </div>
+                    <div class="input-group hidden" id="passConfirmGroup">
+                        <label>Bekræft Adgangskode</label>
+                        <input type="password" id="authPassConfirm" placeholder="••••">
                     </div>
                     <button type="submit" class="btn-primary w-100" id="authBtn">Fortsæt</button>
                 </form>
@@ -69,6 +73,18 @@
                     <span id="toggleText">Har du ikke en konto?</span> 
                     <a href="#" id="toggleLink" onclick="toggleAuthMode()">Opret her</a>
                 </p>
+            </div>
+        </section>
+
+        <!-- VIEW: VERIFY EMAIL -->
+        <section id="view-verify-email" class="view">
+            <div class="auth-card">
+                <div class="loader-container">
+                    <div class="icon" style="font-size: 60px; margin-bottom: 20px;">📧</div>
+                    <h2>Tjek din inbox!</h2>
+                    <p>Vi har sendt en bekræftelses-mail til din adresse. Du skal klikke på linket i mailen for at aktivere din admin-bruger og fortsætte opsætningen.</p>
+                    <button class="btn-outline w-100" onclick="showView('landing')">Tilbage til forsiden</button>
+                </div>
             </div>
         </section>
 

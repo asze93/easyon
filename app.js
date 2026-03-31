@@ -23,7 +23,22 @@ async function checkSession() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) {
         currentUser = session.user;
-        await loadDashboard();
+        
+        // We need to check if this Admin has already set up a firma
+        const { data } = await supabaseClient
+            .from('brugere')
+            .select('firma_id')
+            .eq('rolle', 'admin')
+            .limit(1)
+            .maybeSingle();
+
+        if (data && data.firma_id) {
+            currentFirmaId = data.firma_id;
+            await loadDashboard();
+        } else {
+            // New admin, needs to complete wizard
+            showView('wizard');
+        }
     } else {
         showView('landing');
     }
@@ -55,6 +70,7 @@ function toggleAuthMode(forcedMode) {
     const btn = document.getElementById('authBtn');
     const toggle = document.getElementById('toggleText');
     const nameGroup = document.getElementById('nameGroup');
+    const passConfirmGroup = document.getElementById('passConfirmGroup');
 
     if (authMode === 'signup') {
         title.innerText = "Opret Admin Konto";
@@ -63,6 +79,8 @@ function toggleAuthMode(forcedMode) {
         toggle.innerText = "Har du allerede en konto?";
         document.getElementById('toggleLink').innerText = "Log ind her";
         nameGroup.classList.remove('hidden');
+        passConfirmGroup.classList.remove('hidden');
+        document.getElementById('authPassConfirm').setAttribute('required', 'true');
     } else {
         title.innerText = "Log ind på EasyON";
         sub.innerText = "Indtast dine oplysninger nedenfor";
@@ -70,6 +88,8 @@ function toggleAuthMode(forcedMode) {
         toggle.innerText = "Har du ikke en konto?";
         document.getElementById('toggleLink').innerText = "Opret her";
         nameGroup.classList.add('hidden');
+        passConfirmGroup.classList.add('hidden');
+        document.getElementById('authPassConfirm').removeAttribute('required');
     }
     showView('auth');
 }
@@ -83,14 +103,22 @@ async function handleAuth(e) {
 
     try {
         if (authMode === 'signup') {
+            const passConfirm = document.getElementById('authPassConfirm').value;
+            
+            // Validation
+            if (pass.length < 6) throw new Error("Adgangskoden skal være mindst 6 tegn lang.");
+            if (pass !== passConfirm) throw new Error("Adgangskoderne er ikke ens. Tjek venligst din indtastning.");
+
             const { data, error } = await supabaseClient.auth.signUp({
                 email: email,
                 password: pass,
                 options: { data: { full_name: name } }
             });
             if (error) throw error;
+            
+            // IMPORTANT: If email confirmation is enabled, we show the verify view
             currentUser = data.user;
-            showView('wizard');
+            showView('verify-email');
         } else {
             if (email.includes('@')) {
                 // Admin Login
