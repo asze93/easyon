@@ -61,12 +61,14 @@ function toggleAuthMode(forcedMode) {
         sub.innerText = "Start dit firmas transformation i dag";
         btn.innerText = "Tilmeld mig";
         toggle.innerText = "Har du allerede en konto?";
+        document.getElementById('toggleLink').innerText = "Log ind her";
         nameGroup.classList.remove('hidden');
     } else {
         title.innerText = "Log ind på EasyON";
         sub.innerText = "Indtast dine oplysninger nedenfor";
         btn.innerText = "Log ind";
         toggle.innerText = "Har du ikke en konto?";
+        document.getElementById('toggleLink').innerText = "Opret her";
         nameGroup.classList.add('hidden');
     }
     showView('auth');
