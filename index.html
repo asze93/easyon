@@ -19,8 +19,8 @@
             <div class="nav-links" id="guestNav">
                 <a href="#features">Funktioner</a>
                 <a href="#pricing">Priser</a>
-                <button class="btn-login" onclick="showView('login')">Log ind</button>
-                <button class="btn-primary" onclick="showView('signup')">Prøv gratis</button>
+                <button class="btn-login" onclick="showView('auth')">Log ind</button>
+                <button class="btn-primary" onclick="toggleAuthMode('signup')">Prøv gratis</button>
             </div>
             <div class="nav-links hidden" id="userNav">
                 <span id="userNameDisplay">...</span>
@@ -36,8 +36,7 @@
                 <h1>Fremtidens vedligeholdelse er <span>digital</span></h1>
                 <p>EasyON samler dit team, dine maskiner og dine opgaver i én enkel sky-løsning. Slip for papirarbejde og få overblik over dit anlæg på få sekunder.</p>
                 <div class="hero-btns">
-                    <button class="btn-primary btn-lg" onclick="showView('signup')">Kom i gang på 2 minutter</button>
-                    <button class="btn-outline btn-lg">Se demo video</button>
+                    <button class="btn-primary btn-lg" onclick="toggleAuthMode('signup')">Kom i gang på 2 minutter</button>
                 </div>
                 <div class="hero-mockup">
                     <img src="dashboard_mockup.png" alt="App Dashboard Preview" class="floating">
@@ -53,16 +52,16 @@
                 
                 <form id="authForm" onsubmit="handleAuth(event)">
                     <div class="input-group" id="nameGroup">
-                        <label>Navn</label>
-                        <input type="text" id="authName" placeholder="Dit navn">
+                        <label>Fulde Navn</label>
+                        <input type="text" id="authName" placeholder="Dit navn" required>
                     </div>
                     <div class="input-group">
                         <label>E-mail / Arbejdsnummer</label>
-                        <input type="text" id="authEmail" placeholder="email@firma.dk eller nr.">
+                        <input type="text" id="authEmail" placeholder="email@firma.dk eller nr." required>
                     </div>
                     <div class="input-group">
                         <label>Adgangskode (PIN)</label>
-                        <input type="password" id="authPass" placeholder="••••">
+                        <input type="password" id="authPass" placeholder="••••" required>
                     </div>
                     <button type="submit" class="btn-primary w-100" id="authBtn">Fortsæt</button>
                 </form>
@@ -128,9 +127,9 @@
                 <div id="dash-overview" class="dash-tab active">
                     <h1>Velkommen tilbage, <span class="adminName">Admin</span>!</h1>
                     <div class="stats-grid">
-                        <div class="stat-card"><h3>24</h3><p>Aktive opgaver</p></div>
-                        <div class="stat-card"><h3>12</h3><p>Maskiner registreret</p></div>
-                        <div class="stat-card"><h3>4</h3><p>Teknikere online</p></div>
+                        <div class="stat-card"><h3>-</h3><p>Aktive opgaver</p></div>
+                        <div class="stat-card"><h3>-</h3><p>Maskiner registreret</p></div>
+                        <div class="stat-card"><h3>-</h3><p>Teknikere online</p></div>
                     </div>
                 </div>
                 <!-- Team management will be injected here -->

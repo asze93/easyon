@@ -92,8 +92,8 @@ body {
 }
 
 /* VIEWS */
-.view { display: none; padding: 60px 0; min-height: 80vh; }
-.view.active { display: block; animation: fadeIn 0.4s ease-out; }
+.view { display: none !important; padding: 60px 0; min-height: 80vh; }
+.view.active { display: block !important; animation: fadeIn 0.4s ease-out; }
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
