@@ -1,109 +1,197 @@
 <!DOCTYPE html>
 <html lang="da">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EasyON | Konfigurer dit system</title>
+    <title>EasyON | Cloud Vedligeholdelse</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-
 <body>
-    <div class="nav-bar">
-        <div class="logo">
-            <img src="easyon_app_icon.png" alt="EasyON Logo" style="height: 40px; margin-right: 10px; vertical-align: middle;">
-            Easy<span>ON</span>
+    <!-- NAVIGATION -->
+    <nav class="main-nav">
+        <div class="container">
+            <div class="logo">
+                <img src="easyon_app_icon.png" alt="Logo">
+                Easy<span>ON</span>
+            </div>
+            <div class="nav-links" id="guestNav">
+                <a href="#features">Funktioner</a>
+                <a href="#pricing">Priser</a>
+                <button class="btn-login" onclick="showView('login')">Log ind</button>
+                <button class="btn-primary" onclick="showView('signup')">Prøv gratis</button>
+            </div>
+            <div class="nav-links hidden" id="userNav">
+                <span id="userNameDisplay">...</span>
+                <button class="btn-outline" onclick="logout()">Log ud</button>
+            </div>
         </div>
-        <div class="nav-links">
-            <a href="#">Priser</a>
-            <a href="#">Funktioner</a>
-            <a href="#" class="btn-outline">Log ind</a>
-        </div>
-    </div>
+    </nav>
 
-    <main class="wizard-container">
-        <!-- STEP 1: Velkomst -->
-        <section class="wizard-step active" id="step1">
+    <main id="app">
+        <!-- VIEW: LANDING -->
+        <section id="view-landing" class="view active">
             <div class="hero">
-                <h1>Få kontrol over din <span>vedligeholdelse</span></h1>
-                <p>Opret dit eget personlige EasyON system på under 2 minutter. Designet til moderne teknikere.</p>
-                <button class="btn-primary" onclick="nextStep(2)">Kom i gang gratis</button>
-                <div class="app-preview">
-                    <!-- Placeholder for app screenshot or illustration -->
-                    <div class="mockup"></div>
+                <h1>Fremtidens vedligeholdelse er <span>digital</span></h1>
+                <p>EasyON samler dit team, dine maskiner og dine opgaver i én enkel sky-løsning. Slip for papirarbejde og få overblik over dit anlæg på få sekunder.</p>
+                <div class="hero-btns">
+                    <button class="btn-primary btn-lg" onclick="showView('signup')">Kom i gang på 2 minutter</button>
+                    <button class="btn-outline btn-lg">Se demo video</button>
+                </div>
+                <div class="hero-mockup">
+                    <img src="dashboard_mockup.png" alt="App Dashboard Preview" class="floating">
                 </div>
             </div>
         </section>
 
-        <!-- STEP 2: Konfiguration -->
-        <section class="wizard-step" id="step2">
-            <div class="form-card">
-                <h2>Konfigurer din app</h2>
-                <p>Vi tilpasser EasyON til netop dine behov.</p>
+        <!-- VIEW: LOGIN / SIGNUP -->
+        <section id="view-auth" class="view">
+            <div class="auth-card">
+                <h2 id="authTitle">Log ind på EasyON</h2>
+                <p id="authSub">Indtast dine oplysninger nedenfor</p>
                 
-                <div class="input-group">
-                    <label>Firmanavn</label>
-                    <input type="text" id="companyName" placeholder="F.eks. Jensen Maskiner A/S">
+                <form id="authForm" onsubmit="handleAuth(event)">
+                    <div class="input-group" id="nameGroup">
+                        <label>Navn</label>
+                        <input type="text" id="authName" placeholder="Dit navn">
+                    </div>
+                    <div class="input-group">
+                        <label>E-mail / Arbejdsnummer</label>
+                        <input type="text" id="authEmail" placeholder="email@firma.dk eller nr.">
+                    </div>
+                    <div class="input-group">
+                        <label>Adgangskode (PIN)</label>
+                        <input type="password" id="authPass" placeholder="••••">
+                    </div>
+                    <button type="submit" class="btn-primary w-100" id="authBtn">Fortsæt</button>
+                </form>
+                <p class="auth-toggle">
+                    <span id="toggleText">Har du ikke en konto?</span> 
+                    <a href="#" onclick="toggleAuthMode()">Opret her</a>
+                </p>
+            </div>
+        </section>
+
+        <!-- VIEW: WIZARD -->
+        <section id="view-wizard" class="view">
+            <div class="wizard-box">
+                <div class="wizard-steps">
+                    <div class="step active" data-step="1">1</div>
+                    <div class="line"></div>
+                    <div class="step" data-step="2">2</div>
+                    <div class="line"></div>
+                    <div class="step" data-step="3">3</div>
                 </div>
 
-                <div class="input-group">
-                    <label>Branche</label>
-                    <select id="industry">
-                        <option value="produktion">Produktion</option>
-                        <option value="fødevarer">Fødevarer</option>
-                        <option value="logistik">Logistik</option>
-                        <option value="andet">Andet</option>
+                <div class="wizard-content" id="step1">
+                    <h2>Fortæl os om dit firma</h2>
+                    <input type="text" id="bizName" placeholder="Firmanavn">
+                    <select id="bizIndustry">
+                        <option value="">Vælg branche...</option>
+                        <option value="manufacturing">Produktion</option>
+                        <option value="food">Fødevarer</option>
+                        <option value="logistics">Logistik</option>
                     </select>
+                    <button class="btn-primary" onclick="nextWizard(2)">Næste trin</button>
                 </div>
 
-                <div class="input-group">
-                    <label>Antal Maskiner (Anslået)</label>
-                    <input type="number" id="assetCount" placeholder="25">
+                <div class="wizard-content hidden" id="step2">
+                    <h2>Opret dit første asset</h2>
+                    <p>Hvad er den vigtigste maskine eller lokation i dit firma?</p>
+                    <input type="text" id="firstAsset" placeholder="Maskinnavn (f.eks. Pakkelinje 1)">
+                    <input type="text" id="firstLoc" placeholder="Placering (f.eks. Hal A)">
+                    <button class="btn-primary" onclick="nextWizard(3)">Konfigurer system...</button>
                 </div>
 
-                <button class="btn-primary" onclick="startCreation()">Byg min personlige app</button>
+                <div class="wizard-content hidden" id="step3">
+                    <div class="loader-container">
+                        <div class="loader"></div>
+                        <h3>Sætter dit system op...</h3>
+                        <p id="wizardStatus">Opretter sikker cloud-database</p>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <!-- STEP 3: Loading -->
-        <section class="wizard-step" id="step3">
-            <div class="loading-state">
-                <div class="spinner"></div>
-                <h2 id="loadingText">Bygger din database...</h2>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
+        <!-- VIEW: DASHBOARD (ADMIN) -->
+        <section id="view-dashboard" class="view dashboard-layout">
+            <aside class="sidebar">
+                <div class="sidebar-links">
+                    <a href="#" class="active" onclick="dashTab('overview')"><i class="icon">📊</i> Overblik</a>
+                    <a href="#" onclick="dashTab('team')"><i class="icon">👥</i> Team / Medarbejdere</a>
+                    <a href="#" onclick="dashTab('assets')"><i class="icon">🏗️</i> Maskiner & Assets</a>
+                    <a href="#" onclick="dashTab('tasks')"><i class="icon">📋</i> Arbejdsordre</a>
+                </div>
+            </aside>
+            <div class="dash-content">
+                <div id="dash-overview" class="dash-tab active">
+                    <h1>Velkommen tilbage, <span class="adminName">Admin</span>!</h1>
+                    <div class="stats-grid">
+                        <div class="stat-card"><h3>24</h3><p>Aktive opgaver</p></div>
+                        <div class="stat-card"><h3>12</h3><p>Maskiner registreret</p></div>
+                        <div class="stat-card"><h3>4</h3><p>Teknikere online</p></div>
+                    </div>
+                </div>
+                <!-- Team management will be injected here -->
+                <div id="dash-team" class="dash-tab">
+                     <div class="flex-between">
+                        <h2>Dit Team</h2>
+                        <button class="btn-primary" onclick="openAddUser()">+ Tilføj Medarbejder</button>
+                     </div>
+                     <p class="text-muted">Administrer dine teknikere og deres adgangskoder.</p>
+                     <div class="table-container">
+                        <table id="teamTable">
+                            <thead><tr><th>Navn</th><th>Arbejdsnr.</th><th>Rolle</th><th>Handling</th></tr></thead>
+                            <tbody id="teamBody"></tbody>
+                        </table>
+                     </div>
+                </div>
+
+                <div id="dash-assets" class="dash-tab">
+                     <div class="flex-between">
+                        <h2>Maskiner & Assets</h2>
+                        <button class="btn-primary" onclick="openAddAsset()">+ Opret Asset</button>
+                     </div>
+                     <p class="text-muted">Se dine maskiner og generer QR-koder til print.</p>
+                     <div class="assets-grid" id="assetsBody"></div>
+                </div>
+
+                <div id="dash-tasks" class="dash-tab">
+                     <h2>Arbejdsordre (Live)</h2>
+                     <p>Oversigt over igangværende vedligeholdelsesopgaver.</p>
+                     <div id="tasksBody" class="tasks-list"></div>
                 </div>
             </div>
         </section>
 
-        <!-- STEP 4: Færdig -->
-        <section class="wizard-step" id="step4">
-            <div class="success-card">
-                <img src="easyon_app_icon.png" alt="EasyON Logo" style="width: 80px; margin-bottom: 20px;">
-                <h2>Din app er klar!</h2>
-                <p>Vi har konfigureret <strong id="displayCompanyName"></strong> systemet med alle de funktioner du har brug for.</p>
-                
-                <div class="download-section">
-                    <a href="easyon-app.apk" download="easyon-app.apk" class="btn-download">
-                        <svg viewBox="0 0 24 24" fill="none" width="20" height="20" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="7 10 12 15 17 10"></polyline>
-                            <line x1="12" y1="15" x2="12" y2="3"></line>
-                        </svg>
-                        Download EasyON til Android
-                    </a>
-                    <p class="hint">Version 2.0.4 • Stabil version</p>
+        <!-- VIEW: TECH WELCOME -->
+        <section id="view-tech" class="view">
+            <div class="container text-center py-60">
+                <h1 class="font-huge">Velkommen, <span id="techNameDisplay">...</span>!</h1>
+                <p class="text-lead">Firma: <strong id="techFirmaDisplay">...</strong></p>
+                <div class="download-box auth-card mt-40">
+                    <img src="easyon_app_icon.png" style="width: 120px; margin-bottom: 20px;">
+                    <h2>Hent EasyON Appen</h2>
+                    <p>Log ind med dit arbejdsnummer (<span id="techNrDisplay">...</span>) og din PIN.</p>
+                    <a href="easyon-app.apk" download class="btn-primary btn-lg mt-20" style="display: inline-block; text-decoration: none;">DOWNLOAD APK TIL ANDROID</a>
                 </div>
             </div>
         </section>
     </main>
 
-    <footer class="footer">
-        <p>&copy; 2026 EasyON Maintenance Software. Alle rettigheder forbeholdes.</p>
-    </footer>
+    <!-- Modal for QR -->
+    <div id="qr-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="qrTitle">QR Kode</h2>
+            <div id="qrImage"></div>
+            <p>Scan denne kode med EasyON appen for at se dokumentation.</p>
+            <button class="btn-outline" onclick="closeModal('qr-modal')">Luk</button>
+            <button class="btn-primary" onclick="window.print()">Print</button>
+        </div>
+    </div>
 
-    <script src="script.js"></script>
+    <script src="config.js"></script>
+    <script src="app.js"></script>
 </body>
-
 </html>
