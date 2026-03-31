@@ -24,6 +24,11 @@ async function checkSession() {
     if (session) {
         currentUser = session.user;
         
+        // Vis bruger-navigation og skjul gæste-navigation
+        document.getElementById('guestNav').classList.add('hidden');
+        document.getElementById('userNav').classList.remove('hidden');
+        document.getElementById('userNameDisplay').innerText = "Hej, " + (currentUser.user_metadata?.full_name || "Bruger");
+
         // We need to check if this Admin has already set up a firma
         const { data } = await supabaseClient
             .from('brugere')
@@ -40,7 +45,22 @@ async function checkSession() {
             showView('wizard');
         }
     } else {
+        updateNavUI();
         showView('landing');
+    }
+}
+
+// Opdater kun header UI uden at omdirigere
+async function updateNavUI() {
+    if (!supabaseClient) return;
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+        document.getElementById('guestNav').classList.add('hidden');
+        document.getElementById('userNav').classList.remove('hidden');
+        document.getElementById('userNameDisplay').innerText = "Hej, " + (session.user.user_metadata?.full_name || "Bruger");
+    } else {
+        document.getElementById('guestNav').classList.remove('hidden');
+        document.getElementById('userNav').classList.add('hidden');
     }
 }
 
@@ -54,10 +74,9 @@ function showView(viewId) {
         window.scrollTo(0, 0);
     }
     
-    // Header UI updates
+    // Sørg for at den øverste menu er opdateret livedynamisk
     if (viewId === 'landing') {
-        document.getElementById('guestNav').classList.remove('hidden');
-        document.getElementById('userNav').classList.add('hidden');
+        updateNavUI();
     }
 }
 
