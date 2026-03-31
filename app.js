@@ -456,20 +456,30 @@ async function fetchLocations() {
 
 async function handleLocationSubmit(e) {
     e.preventDefault();
+    const id = document.getElementById('locId').value;
     const name = document.getElementById('locName').value;
     const desc = document.getElementById('locDesc').value;
 
-    const { error } = await supabaseClient.from('lokationer').insert({
+    const payload = {
         navn: name,
         beskrivelse: desc,
         firma_id: currentFirmaId
-    });
+    };
+
+    let error;
+    if (id) {
+        const res = await supabaseClient.from('lokationer').update(payload).eq('id', id);
+        error = res.error;
+    } else {
+        const res = await supabaseClient.from('lokationer').insert(payload);
+        error = res.error;
+    }
 
     if (!error) {
         closeAllModals();
         fetchLocations();
         e.target.reset();
-        showSnackbar("Lokation gemt succesfuldt");
+        showSnackbar(id ? "Lokation opdateret succesfuldt" : "Lokation gemt succesfuldt");
     } else {
         console.error("DB Error:", error);
         showSnackbar("Fejl: " + (error.message || "Kunne ikke gemme lokation"));
@@ -525,8 +535,10 @@ async function handleTeamSubmit(e) {
 
 async function handleAssetSubmit(e) {
     e.preventDefault();
+    const id = document.getElementById('assetId').value;
     const name = document.getElementById('assetName').value;
     const loc = document.getElementById('assetLoc').value;
+    const sop = document.getElementById('assetSop').value;
 
     // Auto-opret lokation, hvis den gæstes/skrives manuelt og ikke findes
     if (loc) {
@@ -536,25 +548,36 @@ async function handleAssetSubmit(e) {
         }
     }
 
-    const { error } = await supabaseClient.from('maskiner').insert({
+    const payload = {
         navn: name,
         placering: loc,
         firma_id: currentFirmaId,
-        qr_kode_id: "QR_" + Date.now()
-    });
+        sop_link: sop || null
+    };
+
+    let error;
+    if (id) {
+        const res = await supabaseClient.from('maskiner').update(payload).eq('id', id);
+        error = res.error;
+    } else {
+        payload.qr_kode_id = "QR_" + Date.now();
+        const res = await supabaseClient.from('maskiner').insert(payload);
+        error = res.error;
+    }
 
     if (!error) {
         closeAllModals();
         fetchAssets();
         e.target.reset();
-        showSnackbar("Asset oprettet succesfuldt");
+        showSnackbar(id ? "Asset opdateret succesfuldt" : "Asset oprettet succesfuldt");
     } else {
-        showSnackbar("Fejl ved oprettelse af asset");
+        showSnackbar("Fejl ved gemning af asset");
     }
 }
 
 async function handleTaskSubmit(e) {
     e.preventDefault();
+    const id = document.getElementById('taskId').value;
     const title = document.getElementById('taskTitle').value;
     const desc = document.getElementById('taskDesc').value;
     const reqName = document.getElementById('taskRequester').value;
@@ -594,27 +617,37 @@ async function handleTaskSubmit(e) {
             });
         }
     }
-
-    const { error } = await supabaseClient.from('opgaver').insert({
+    
+    const payload = {
         titel: title,
         maskine_navn: asset,
         prioritet: parseInt(prio),
         beskrivelse: desc,
         firma_id: currentFirmaId,
-        status: 'Afventer',
         tildelt_titel: assignee || null,
         opretter_navn: reqName || null,
         placering: loc || null
-    });
+    };
+
+    let error;
+    if (id) {
+        const res = await supabaseClient.from('opgaver').update(payload).eq('id', id);
+        error = res.error;
+    } else {
+        // Kun sæt 'status' ved oprettelse, overskriv den ikke ved redigering hvis de har ændret den fra appen!
+        payload.status = 'Afventer';
+        const res = await supabaseClient.from('opgaver').insert(payload);
+        error = res.error;
+    }
 
     if (!error) {
         closeAllModals();
         fetchTasks();
         e.target.reset();
-        showSnackbar("Opgave oprettet succesfuldt");
+        showSnackbar(id ? "Opgave opdateret succesfuldt" : "Opgave oprettet succesfuldt");
     } else {
         console.error("DB Error:", error);
-        showSnackbar("Fejl: " + (error.message || "Kunne ikke oprette opgave"));
+        showSnackbar("Fejl: " + (error.message || "Kunne ikke gemme opgave"));
     }
 }
 
