@@ -1,29 +1,59 @@
-const card = document.getElementById('easyon-card');
+function nextStep(step) {
+    // Skjul alle steps
+    document.querySelectorAll('.wizard-step').forEach(el => {
+        el.classList.remove('active');
+    });
 
-document.addEventListener('mousemove', (e) => {
-    if (window.innerWidth < 768) return;
-    const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
-    const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
-    card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
-});
-
-document.addEventListener('mouseleave', () => {
-    card.style.transform = `rotateY(0deg) rotateX(0deg)`;
-    card.style.transition = `transform 0.5s ease`;
-});
-
-document.addEventListener('mouseenter', () => {
-    card.style.transition = `transform 0.1s`;
-});
-
-const downloadBtn = document.getElementById('downloadBtn');
-downloadBtn.addEventListener('click', () => {
-    const span = downloadBtn.querySelector('span');
-    if (span) {
-        const originalText = span.innerText;
-        span.innerText = 'Downloader APK... 🚀';
-        setTimeout(() => {
-            span.innerText = originalText;
-        }, 4000);
+    // Vis det valgte step
+    const target = document.getElementById('step' + step);
+    if (target) {
+        target.classList.add('active');
     }
-});
+
+    // Scroll til toppen af wizard
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function startCreation() {
+    const companyName = document.getElementById('companyName').value || "Dit Firma";
+    document.getElementById('displayCompanyName').innerText = companyName;
+
+    nextStep(3);
+    
+    let progress = 0;
+    const progressFill = document.getElementById('progressFill');
+    const loadingText = document.getElementById('loadingText');
+    
+    const messages = [
+        "Opretter database...",
+        "Konfigurerer moduler...",
+        "Opsætter firma-id: " + companyName.toLowerCase().replace(/\s/g, '_'),
+        "Gør APK klar til download...",
+        "Næsten færdig..."
+    ];
+
+    const interval = setInterval(() => {
+        progress += 2;
+        progressFill.style.width = progress + '%';
+        
+        if (progress % 20 === 0) {
+            const msgIndex = Math.floor(progress / 20);
+            if (msgIndex < messages.length) {
+                loadingText.innerText = messages[msgIndex];
+            }
+        }
+
+        if (progress >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+                nextStep(4);
+                confetti(); // Simulerer succes hvis muligt (valgfrit)
+            }, 500);
+        }
+    }, 50);
+}
+
+// En simpel konfetti-simulering (hvis man vil have det)
+function confetti() {
+    console.log("Hurra! Din app er klar.");
+}

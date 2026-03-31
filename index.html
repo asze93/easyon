@@ -4,49 +4,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EasyON | Hent appen til Android</title>
+    <title>EasyON | Konfigurer dit system</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <div class="blob blob-orange"></div>
-    <div class="blob blob-cyan"></div>
+    <div class="nav-bar">
+        <div class="logo">
+            <img src="easyon_app_icon.png" alt="EasyON Logo" style="height: 40px; margin-right: 10px; vertical-align: middle;">
+            Easy<span>ON</span>
+        </div>
+        <div class="nav-links">
+            <a href="#">Priser</a>
+            <a href="#">Funktioner</a>
+            <a href="#" class="btn-outline">Log ind</a>
+        </div>
+    </div>
 
-    <main class="container">
-        <div class="glass-card" id="easyon-card">
-            <img src="easyon_app_icon.png" alt="EasyON Ikon" class="app-icon" id="appIcon">
-            <h1>Easy<span>ON</span></h1>
-            <p class="subtitle">Innovativ Vedligeholdelse. Altid lige ved hånden.</p>
-
-            <div class="features">
-                <div class="feature-item">
-                    <span class="icon">⚡</span>
-                    <p>Hurtig og sikker</p>
-                </div>
-                <div class="feature-item">
-                    <span class="icon">🔒</span>
-                    <p>Intern adgang</p>
+    <main class="wizard-container">
+        <!-- STEP 1: Velkomst -->
+        <section class="wizard-step active" id="step1">
+            <div class="hero">
+                <h1>Få kontrol over din <span>vedligeholdelse</span></h1>
+                <p>Opret dit eget personlige EasyON system på under 2 minutter. Designet til moderne teknikere.</p>
+                <button class="btn-primary" onclick="nextStep(2)">Kom i gang gratis</button>
+                <div class="app-preview">
+                    <!-- Placeholder for app screenshot or illustration -->
+                    <div class="mockup"></div>
                 </div>
             </div>
+        </section>
 
-            <a href="easyon-app.apk" download="easyon-app.apk" class="download-btn" id="downloadBtn">
-                <svg viewBox="0 0 24 24" fill="none" width="24" height="24" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                <span style="margin-left:8px;">Download APK</span>
-            </a>
+        <!-- STEP 2: Konfiguration -->
+        <section class="wizard-step" id="step2">
+            <div class="form-card">
+                <h2>Konfigurer din app</h2>
+                <p>Vi tilpasser EasyON til netop dine behov.</p>
+                
+                <div class="input-group">
+                    <label>Firmanavn</label>
+                    <input type="text" id="companyName" placeholder="F.eks. Jensen Maskiner A/S">
+                </div>
 
-            <p class="install-instructions">
-                Husk at <a href="#"
-                    onclick="alert('Efter download: Åbn filen, og tryk Tillad installation fra ukendte kilder.')">tillade
-                    installation fra ukendte kilder</a>.
-            </p>
-        </div>
+                <div class="input-group">
+                    <label>Branche</label>
+                    <select id="industry">
+                        <option value="produktion">Produktion</option>
+                        <option value="fødevarer">Fødevarer</option>
+                        <option value="logistik">Logistik</option>
+                        <option value="andet">Andet</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Antal Maskiner (Anslået)</label>
+                    <input type="number" id="assetCount" placeholder="25">
+                </div>
+
+                <button class="btn-primary" onclick="startCreation()">Byg min personlige app</button>
+            </div>
+        </section>
+
+        <!-- STEP 3: Loading -->
+        <section class="wizard-step" id="step3">
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <h2 id="loadingText">Bygger din database...</h2>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 4: Færdig -->
+        <section class="wizard-step" id="step4">
+            <div class="success-card">
+                <img src="easyon_app_icon.png" alt="EasyON Logo" style="width: 80px; margin-bottom: 20px;">
+                <h2>Din app er klar!</h2>
+                <p>Vi har konfigureret <strong id="displayCompanyName"></strong> systemet med alle de funktioner du har brug for.</p>
+                
+                <div class="download-section">
+                    <a href="easyon-app.apk" download="easyon-app.apk" class="btn-download">
+                        <svg viewBox="0 0 24 24" fill="none" width="20" height="20" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Download EasyON til Android
+                    </a>
+                    <p class="hint">Version 2.0.4 • Stabil version</p>
+                </div>
+            </div>
+        </section>
     </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 EasyON Maintenance Software. Alle rettigheder forbeholdes.</p>
+    </footer>
+
     <script src="script.js"></script>
 </body>
 
