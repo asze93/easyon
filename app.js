@@ -116,9 +116,13 @@ async function handleAuth(e) {
             });
             if (error) throw error;
             
-            // IMPORTANT: If email confirmation is enabled, we show the verify view
             currentUser = data.user;
-            showView('verify-email');
+            // Hvis session er returneret, er e-mail bekræftelse slået fra. Bypass Verify!
+            if (data.session) {
+                showView('wizard');
+            } else {
+                showView('verify-email');
+            }
         } else {
             if (email.includes('@')) {
                 // Admin Login
@@ -252,16 +256,26 @@ async function fetchStats() {
 
 function dashTab(tab) {
     document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('dash-' + tab).classList.add('active');
-    
     document.querySelectorAll('.sidebar-links a').forEach(a => a.classList.remove('active'));
-    if (event && event.currentTarget && event.currentTarget.tagName === 'A') {
-        event.currentTarget.classList.add('active');
-    }
+    
+    const targetTab = document.getElementById('dash-' + tab);
+    if (targetTab) targetTab.classList.add('active');
 
+    // Update sidebar active state
+    document.querySelectorAll('.sidebar-links a').forEach(a => {
+        if (a.getAttribute('data-tab') === tab) a.classList.add('active');
+    });
+
+    if (tab === 'locations') fetchLocations();
     if (tab === 'team') fetchTeam();
-    if (tab === 'assets') fetchAssets();
-    if (tab === 'tasks') fetchTasks();
+    if (tab === 'assets') {
+        fetchAssets();
+        fetchLocations(); // For dropdowns later
+    }
+    if (tab === 'tasks') {
+        fetchTasks();
+        fetchAssets(); // For dropdowns
+    }
 }
 
 async function fetchTeam() {
@@ -310,19 +324,168 @@ function showQR(name, id) {
     document.getElementById('qr-modal').classList.remove('hidden');
 }
 
-function closeModal(id) {
-    document.getElementById(id).classList.add('hidden');
+// ---------------- MANAGEMENT LOGIC ----------------
+function openModal(id) {
+    document.getElementById('modal-overlay').classList.remove('hidden');
+    document.getElementById(id).classList.remove('hidden');
+    
+    if (id === 'modal-asset') populateLocationsDropdown();
+    if (id === 'modal-task') populateAssetsDropdown();
 }
 
-// ---------------- TECHNICIAN LOGIC ----------------
-function showTechnicianWelcome(user) {
-    document.getElementById('techNameDisplay').innerText = user.navn;
-    document.getElementById('techFirmaDisplay').innerText = user.firma_id;
-    document.getElementById('techNrDisplay').innerText = user.arbejdsnummer;
-    
-    document.getElementById('guestNav').classList.add('hidden');
-    document.getElementById('userNav').classList.remove('hidden');
-    document.getElementById('userNameDisplay').innerText = user.navn;
-    
-    showView('tech');
+function closeAllModals() {
+    document.getElementById('modal-overlay').classList.add('hidden');
+    document.querySelectorAll('.modal-card').forEach(m => m.classList.add('hidden'));
+    document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+    document.getElementById('modal-overlay').classList.add('hidden');
+}
+
+async function fetchLocations() {
+    if (!currentFirmaId) return;
+    const { data } = await supabaseClient.from('lokationer').select('*').eq('firma_id', currentFirmaId);
+    const body = document.getElementById('locationsBody');
+    if (body) {
+        body.innerHTML = (data || []).map(l => `
+            <tr>
+                <td><strong>${l.navn}</strong></td>
+                <td>${l.beskrivelse || '-'}</td>
+                <td><button class="btn-xs" onclick="deleteItem('lokationer', '${l.id}', fetchLocations)">Slet</button></td>
+            </tr>
+        `).join('');
+    }
+}
+
+async function handleLocationSubmit(e) {
+    e.preventDefault();
+    const name = document.getElementById('locName').value;
+    const desc = document.getElementById('locDesc').value;
+
+    const { error } = await supabaseClient.from('lokationer').insert({
+        navn: name,
+        beskrivelse: desc,
+        firma_id: currentFirmaId
+    });
+
+    if (!error) {
+        closeAllModals();
+        fetchLocations();
+        e.target.reset();
+        showSnackbar("Lokation gemt succesfuldt");
+    } else {
+        showSnackbar("Fejl ved gemning af lokation");
+    }
+}
+
+async function handleTeamSubmit(e) {
+    e.preventDefault();
+    const name = document.getElementById('userName').value;
+    const num = document.getElementById('userNum').value;
+    const role = document.getElementById('userRole').value;
+    const pin = document.getElementById('userPin').value;
+
+    const { error } = await supabaseClient.from('brugere').insert({
+        navn: name,
+        arbejdsnummer: num,
+        adgangskode: pin,
+        rolle: role,
+        firma_id: currentFirmaId,
+        afdeling: 'Produktion'
+    });
+
+    if (!error) {
+        closeAllModals();
+        fetchTeam();
+        e.target.reset();
+        showSnackbar("Medarbejder oprettet succesfuldt");
+    } else {
+        showSnackbar("Fejl ved oprettelse af medarbejder");
+    }
+}
+
+async function handleAssetSubmit(e) {
+    e.preventDefault();
+    const name = document.getElementById('assetName').value;
+    const loc = document.getElementById('assetLoc').value;
+
+    const { error } = await supabaseClient.from('maskiner').insert({
+        navn: name,
+        placering: loc,
+        firma_id: currentFirmaId,
+        qr_kode_id: "QR_" + Date.now()
+    });
+
+    if (!error) {
+        closeAllModals();
+        fetchAssets();
+        e.target.reset();
+        showSnackbar("Asset oprettet succesfuldt");
+    } else {
+        showSnackbar("Fejl ved oprettelse af asset");
+    }
+}
+
+async function handleTaskSubmit(e) {
+    e.preventDefault();
+    const title = document.getElementById('taskTitle').value;
+    const asset = document.getElementById('taskAsset').value;
+    const prio = document.getElementById('taskPrio').value;
+    const desc = document.getElementById('taskDesc').value;
+
+    const { error } = await supabaseClient.from('opgaver').insert({
+        titel: title,
+        maskine_navn: asset,
+        prioritet: parseInt(prio),
+        beskrivelse: desc,
+        firma_id: currentFirmaId,
+        status: 'Afventer',
+        dato: new Date().toISOString()
+    });
+
+    if (!error) {
+        closeAllModals();
+        fetchTasks();
+        e.target.reset();
+        showSnackbar("Opgave oprettet succesfuldt");
+    } else {
+        showSnackbar("Fejl ved oprettelse af opgave");
+    }
+}
+
+async function populateLocationsDropdown() {
+    const { data } = await supabaseClient.from('lokationer').select('navn').eq('firma_id', currentFirmaId);
+    const select = document.getElementById('assetLoc');
+    select.innerHTML = '<option value="">Vælg lokation...</option>' + 
+        (data || []).map(l => `<option value="${l.navn}">${l.navn}</option>`).join('');
+}
+
+async function populateAssetsDropdown() {
+    const { data } = await supabaseClient.from('maskiner').select('navn').eq('firma_id', currentFirmaId);
+    const select = document.getElementById('taskAsset');
+    select.innerHTML = '<option value="">Vælg maskine...</option>' + 
+        (data || []).map(a => `<option value="${a.navn}">${a.navn}</option>`).join('');
+}
+
+async function deleteItem(table, id, callback) {
+    if (!confirm("Er du sikker?")) return;
+    const { error } = await supabaseClient.from(table).delete().eq('id', id);
+    if (!error) {
+        callback();
+        showSnackbar("Element slettet");
+    } else {
+        showSnackbar("Kunne ikke slette elementet");
+    }
+}
+
+function showSnackbar(message) {
+    const sb = document.getElementById("snackbar");
+    if (!sb) return;
+    sb.innerText = message;
+    sb.className = "snackbar show";
+    setTimeout(() => {
+        sb.className = sb.className.replace("show", "");
+    }, 3000);
 }

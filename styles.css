@@ -172,20 +172,19 @@ body {
 }
 
 .sidebar-links a {
-    display: flex;
-    align-items: center;
-    padding: 14px 18px;
+    display: block;
+    padding: 12px 20px;
+    color: #455a64;
     text-decoration: none;
-    color: var(--text-main);
+    margin-bottom: 5px;
+    border-radius: 8px;
+    transition: all 0.2s;
     font-weight: 500;
-    border-radius: 12px;
-    margin-bottom: 8px;
-    transition: background 0.2s;
 }
 
 .sidebar-links a.active {
-    background-color: var(--primary);
-    color: white;
+    background: rgba(30, 136, 229, 0.1);
+    color: var(--primary);
 }
 
 .sidebar-links a:hover:not(.active) { background-color: var(--bg-light); }
@@ -218,6 +217,99 @@ body {
 
 .stat-card h3 { font-size: 32px; color: var(--primary); }
 
+/* MODALS */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    transition: opacity 0.3s;
+}
+
+.modal-card {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    z-index: 1001;
+    width: 90%;
+    max-width: 450px;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translate(-50%, -40%); opacity: 0; }
+    to { transform: translate(-50%, -50%); opacity: 1; }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-light);
+}
+
+/* DASHBOARD EXTRAS */
+.dash-tab { display: none; }
+.dash-tab.active { display: block; animation: fadeIn 0.4s; }
+
+.table-container {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #edf2f7;
+    overflow: hidden;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: #f8fafc;
+    text-align: left;
+    padding: 12px 20px;
+    color: #64748b;
+    font-size: 13px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+td {
+    padding: 16px 20px;
+    border-top: 1px solid #edf2f7;
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.badge.admin { background: #e3f2fd; color: #1e88e5; }
+.badge.tekniker { background: #f0f4f8; color: #455a64; }
+
+.btn-xs {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.gap-10 { gap: 10px; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.mt-20 { margin-top: 20px; }
 .hidden { display: none !important; }
 
 /* WIZARD BOX */
@@ -315,3 +407,67 @@ body {
 
 .prio-3 { color: #E74C3C; font-weight: 700; margin-right: 10px; }
 .prio-1, .prio-2 { color: #27AE60; font-weight: 700; margin-right: 10px; }
+
+/* SNACKBAR NOTIFICATION */
+.snackbar {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 8px;
+    padding: 16px;
+    position: fixed;
+    z-index: 3000;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.snackbar.show {
+    visibility: visible;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+@keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
+}
+
+/* PRINT MEDIA QUERY FOR QR KODE */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #qr-modal, #qr-modal * {
+        visibility: visible;
+    }
+    #qr-modal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+    }
+    #qr-modal .modal-content {
+        box-shadow: none;
+        border: none;
+        width: 100%;
+        padding: 0;
+        text-align: center;
+    }
+    #qr-modal button {
+        display: none !important;
+    }
+}
