@@ -197,6 +197,10 @@ body {
     box-shadow: var(--shadow);
 }
 
+/* DASHBOARD TABS */
+.dash-tab { display: none; }
+.dash-tab.active { display: block; animation: fadeIn 0.3s ease-out; }
+
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
