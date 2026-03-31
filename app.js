@@ -440,7 +440,8 @@ async function handleLocationSubmit(e) {
         e.target.reset();
         showSnackbar("Lokation gemt succesfuldt");
     } else {
-        showSnackbar("Fejl ved gemning af lokation");
+        console.error("DB Error:", error);
+        showSnackbar("Fejl: " + (error.message || "Kunne ikke gemme lokation"));
     }
 }
 
@@ -486,7 +487,8 @@ async function handleTeamSubmit(e) {
         e.target.reset();
         showSnackbar(id ? "Medarbejder opdateret succesfuldt" : "Medarbejder oprettet succesfuldt");
     } else {
-        showSnackbar("Fejl ved gemning af medarbejder");
+        console.error("DB Error:", error);
+        showSnackbar("Fejl: " + (error.message || "Kunne ikke gemme"));
     }
 }
 
