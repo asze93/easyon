@@ -185,7 +185,7 @@
                             <h1>Arbejdsordrer</h1>
                             <p>Administrer og tildel vedligeholdelsesopgaver.</p>
                         </div>
-                        <button class="btn-primary" onclick="openModal('modal-task')">+ Ny Opgave</button>
+                        <button class="btn-primary" onclick="openModal('modal-task', true)">+ Ny Opgave</button>
                     </div>
                     <div class="table-container">
                         <table id="tasksTable">
@@ -202,7 +202,7 @@
                             <h1>Vedligeholdelses-anmodninger</h1>
                             <p>Gennemse og godkend indkomne fejlmeldinger.</p>
                         </div>
-                        <button class="btn-primary" onclick="openModal('modal-request')">+ Ny Anmodning</button>
+                        <button class="btn-primary" onclick="openModal('modal-request', true)">+ Ny Anmodning</button>
                     </div>
                     <div class="table-container">
                         <table id="requestsTable">
@@ -232,7 +232,7 @@
                             <h1>Maskiner & Assets</h1>
                             <p>Hold styr på alt dit udstyr og deres tilstand.</p>
                         </div>
-                        <button class="btn-primary" onclick="openModal('modal-asset')">+ Opret Asset</button>
+                        <button class="btn-primary" onclick="openModal('modal-asset', true)">+ Opret Asset</button>
                     </div>
                     <div class="assets-grid" id="assetsBody"></div>
                 </div>
@@ -244,7 +244,7 @@
                             <h1>Lokationer</h1>
                             <p>Organiser dine maskiner efter fysisk placering.</p>
                         </div>
-                        <button class="btn-primary" onclick="openModal('modal-location')">+ Tilføj Lokation</button>
+                        <button class="btn-primary" onclick="openModal('modal-location', true)">+ Tilføj Lokation</button>
                     </div>
                     <div class="table-container">
                         <table id="locationsTable">
@@ -261,7 +261,7 @@
                             <h1>Medarbejdere & Teams</h1>
                             <p>Administrer dine teknikere og deres adgang.</p>
                         </div>
-                        <button class="btn-primary" onclick="openModal('modal-team')">+ Tilføj Medlem</button>
+                        <button class="btn-primary" onclick="openModal('modal-team', true)">+ Tilføj Medlem</button>
                     </div>
                     <div class="table-container">
                         <table id="teamTable">
@@ -278,7 +278,7 @@
                             <h1>Opgave-kategorier</h1>
                             <p>Klassificer dine arbejdsordrer for bedre rapportering.</p>
                         </div>
-                        <button class="btn-primary" onclick="openModal('modal-category')">+ Ny Kategori</button>
+                        <button class="btn-primary" onclick="openModal('modal-category', true)">+ Ny Kategori</button>
                     </div>
                     <div class="table-container">
                         <table id="categoriesTable">
@@ -377,9 +377,10 @@
     <div id="modal-location" class="modal-card hidden">
         <div class="modal-header"><h3>Ny Lokation</h3></div>
         <form onsubmit="handleLocationSubmit(event)">
+            <input type="hidden" id="locId">
             <div class="input-group"><label>Navn</label><input type="text" id="locName" required placeholder="f.eks. Hal A"></div>
             <div class="input-group"><label>Beskrivelse</label><input type="text" id="locDesc"></div>
-            <button type="submit" class="btn-primary w-100">Opret Lokation</button>
+            <button type="submit" class="btn-primary w-100">Gem Lokation</button>
         </form>
     </div>
 
@@ -387,6 +388,7 @@
     <div id="modal-team" class="modal-card hidden">
         <div class="modal-header"><h3>Medarbejder / Teammedlem</h3></div>
         <form onsubmit="handleTeamSubmit(event)">
+            <input type="hidden" id="teamId">
             <div class="input-group"><label>Navn</label><input type="text" id="teamName" required></div>
             <div class="input-group"><label>Arbejdsnummer (Login nr)</label><input type="text" id="teamNr" required></div>
             <div class="input-group"><label>Rolle</label>
@@ -397,7 +399,7 @@
                 </select>
             </div>
             <div class="input-group"><label>PIN-kode (Login)</label><input type="password" id="teamPin" required placeholder="4 cifre"></div>
-            <button type="submit" class="btn-primary w-100">Gem Medlem</button>
+            <button type="submit" class="btn-primary w-100">Gem Medarbejder</button>
         </form>
     </div>
 

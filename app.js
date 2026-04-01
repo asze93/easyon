@@ -237,10 +237,20 @@ async function fetchRequests() {
                 ${r.status === 'Afventer' ? `
                     <button class="btn-primary btn-xs" onclick="approveRequest('${r.id}')">Godkend</button>
                     <button class="btn-outline btn-xs" onclick="rejectRequest('${r.id}')">Afvis</button>
-                ` : '-'}
+                ` : `
+                    <button class="btn-outline btn-xs" onclick="deleteItem('anmodninger', '${r.id}', fetchRequests)">Slet</button>
+                `}
             </td>
         </tr>
     `).join('');
+}
+
+async function rejectRequest(id) {
+    if (confirm("Vil du afvise denne anmodning?")) {
+        await supabaseClient.from('anmodninger').update({ status: 'Afvist' }).eq('id', id);
+        fetchRequests();
+        showSnackbar("Anmodning afvist.");
+    }
 }
 
 async function handleRequestSubmit(e) {
@@ -279,9 +289,23 @@ async function fetchTeam() {
             <td><strong>${p.navn}</strong></td>
             <td>${p.arbejdsnummer}</td>
             <td><span class="badge status-godkendt">${p.rolle}</span></td>
-            <td><button class="btn-outline btn-xs" onclick="deleteItem('brugere', '${p.id}', fetchTeam)">Slet</button></td>
+            <td>
+                <button class="btn-outline btn-xs" onclick="editTeam('${p.id}')">Rediger</button>
+                <button class="btn-outline btn-xs" onclick="deleteItem('brugere', '${p.id}', fetchTeam)">Slet</button>
+            </td>
         </tr>
     `).join('');
+}
+
+async function editTeam(id) {
+    const { data } = await supabaseClient.from('brugere').select('*').eq('id', id).maybeSingle();
+    if (data) {
+        document.getElementById('teamName').value = data.navn;
+        document.getElementById('teamNr').value = data.arbejdsnummer;
+        document.getElementById('teamRolle').value = data.rolle;
+        document.getElementById('teamPin').value = data.adgangskode;
+        openModal('modal-team');
+    }
 }
 
 // ---------------- OPERATIONS: WORK ORDERS ----------------
@@ -294,9 +318,25 @@ async function fetchTasks() {
             <td>${t.maskine_navn || '-'}</td>
             <td><span class="badge prio-${t.prioritet}">${t.prioritet == 3 ? 'Kritisk' : t.prioritet == 2 ? 'Høj' : 'Normal'}</span></td>
             <td>${t.kategori_navn || '-'}</td>
-            <td><button class="btn-outline btn-xs" onclick="editTask('${t.id}')">Se</button></td>
+            <td>
+                <button class="btn-outline btn-xs" onclick="editTask('${t.id}')">Se</button>
+                <button class="btn-outline btn-xs" onclick="deleteItem('opgaver', '${t.id}', fetchTasks)" title="Slet">🗑️</button>
+            </td>
         </tr>
     `).join('');
+}
+
+async function editTask(id) {
+    const { data } = await supabaseClient.from('opgaver').select('*').eq('id', id).maybeSingle();
+    if (data) {
+        document.getElementById('taskId').value = data.id;
+        document.getElementById('taskTitle').value = data.titel;
+        document.getElementById('taskCategory').value = data.kategori_navn || '';
+        document.getElementById('taskAsset').value = data.maskine_navn || '';
+        document.getElementById('taskAssignee').value = data.tildelt_titel || '';
+        document.getElementById('taskDesc').value = data.beskrivelse || '';
+        openModal('modal-task');
+    }
 }
 
 async function handleTaskSubmit(e) {
@@ -333,10 +373,21 @@ async function fetchAssets() {
                 <p class="text-muted">${a.placering || 'Ingen lokation'}</p>
                 <div style="margin-top:15px; display:flex; gap:10px;">
                     <button class="btn-outline btn-xs" onclick="editAsset('${a.id}')">Rediger</button>
+                    <button class="btn-outline btn-xs" onclick="deleteItem('maskiner', '${a.id}', fetchAssets)" title="Slet">🗑️ Slet</button>
                 </div>
             </div>
         </div>
     `).join('');
+}
+
+async function editAsset(id) {
+    const { data } = await supabaseClient.from('maskiner').select('*').eq('id', id).maybeSingle();
+    if (data) {
+        document.getElementById('assetId').value = data.id;
+        document.getElementById('assetName').value = data.navn;
+        document.getElementById('assetLoc').value = data.placering || '';
+        openModal('modal-asset');
+    }
 }
 
 async function handleAssetSubmit(e) {
@@ -356,17 +407,22 @@ async function handleAssetSubmit(e) {
 
 async function handleLocationSubmit(e) {
     e.preventDefault();
+    const id = document.getElementById('locId').value;
     const payload = {
         navn: document.getElementById('locName').value,
         beskrivelse: document.getElementById('locDesc').value,
         firma_id: currentFirmaId
     };
-    const { error } = await supabaseClient.from('lokationer').insert(payload);
-    if (!error) { closeAllModals(); fetchLocations(); showSnackbar("Lokation oprettet!"); }
+    let res;
+    if (id) res = await supabaseClient.from('lokationer').update(payload).eq('id', id);
+    else res = await supabaseClient.from('lokationer').insert(payload);
+    
+    if (!res.error) { closeAllModals(); fetchLocations(); showSnackbar("Lokation gemt!"); }
 }
 
 async function handleTeamSubmit(e) {
     e.preventDefault();
+    const id = document.getElementById('teamId').value;
     const payload = {
         navn: document.getElementById('teamName').value,
         arbejdsnummer: document.getElementById('teamNr').value,
@@ -374,8 +430,11 @@ async function handleTeamSubmit(e) {
         adgangskode: document.getElementById('teamPin').value,
         firma_id: currentFirmaId
     };
-    const { error } = await supabaseClient.from('brugere').insert(payload);
-    if (!error) { closeAllModals(); fetchTeam(); showSnackbar("Medlem tilføjet!"); }
+    let res;
+    if (id) res = await supabaseClient.from('brugere').update(payload).eq('id', id);
+    else res = await supabaseClient.from('brugere').insert(payload);
+    
+    if (!res.error) { closeAllModals(); fetchTeam(); showSnackbar("Medlem gemt!"); }
 }
 
 async function fetchLocations() {
@@ -385,16 +444,41 @@ async function fetchLocations() {
         <tr>
             <td><strong>${l.navn}</strong></td>
             <td>${l.beskrivelse || '-'}</td>
-            <td><button class="btn-outline btn-xs" onclick="deleteItem('lokationer', '${l.id}', fetchLocations)">Slet</button></td>
+            <td>
+                <button class="btn-outline btn-xs" onclick="editLocation('${l.id}')">Rediger</button>
+                <button class="btn-outline btn-xs" onclick="deleteItem('lokationer', '${l.id}', fetchLocations)">Slet</button>
+            </td>
         </tr>
     `).join('');
 }
 
+async function editLocation(id) {
+    const { data } = await supabaseClient.from('lokationer').select('*').eq('id', id).maybeSingle();
+    if (data) {
+        document.getElementById('locName').value = data.navn;
+        document.getElementById('locDesc').value = data.beskrivelse || '';
+        openModal('modal-location');
+    }
+}
+
 // ---------------- MODAL HELPERS ----------------
-async function openModal(id) {
+async function openModal(id, isNew = false) {
+    const modal = document.getElementById(id);
     document.getElementById('modal-overlay').classList.remove('hidden');
-    document.getElementById(id).classList.remove('hidden');
+    modal.classList.remove('hidden');
     
+    if (isNew) {
+        // Reset form if it exists
+        const form = modal.querySelector('form');
+        if (form) form.reset();
+        // Manually clear hidden IDs
+        const hiddenIds = ['taskId', 'assetId', 'locId', 'teamId'];
+        hiddenIds.forEach(hid => {
+            const el = document.getElementById(hid);
+            if (el) el.value = '';
+        });
+    }
+
     // Prep dropdowns for specific modals
     if (id === 'modal-task' || id === 'modal-request' || id === 'modal-asset') {
         populateDropdowns();
