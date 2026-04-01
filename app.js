@@ -193,15 +193,17 @@ async function logout() {
 async function loadDashboard() {
     showView('dashboard');
     
-    // Fetch info about current logged-in profile
     const { data: profile } = await supabaseClient.from('brugere')
         .select('navn, arbejdsnummer, firma_id')
         .eq('email', currentUser.email)
         .filter('rolle', 'in', '("admin", "admin.admin")')
         .maybeSingle();
 
-    const displayName = profile ? `${profile.arbejdsnummer} | ${profile.navn}` : "Admin";
-    document.querySelectorAll('.adminName').forEach(el => el.innerText = displayName);
+    if (profile) {
+        currentFirmaId = profile.firma_id;
+        const displayName = `${profile.arbejdsnummer} | ${profile.navn}`;
+        document.querySelectorAll('.adminName').forEach(el => el.innerText = displayName);
+    }
     
     // Initial data fetch
     fetchStats();
@@ -494,7 +496,14 @@ async function handleTeamSubmit(e) {
     if (id) res = await supabaseClient.from('brugere').update(payload).eq('id', id);
     else res = await supabaseClient.from('brugere').insert(payload);
     
-    if (!res.error) { closeAllModals(); fetchTeam(); showSnackbar("Medlem gemt!"); }
+    if (res.error) {
+        console.error("Fejl ved oprettelse af medarbejder:", res.error);
+        alert("Kunne ikke gemme medarbejder: " + res.error.message);
+    } else {
+        closeAllModals(); 
+        fetchTeam(); 
+        showSnackbar("Medlem gemt!");
+    }
 }
 
 async function fetchLocations() {
