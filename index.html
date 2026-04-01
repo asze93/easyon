@@ -164,14 +164,14 @@
                     <li><a href="javascript:void(0)" class="dash-nav" data-tab="requests" onclick="dashNavTab(event, 'requests')"><i class="icon">📥</i> Anmodninger</a></li>
                     <li><a href="javascript:void(0)" class="dash-nav" data-tab="statistics" onclick="dashNavTab(event, 'statistics')"><i class="icon">📈</i> Rapportering</a></li>
                     
-                    <li class="nav-category">Fundament</li>
-                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="assets" onclick="dashNavTab(event, 'assets')"><i class="icon">🏗️</i> Maskiner & Assets</a></li>
-                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="locations" onclick="dashNavTab(event, 'locations')"><i class="icon">📍</i> Lokationer</a></li>
-                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="team" onclick="dashNavTab(event, 'team')"><i class="icon">👥</i> Team & Personer</a></li>
-                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="categories" onclick="dashNavTab(event, 'categories')"><i class="icon">🏷️</i> Kategorier</a></li>
+                    <li class="nav-category admin-only">Fundament</li>
+                    <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="assets" onclick="dashNavTab(event, 'assets')"><i class="icon">🏗️</i> Maskiner & Assets</a></li>
+                    <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="locations" onclick="dashNavTab(event, 'locations')"><i class="icon">📍</i> Lokationer</a></li>
+                    <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="team" onclick="dashNavTab(event, 'team')"><i class="icon">👥</i> Team & Personer</a></li>
+                    <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="categories" onclick="dashNavTab(event, 'categories')"><i class="icon">🏷️</i> Kategorier</a></li>
                     
-                    <li class="nav-category">System</li>
-                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="indstillinger" onclick="dashNavTab(event, 'indstillinger')"><i class="icon">⚙️</i> App Builder</a></li>
+                    <li class="nav-category admin-only">System</li>
+                    <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="indstillinger" onclick="dashNavTab(event, 'indstillinger')"><i class="icon">⚙️</i> App Builder</a></li>
                     <li><a href="javascript:void(0)" class="dash-nav" onclick="logout()" style="color: var(--danger);"><i class="icon">🚪</i> Log ud</a></li>
                 </div>
             </aside>
@@ -247,7 +247,7 @@
                             <h1>Maskiner & Assets</h1>
                             <p>Hold styr på alt dit udstyr og deres tilstand.</p>
                         </div>
-                        <button class="btn-primary" onclick="openModal('modal-asset', true)">+ Opret Asset</button>
+                        <button class="btn-primary admin-only" onclick="openModal('modal-asset', true)">+ Opret Asset</button>
                     </div>
                     <div class="assets-grid" id="assetsBody"></div>
                 </div>
@@ -259,7 +259,7 @@
                             <h1>Lokationer</h1>
                             <p>Organiser dine maskiner efter fysisk placering.</p>
                         </div>
-                        <button class="btn-primary" onclick="openModal('modal-location', true)">+ Tilføj Lokation</button>
+                        <button class="btn-primary admin-only" onclick="openModal('modal-location', true)">+ Ny Lokation</button>
                     </div>
                     <div class="table-container">
                         <table id="locationsTable">

@@ -2,6 +2,9 @@
 let supabaseClient;
 let currentUser = null;
 let currentFirmaId = null;
+let currentView = 'landing';
+let currentFirmaSettings = {};
+let isGlobalAdmin = false;
 let kraeverAnmodningReview = false; // Global indstilling
 let authMode = 'login'; 
 
@@ -248,17 +251,14 @@ async function loadDashboard(providedProfile = null) {
         document.querySelectorAll('.adminName').forEach(el => el.innerText = displayName);
         
         // RBAC Logic: 
-        // 1. Only admin.admin is a 'Master'
         const isMaster = (userRole === 'admin.admin');
-        
-        // 2. admin role is a 'Secondary Admin' (can manage but maybe less, for now = Master)
-        const isAdmin = (userRole === 'admin' || isMaster);
+        isGlobalAdmin = (userRole === 'admin' || isMaster);
 
         document.querySelectorAll('.admin-only').forEach(el => {
-            el.classList.toggle('hidden', !isAdmin);
+            el.classList.toggle('hidden', !isGlobalAdmin);
         });
         
-        console.log("Logged in as:", userRole, "Admin status:", isAdmin);
+        console.log("Logged in as:", userRole, "Admin status:", isGlobalAdmin);
     } else {
         console.warn("Profil ikke fundet for denne bruger.");
     }
@@ -305,9 +305,17 @@ function dashTab(tab) {
     if (tab === 'statistics') renderStatistics();
 }
 
-function dashNavTab(e, tab) {
+function dashNavTab(e, tabId) {
     if (e) e.preventDefault();
-    dashTab(tab);
+    
+    // RBAC: Guard restricted tabs
+    const restrictedTabs = ['team', 'assets', 'locations', 'categories', 'indstillinger'];
+    if (restrictedTabs.includes(tabId) && !isGlobalAdmin) {
+        showSnackbar("Ingen adgang: Denne sektion er forbeholdt administratorer.");
+        return;
+    }
+    
+    dashTab(tabId);
 }
 
 // ---------------- FOUNDATION: CATEGORIES ----------------
@@ -576,7 +584,7 @@ async function handleTeamSubmit(e) {
             showSnackbar("Medarbejder gemt!");
         }
     } catch (err) {
-        console.error("Fejl i handleTeamSubmit:", err);
+        console.error("Fejl in handleTeamSubmit:", err);
         alert("Kunne ikke gemme: " + err.message);
     }
 }
