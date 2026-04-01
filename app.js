@@ -120,15 +120,38 @@ async function handleAuth(e) {
             else showView('verify-email');
         } else {
             if (email.includes('@')) {
+                // Regular email login
                 const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
                 if (error) throw error;
                 checkSession(); 
             } else {
-                const { data, error } = await supabaseClient.from('brugere').select('*').eq('arbejdsnummer', email).eq('adgangskode', pass).maybeSingle();
-                if (error || !data) throw new Error("Ugyldigt login. Tjek nr. og PIN.");
-                currentFirmaId = data.firma_id;
-                loadDashboard();
-                showSnackbar("Velkommen, " + data.navn + "!");
+                // 1. Try to find if this is a Company Name (Admin)
+                const { data: adminUser } = await supabaseClient.from('brugere')
+                    .select('email, rolle')
+                    .eq('arbejdsnummer', email) // Company Name is stored here
+                    .eq('rolle', 'admin')
+                    .maybeSingle();
+
+                if (adminUser) {
+                    // It's an admin - use their email to sign in via Supabase
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({ 
+                        email: adminUser.email, 
+                        password: pass 
+                    });
+                    if (error) throw error;
+                    checkSession();
+                } else {
+                    // 2. Try Technician Login (Database check)
+                    const { data, error } = await supabaseClient.from('brugere')
+                        .select('*')
+                        .eq('arbejdsnummer', email)
+                        .eq('adgangskode', pass)
+                        .maybeSingle();
+                    if (error || !data) throw new Error("Ugyldigt login. Tjek Firmanavn/Nr. og PIN.");
+                    currentFirmaId = data.firma_id;
+                    loadDashboard();
+                    showSnackbar("Velkommen, " + data.navn + "!");
+                }
             }
         }
     } catch (err) {
