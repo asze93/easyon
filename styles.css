@@ -227,6 +227,20 @@ body.dashboard-mode .main-nav {
     color: white;
 }
 
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 20px 48px;
+    cursor: pointer;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.sidebar-logo img { width: 32px; height: 32px; }
+.sidebar-logo span { color: var(--primary); }
+
 .sidebar-links a:hover:not(.active) { background: var(--glass); color: white; }
 
 .nav-category {
