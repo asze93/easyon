@@ -265,6 +265,19 @@
 
                 <!-- FUNDAMENT: TEAM -->
                 <div id="dash-team" class="dash-tab">
+                    <script>
+                    async function editTeam(id) {
+                        const { data } = await supabaseClient.from('brugere').select('*').eq('id', id).maybeSingle();
+                        if (data) {
+                            document.getElementById('teamId').value = data.id;
+                            document.getElementById('teamName').value = data.navn || '';
+                            document.getElementById('teamNr').value = data.arbejdsnummer || '';
+                            document.getElementById('teamRolle').value = data.rolle || 'tekniker';
+                            document.getElementById('teamPin').value = data.adgangskode || '';
+                            openModal('modal-team');
+                        }
+                    }
+                    </script>
                     <div class="tab-header">
                         <div>
                             <h1>Medarbejdere & Teams</h1>
