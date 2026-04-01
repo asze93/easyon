@@ -81,11 +81,21 @@ function toggleAuthMode(forcedMode) {
     if (authMode === 'signup') {
         title.innerText = "Opret Admin Konto";
         btn.innerText = "Tilmeld mig";
+        document.getElementById('authEmailLabel').innerText = "E-mail";
+        document.getElementById('authEmail').placeholder = "navn@firma.dk";
+        document.getElementById('authFirstName').required = true;
+        document.getElementById('authLastName').required = true;
+        document.getElementById('authCompanyName').required = true;
         document.getElementById('nameGroup').classList.remove('hidden');
         document.getElementById('passConfirmGroup').classList.remove('hidden');
     } else {
         title.innerText = "Log ind på EasyON";
         btn.innerText = "Log ind";
+        document.getElementById('authEmailLabel').innerText = "Bruger- / Firmanavn";
+        document.getElementById('authEmail').placeholder = "Dit valgte firmanavn";
+        document.getElementById('authFirstName').required = false;
+        document.getElementById('authLastName').required = false;
+        document.getElementById('authCompanyName').required = false;
         document.getElementById('nameGroup').classList.add('hidden');
         document.getElementById('passConfirmGroup').classList.add('hidden');
     }
