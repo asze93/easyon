@@ -201,8 +201,11 @@ async function loadDashboard() {
 
     if (profile) {
         currentFirmaId = profile.firma_id;
+        console.log("Dashboard loaded for firma:", currentFirmaId);
         const displayName = `${profile.arbejdsnummer} | ${profile.navn}`;
         document.querySelectorAll('.adminName').forEach(el => el.innerText = displayName);
+    } else {
+        console.error("Kunne ikke finde profil for bruger:", currentUser.email);
     }
     
     // Initial data fetch
@@ -484,7 +487,11 @@ async function handleLocationSubmit(e) {
 
 async function handleTeamSubmit(e) {
     e.preventDefault();
-    const id = document.getElementById('teamId').value;
+    if (!currentFirmaId) {
+        alert("Fejl: Dit Firma-ID er ikke indlæst korrekt. Prøv at genindlæse siden (F5).");
+        return;
+    }
+
     const payload = {
         navn: document.getElementById('teamName').value,
         arbejdsnummer: document.getElementById('teamNr').value,
@@ -492,17 +499,25 @@ async function handleTeamSubmit(e) {
         adgangskode: document.getElementById('teamPin').value,
         firma_id: currentFirmaId
     };
-    let res;
-    if (id) res = await supabaseClient.from('brugere').update(payload).eq('id', id);
-    else res = await supabaseClient.from('brugere').insert(payload);
     
-    if (res.error) {
-        console.error("Fejl ved oprettelse af medarbejder:", res.error);
-        alert("Kunne ikke gemme medarbejder: " + res.error.message);
-    } else {
-        closeAllModals(); 
-        fetchTeam(); 
-        showSnackbar("Medlem gemt!");
+    console.log("Prøver at gemme medarbejder:", payload);
+    
+    let res;
+    try {
+        if (id) res = await supabaseClient.from('brugere').update(payload).eq('id', id);
+        else res = await supabaseClient.from('brugere').insert(payload);
+        
+        if (res.error) {
+            console.error("Database fejl:", res.error);
+            alert("Database fejl: " + res.error.message + "\nDetaljer: " + (res.error.details || "Ingen"));
+        } else {
+            closeAllModals(); 
+            fetchTeam(); 
+            showSnackbar("Medlem gemt!");
+        }
+    } catch (exc) {
+        console.error("System fejl:", exc);
+        alert("System fejl: " + exc.message);
     }
 }
 
