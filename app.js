@@ -677,13 +677,19 @@ async function finishSetup() {
 
         // 2. Create Admin User Link
         status.innerText = "Kobler din profil til firmaet...";
+        const loginId = currentUser.user_metadata?.company || bizName;
+        
+        // isolation fix: ensure loginId is unique
+        const { data: existing } = await supabaseClient.from('brugere').select('id').eq('arbejdsnummer', loginId).maybeSingle();
+        if (existing) throw new Error("Dette firmanavn/login-id er allerede optaget. Vælg venligst et andet.");
+
         const { error: userErr } = await supabaseClient.from('brugere').insert({
             firma_id: currentFirmaId,
             navn: currentUser.user_metadata?.full_name || "Admin",
             email: currentUser.email,
             rolle: 'admin',
-            arbejdsnummer: currentUser.user_metadata?.company || bizName, // Login-ID as requested
-            adgangskode: 'AUTH' // Placeholder
+            arbejdsnummer: loginId,
+            adgangskode: 'AUTH' 
         });
         if (userErr) throw userErr;
 
