@@ -229,9 +229,17 @@ async function loadDashboard() {
 
     if (profile) {
         currentFirmaId = profile.firma_id;
-        console.log("Dashboard loaded for firma:", currentFirmaId);
+        const userRole = profile.rolle;
+        console.log("Dashboard loaded for firma:", currentFirmaId, "Rolle:", userRole);
+        
         const displayName = `${profile.arbejdsnummer} | ${profile.navn}`;
         document.querySelectorAll('.adminName').forEach(el => el.innerText = displayName);
+        
+        // RBAC: Show/Hide based on role 'admin.admin' vs others
+        const isAdmin = (userRole === 'admin.admin');
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.classList.toggle('hidden', !isAdmin);
+        });
     } else {
         console.error("Kunne ikke finde profil for bruger:", currentUser.email);
     }
