@@ -19,7 +19,8 @@
             </div>
             <div class="nav-links" id="guestNav">
                 <a href="#view-landing" onclick="showView('landing')">Hjem</a>
-                <a href="#view-auth" class="btn-primary" onclick="showView('auth')">Kom i gang</a>
+                <button class="btn-login" onclick="toggleAuthMode('login')">Log ind</button>
+                <a href="#view-auth" class="btn-primary" onclick="toggleAuthMode('signup')">Kom i gang</a>
             </div>
             <div class="nav-links hidden" id="userNav">
                 <span id="userNameDisplay">...</span>
