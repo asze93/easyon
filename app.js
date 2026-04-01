@@ -23,10 +23,16 @@ async function checkSession() {
         currentUser = session.user;
         updateNavUI();
         
-        const { data } = await supabaseClient.from('brugere').select('firma_id').eq('rolle', 'admin').limit(1).maybeSingle();
+        // isolation fix: filter by logged-in user email
+        const { data } = await supabaseClient.from('brugere')
+            .select('firma_id')
+            .eq('rolle', 'admin')
+            .eq('email', session.user.email)
+            .maybeSingle();
+
         if (data && data.firma_id) {
             currentFirmaId = data.firma_id;
-            await fetchIndstillinger(); // Hent globale indstillinger tidligt
+            await fetchIndstillinger();
             loadDashboard();
         } else {
             showView('wizard');
@@ -91,34 +97,35 @@ async function handleAuth(e) {
     e.preventDefault();
     const email = document.getElementById('authEmail').value;
     const pass = document.getElementById('authPass').value;
-    const name = document.getElementById('authName').value;
 
     try {
         if (authMode === 'signup') {
+            const firstName = document.getElementById('authFirstName').value;
+            const lastName = document.getElementById('authLastName').value;
+            const companyName = document.getElementById('authCompanyName').value;
             const passConfirm = document.getElementById('authPassConfirm').value;
+
             if (pass.length < 6) throw new Error("Adgangskoden skal være mindst 6 tegn lang.");
             if (pass !== passConfirm) throw new Error("Adgangskoderne er ikke ens.");
 
             const { data, error } = await supabaseClient.auth.signUp({
                 email: email,
                 password: pass,
-                options: { data: { full_name: name } }
+                options: { data: { full_name: `${firstName} ${lastName}`, company: companyName } }
             });
             if (error) throw error;
+            
+            // Note: firma_id will be created during the Wizard step
             if (data.session) showView('wizard');
             else showView('verify-email');
         } else {
             if (email.includes('@')) {
-                // Admin login (Supabase Auth)
                 const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
                 if (error) throw error;
                 checkSession(); 
             } else {
-                // Technician login (Database check)
                 const { data, error } = await supabaseClient.from('brugere').select('*').eq('arbejdsnummer', email).eq('adgangskode', pass).maybeSingle();
                 if (error || !data) throw new Error("Ugyldigt login. Tjek nr. og PIN.");
-                
-                // Allow anyone to enter dashboard for demo
                 currentFirmaId = data.firma_id;
                 loadDashboard();
                 showSnackbar("Velkommen, " + data.navn + "!");
@@ -611,4 +618,68 @@ async function renderStatistics() {
             scales: { y: { beginAtZero: true, grid: { color: '#334155' } }, x: { grid: { display: false } } }
         }
     });
+}
+// ---------------- WIZARD / ONBOARDING ----------------
+async function nextWizard(step) {
+    if (step === 2) {
+        document.getElementById('step1').classList.add('hidden');
+        document.getElementById('step2').classList.remove('hidden');
+    } else if (step === 3) {
+        document.getElementById('step2').classList.add('hidden');
+        document.getElementById('step3').classList.remove('hidden');
+        finishSetup();
+    }
+}
+
+async function finishSetup() {
+    const status = document.getElementById('wizardStatus');
+    try {
+        status.innerText = "Behandler firmaoplysninger...";
+        
+        // 1. Create Company
+        const bizName = document.getElementById('bizName').value || "Mit Firma";
+        const bizInd = document.getElementById('bizIndustry').value;
+        const bizAddr = document.getElementById('bizAddress').value;
+        const bizCVR = document.getElementById('bizCVR').value;
+        
+        const { data: newFirma, error: firmaErr } = await supabaseClient.from('firmaer').insert({
+            navn: bizName,
+            branche: bizInd,
+            adresse: bizAddr,
+            cvr_nummer: bizCVR
+        }).select().single();
+        
+        if (firmaErr) throw firmaErr;
+        currentFirmaId = newFirma.id;
+
+        // 2. Create Admin User Link
+        status.innerText = "Kobler din profil til firmaet...";
+        const { error: userErr } = await supabaseClient.from('brugere').insert({
+            firma_id: currentFirmaId,
+            navn: currentUser.user_metadata?.full_name || "Admin",
+            email: currentUser.email,
+            rolle: 'admin',
+            arbejdsnummer: currentUser.user_metadata?.company || bizName, // Login-ID as requested
+            adgangskode: 'AUTH' // Placeholder
+        });
+        if (userErr) throw userErr;
+
+        // 3. Create Default Settings
+        await supabaseClient.from('firma_indstillinger').insert({ firma_id: currentFirmaId });
+
+        // 4. Create first asset and location if provided
+        const fA = document.getElementById('firstAsset').value;
+        const fL = document.getElementById('firstLoc').value;
+        if (fL) await supabaseClient.from('lokationer').insert({ firma_id: currentFirmaId, navn: fL });
+        if (fA) await supabaseClient.from('maskiner').insert({ firma_id: currentFirmaId, navn: fA, placering: fL });
+
+        // 5. Done!
+        status.innerText = "Alt er klar! Åbner dashboard...";
+        setTimeout(() => loadDashboard(), 1500);
+
+    } catch (err) {
+        alert("Fejl under opsætning: " + err.message);
+        document.getElementById('step3').classList.add('hidden');
+        document.getElementById('step1').classList.remove('hidden');
+    }
 }

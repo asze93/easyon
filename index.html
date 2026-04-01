@@ -17,11 +17,9 @@
                 <img src="easyon_app_icon.png" alt="Logo">
                 Easy<span>ON</span>
             </div>
-            <div class="nav-links" id="guestNav">
-                <a href="#features">Funktioner</a>
-                <a href="#pricing">Priser</a>
-                <button class="btn-login" onclick="showView('auth')">Log ind</button>
-                <button class="btn-primary" onclick="toggleAuthMode('signup')">Prøv gratis</button>
+            <div class="nav-links">
+                <a href="#view-landing" onclick="showView('landing')">Hjem</a>
+                <a href="#view-auth" class="btn-primary" onclick="showView('auth')">Kom i gang</a>
             </div>
             <div class="nav-links hidden" id="userNav">
                 <span id="userNameDisplay">...</span>
@@ -53,13 +51,20 @@
                 <p id="authSub">Indtast dine oplysninger nedenfor</p>
                 
                 <form id="authForm" onsubmit="handleAuth(event)">
-                    <div class="input-group" id="nameGroup">
-                        <label>Fulde Navn</label>
-                        <input type="text" id="authName" placeholder="Dit navn" required>
+                    <div id="nameGroup" class="hidden">
+                        <div class="input-row">
+                            <div class="input-group"><label>Fornavn</label><input type="text" id="authFirstName"></div>
+                            <div class="input-group"><label>Efternavn</label><input type="text" id="authLastName"></div>
+                        </div>
+                        <div class="input-group">
+                            <label>Bruger- / Firmanavn</label>
+                            <input type="text" id="authCompanyName" placeholder="Dette er dit fremtidige login-ID">
+                            <p class="text-xs text-muted" style="margin-top:5px;">⚠️ Bemærk: Dette navn er unikt og bruges som dit fremtidige login.</p>
+                        </div>
                     </div>
                     <div class="input-group">
-                        <label>E-mail / Arbejdsnummer</label>
-                        <input type="text" id="authEmail" placeholder="email@firma.dk eller nr." required>
+                        <label>E-mail</label>
+                        <input type="email" id="authEmail" required placeholder="navn@firma.dk">
                     </div>
                     <div class="input-group">
                         <label>Adgangskode (min. 6 tegn)</label>
@@ -107,12 +112,21 @@
                         <input type="text" id="bizName" placeholder="Firmanavn">
                     </div>
                     <div class="input-group">
+                        <label>Virksomhedens branche</label>
                         <select id="bizIndustry">
                             <option value="">Vælg branche...</option>
-                            <option value="manufacturing">Produktion</option>
-                            <option value="food">Fødevarer</option>
-                            <option value="logistics">Logistik</option>
+                            <option value="cssc">Byggebranchen (CSSC)</option>
+                            <option value="manufacturing">Industri & Produktion</option>
+                            <option value="service">Service & Vedligehold</option>
+                            <option value="logistics">Lager & Logistik</option>
+                            <option value="healthcare">Sundhedssektoren</option>
+                            <option value="other">Andet</option>
                         </select>
+                    </div>
+                    <div class="input-group"><label>Virksomhedens adresse</label><input type="text" id="bizAddress" placeholder="Vejnavn 12, 8000 Aarhus"></div>
+                    <div class="input-row">
+                        <div class="input-group"><label>Telefon nr.</label><input type="tel" id="bizPhone" placeholder="+45 12345678"></div>
+                        <div class="input-group"><label>CVR-nummer</label><input type="text" id="bizCVR" placeholder="12345678"></div>
                     </div>
                     <button class="btn-primary w-100" onclick="nextWizard(2)">Næste trin</button>
                 </div>
