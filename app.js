@@ -26,7 +26,7 @@ async function checkSession() {
         // isolation fix: filter by logged-in user email
         const { data } = await supabaseClient.from('brugere')
             .select('firma_id')
-            .eq('rolle', 'admin')
+            .filter('rolle', 'in', '("admin", "admin.admin")')
             .eq('email', session.user.email)
             .maybeSingle();
 
@@ -197,7 +197,7 @@ async function loadDashboard() {
     const { data: profile } = await supabaseClient.from('brugere')
         .select('navn, arbejdsnummer, firma_id')
         .eq('email', currentUser.email)
-        .eq('rolle', 'admin')
+        .filter('rolle', 'in', '("admin", "admin.admin")')
         .maybeSingle();
 
     const displayName = profile ? `${profile.arbejdsnummer} | ${profile.navn}` : "Admin";
@@ -712,7 +712,7 @@ async function finishSetup() {
             firma_id: currentFirmaId,
             navn: currentUser.user_metadata?.full_name || "Admin",
             email: currentUser.email,
-            rolle: 'admin',
+            rolle: 'admin.admin',
             arbejdsnummer: loginId,
             adgangskode: 'AUTH' 
         });
