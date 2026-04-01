@@ -52,17 +52,23 @@
                 <p id="authSub">Indtast dine oplysninger nedenfor</p>
                 
                 <form id="authForm" onsubmit="handleAuth(event)">
+                    <div class="input-group" id="loginFirmaGroup">
+                        <label>Firmanavn</label>
+                        <input type="text" id="authLoginFirma" placeholder="Navnet på dit firma">
+                    </div>
+
                     <div id="nameGroup" class="hidden">
                         <div class="input-row">
-                            <div class="input-group"><label>Fornavn</label><input type="text" id="authFirstName" required></div>
-                            <div class="input-group"><label>Efternavn</label><input type="text" id="authLastName" required></div>
+                            <div class="input-group"><label>Fornavn</label><input type="text" id="authFirstName"></div>
+                            <div class="input-group"><label>Efternavn</label><input type="text" id="authLastName"></div>
                         </div>
                         <div class="input-group">
-                            <label>Bruger- / Firmanavn</label>
-                            <input type="text" id="authCompanyName" placeholder="Dette er dit fremtidige login-ID" required>
+                            <label>Firma Login-ID</label>
+                            <input type="text" id="authCompanyName" placeholder="Dette er dit fremtidige login-ID">
                             <p class="text-xs text-muted" style="margin-top:5px;">⚠️ Bemærk: Dette navn er unikt og bruges som dit fremtidige login.</p>
                         </div>
                     </div>
+
                     <div class="input-group">
                         <label id="authEmailLabel">Login-ID (Firmanavn eller E-mail)</label>
                         <input type="text" id="authEmail" placeholder="..." required>

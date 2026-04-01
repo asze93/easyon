@@ -73,31 +73,41 @@ function showView(viewId) {
 
 function toggleAuthMode(forcedMode) {
     if (forcedMode) authMode = forcedMode;
-    else authMode = authMode === 'login' ? 'signup' : 'login';
+    else authMode = (authMode === 'login' ? 'signup' : 'login');
     
-    // UI updates for auth card (reusing existing logic)
-    const title = document.getElementById('authTitle');
-    const btn = document.getElementById('authBtn');
+    const authTitle = document.getElementById('authTitle');
+    const authBtn = document.getElementById('authBtn');
+    const authEmailLabel = document.getElementById('authEmailLabel');
+    const authEmail = document.getElementById('authEmail');
+    const toggleText = document.getElementById('toggleText');
+    const toggleLink = document.getElementById('toggleLink');
+    const passConfirmGroup = document.getElementById('passConfirmGroup');
+    const signupOnlyGroup = document.getElementById('signupOnlyGroup');
+    const nameGroup = document.getElementById('nameGroup');
+    const firmaGroup = document.getElementById('loginFirmaGroup');
+
     if (authMode === 'signup') {
-        title.innerText = "Opret Admin Konto";
-        btn.innerText = "Tilmeld mig";
-        document.getElementById('authEmailLabel').innerText = "E-mail";
-        document.getElementById('authEmail').placeholder = "navn@firma.dk";
-        document.getElementById('authFirstName').required = true;
-        document.getElementById('authLastName').required = true;
-        document.getElementById('authCompanyName').required = true;
-        document.getElementById('nameGroup').classList.remove('hidden');
-        document.getElementById('passConfirmGroup').classList.remove('hidden');
+        authTitle.innerText = 'Opret din EasyON konto';
+        authEmailLabel.innerText = 'E-mail adresse';
+        authEmail.placeholder = 'navn@firma.dk';
+        authBtn.innerText = 'Næste: Firma info';
+        toggleText.innerText = 'Har du allerede en konto?';
+        toggleLink.innerText = 'Log ind her';
+        if (passConfirmGroup) passConfirmGroup.classList.remove('hidden');
+        if (signupOnlyGroup) signupOnlyGroup.classList.remove('hidden');
+        if (nameGroup) nameGroup.classList.remove('hidden');
+        if (firmaGroup) firmaGroup.classList.add('hidden');
     } else {
-        title.innerText = "Log ind på EasyON";
-        btn.innerText = "Log ind";
-        document.getElementById('authEmailLabel').innerText = "Bruger- / Firmanavn";
-        document.getElementById('authEmail').placeholder = "Dit valgte firmanavn";
-        document.getElementById('authFirstName').required = false;
-        document.getElementById('authLastName').required = false;
-        document.getElementById('authCompanyName').required = false;
-        document.getElementById('nameGroup').classList.add('hidden');
-        document.getElementById('passConfirmGroup').classList.add('hidden');
+        authTitle.innerText = 'Log ind på EasyON';
+        authEmailLabel.innerText = 'Login-ID (ID eller E-mail)';
+        authEmail.placeholder = 'E-mail eller medarbejder-nr.';
+        authBtn.innerText = 'Log ind';
+        toggleText.innerText = 'Har du ikke en konto?';
+        toggleLink.innerText = 'Opret her';
+        if (passConfirmGroup) passConfirmGroup.classList.add('hidden');
+        if (signupOnlyGroup) signupOnlyGroup.classList.add('hidden');
+        if (nameGroup) nameGroup.classList.add('hidden');
+        if (firmaGroup) firmaGroup.classList.remove('hidden');
     }
     showView('auth');
 }
@@ -142,17 +152,32 @@ async function handleAuth(e) {
                 showView('verify-email');
             }
         } else {
+            const loginFirma = document.getElementById('authLoginFirma')?.value || "";
+            
             if (email.includes('@')) {
-                // Regular email login
+                // Regular email login (Admin)
                 const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
                 if (error) throw error;
                 checkSession(); 
             } else {
-                // 1. Try to find if this is a Company Name (Admin)
+                // 1. First, find the Firma-ID based on the company name
+                const { data: firmaData, error: firmaErr } = await supabaseClient.from('firmaer')
+                    .select('id')
+                    .ilike('navn', loginFirma)
+                    .maybeSingle();
+                
+                if (firmaErr || !firmaData) {
+                    throw new Error("Kunne ikke finde firmaet: " + loginFirma);
+                }
+
+                const targetFirmaId = firmaData.id;
+
+                // 2. Try to find if this is a Company Admin
                 const { data: adminUser } = await supabaseClient.from('brugere')
                     .select('email, rolle')
-                    .eq('arbejdsnummer', email) // Company Name is stored here
-                    .eq('rolle', 'admin')
+                    .eq('firma_id', targetFirmaId)
+                    .eq('arbejdsnummer', email) 
+                    .eq('rolle', 'admin.admin') // Or 'admin'
                     .maybeSingle();
 
                 if (adminUser) {
@@ -164,13 +189,16 @@ async function handleAuth(e) {
                     if (error) throw error;
                     checkSession();
                 } else {
-                    // 2. Try Technician Login (Database check)
+                    // 3. Try Technician/Member Login (Database check)
                     const { data, error } = await supabaseClient.from('brugere')
                         .select('*')
+                        .eq('firma_id', targetFirmaId)
                         .eq('arbejdsnummer', email)
                         .eq('adgangskode', pass)
                         .maybeSingle();
-                    if (error || !data) throw new Error("Ugyldigt login. Tjek Firmanavn/Nr. og PIN.");
+                    
+                    if (error || !data) throw new Error("Ugyldigt login. Tjek Firmanavn, Medarbejder-ID og PIN.");
+                    
                     currentFirmaId = data.firma_id;
                     loadDashboard();
                     showSnackbar("Velkommen, " + data.navn + "!");
