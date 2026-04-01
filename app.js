@@ -743,7 +743,7 @@ function addAssigneeField(val = '') {
 
 // ---------------- EDIT FUNCTIONS ----------------
 function editLocation(id) {
-    const loc = window.currentLocations.find(l => l.id === id);
+    const loc = window.currentLocations.find(l => l.id.toString() === id.toString());
     if (!loc) return;
     document.getElementById('locId').value = loc.id;
     document.getElementById('locName').value = loc.navn;
@@ -755,7 +755,7 @@ function editLocation(id) {
 }
 
 function editAsset(id) {
-    const asset = window.currentAssets.find(a => a.id === id);
+    const asset = window.currentAssets.find(a => a.id.toString() === id.toString());
     if (!asset) return;
     document.getElementById('assetId').value = asset.id;
     document.getElementById('assetName').value = asset.navn;
@@ -769,7 +769,7 @@ function editAsset(id) {
 }
 
 function editTask(id) {
-    const task = window.currentTasks.find(t => t.id === id);
+    const task = window.currentTasks.find(t => t.id.toString() === id.toString());
     if (!task) return;
     
     const formT = document.querySelector('#modal-task form');
