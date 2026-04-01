@@ -143,28 +143,34 @@
         <section id="view-dashboard" class="view dashboard-layout">
             <aside class="sidebar">
                 <div class="sidebar-links">
-                    <li><a href="#" class="dash-nav" data-tab="overview" onclick="dashTab('overview')"><i class="icon">🏠</i> Dashboard</a></li>
+                    <li><a href="javascript:void(0)" class="dash-nav active" data-tab="overview" onclick="dashTab('overview')"><i class="icon">🏠</i> Dashboard</a></li>
                     
                     <li class="nav-category">Operationer</li>
-                    <li><a href="#" class="dash-nav" data-tab="tasks" onclick="dashTab('tasks')"><i class="icon">📋</i> Arbejdsordrer</a></li>
-                    <li><a href="#" class="dash-nav" data-tab="requests" onclick="dashTab('requests')"><i class="icon">📥</i> Anmodninger</a></li>
-                    <li><a href="#" class="dash-nav" data-tab="statistics" onclick="dashTab('statistics')"><i class="icon">📈</i> Rapportering</a></li>
+                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="tasks" onclick="dashTab('tasks')"><i class="icon">📋</i> Arbejdsordrer</a></li>
+                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="requests" onclick="dashTab('requests')"><i class="icon">📥</i> Anmodninger</a></li>
+                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="statistics" onclick="dashTab('statistics')"><i class="icon">📈</i> Rapportering</a></li>
                     
                     <li class="nav-category">Fundament</li>
-                    <li><a href="#" class="dash-nav" data-tab="assets" onclick="dashTab('assets')"><i class="icon">🏗️</i> Maskiner & Assets</a></li>
-                    <li><a href="#" class="dash-nav" data-tab="locations" onclick="dashTab('locations')"><i class="icon">📍</i> Lokationer</a></li>
-                    <li><a href="#" class="dash-nav" data-tab="team" onclick="dashTab('team')"><i class="icon">👥</i> Team & Personer</a></li>
-                    <li><a href="#" class="dash-nav" data-tab="categories" onclick="dashTab('categories')"><i class="icon">🏷️</i> Kategorier</a></li>
+                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="assets" onclick="dashNavTab(event, 'assets')"><i class="icon">🏗️</i> Maskiner & Assets</a></li>
+                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="locations" onclick="dashNavTab(event, 'locations')"><i class="icon">📍</i> Lokationer</a></li>
+                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="team" onclick="dashNavTab(event, 'team')"><i class="icon">👥</i> Team & Personer</a></li>
+                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="categories" onclick="dashNavTab(event, 'categories')"><i class="icon">🏷️</i> Kategorier</a></li>
                     
                     <li class="nav-category">System</li>
-                    <li><a href="#" class="dash-nav" data-tab="indstillinger" onclick="dashTab('indstillinger')"><i class="icon">⚙️</i> App Builder</a></li>
+                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="indstillinger" onclick="dashNavTab(event, 'indstillinger')"><i class="icon">⚙️</i> App Builder</a></li>
                 </div>
             </aside>
             
-            <div class="dash-content">
+            <div class="dash-main-container" id="dashMain">
+                <div class="dash-content">
                 <!-- DASHBOARD OVERVIEW -->
                 <div id="dash-overview" class="dash-tab active">
-                    <h1>Velkommen tilbage, <span class="adminName">Admin</span>!</h1>
+                    <div class="tab-header">
+                        <div>
+                            <h1>Velkommen tilbage, <span class="adminName">Admin</span>!</h1>
+                            <p>Her er det hurtige overblik over dagens drift.</p>
+                        </div>
+                    </div>
                     <div class="stats-grid">
                         <div class="stat-card"><h3 id="stat-tasks">-</h3><p>Aktive opgaver</p></div>
                         <div class="stat-card"><h3 id="stat-requests">-</h3><p>Nye anmodninger</p></div>
@@ -174,8 +180,11 @@
 
                 <!-- ARBEJDSORDRER (Main Ops) -->
                 <div id="dash-tasks" class="dash-tab">
-                    <div class="flex-between">
-                        <h2>Arbejdsordrer</h2>
+                    <div class="tab-header">
+                        <div>
+                            <h1>Arbejdsordrer</h1>
+                            <p>Administrer og tildel vedligeholdelsesopgaver.</p>
+                        </div>
                         <button class="btn-primary" onclick="openModal('modal-task')">+ Ny Opgave</button>
                     </div>
                     <div class="table-container">
@@ -188,8 +197,11 @@
 
                 <!-- ANMODNINGER -->
                 <div id="dash-requests" class="dash-tab">
-                    <div class="flex-between">
-                        <h2>Vedligeholdelses-anmodninger</h2>
+                    <div class="tab-header">
+                        <div>
+                            <h1>Vedligeholdelses-anmodninger</h1>
+                            <p>Gennemse og godkend indkomne fejlmeldinger.</p>
+                        </div>
                         <button class="btn-primary" onclick="openModal('modal-request')">+ Ny Anmodning</button>
                     </div>
                     <div class="table-container">
@@ -202,7 +214,12 @@
 
                 <!-- STATISTIK / RAPPORTERING -->
                 <div id="dash-statistics" class="dash-tab">
-                    <h2>Rapportering & KPI</h2>
+                    <div class="tab-header">
+                        <div>
+                            <h1>Rapportering & KPI</h1>
+                            <p>Visualiser din vedligeholdelsesdata og effektivitet.</p>
+                        </div>
+                    </div>
                     <div class="stats-grid" style="grid-template-columns: 1fr; margin-bottom: 30px;">
                         <div class="chart-card" style="height: 400px;"><canvas id="mainChart"></canvas></div>
                     </div>
@@ -210,8 +227,11 @@
 
                 <!-- FUNDAMENT: ASSETS -->
                 <div id="dash-assets" class="dash-tab">
-                    <div class="flex-between">
-                        <h2>Maskiner & Assets</h2>
+                    <div class="tab-header">
+                        <div>
+                            <h1>Maskiner & Assets</h1>
+                            <p>Hold styr på alt dit udstyr og deres tilstand.</p>
+                        </div>
                         <button class="btn-primary" onclick="openModal('modal-asset')">+ Opret Asset</button>
                     </div>
                     <div class="assets-grid" id="assetsBody"></div>
@@ -219,8 +239,11 @@
 
                 <!-- FUNDAMENT: LOKATIONER -->
                 <div id="dash-locations" class="dash-tab">
-                    <div class="flex-between">
-                        <h2>Lokationer</h2>
+                    <div class="tab-header">
+                        <div>
+                            <h1>Lokationer</h1>
+                            <p>Organiser dine maskiner efter fysisk placering.</p>
+                        </div>
                         <button class="btn-primary" onclick="openModal('modal-location')">+ Tilføj Lokation</button>
                     </div>
                     <div class="table-container">
@@ -233,8 +256,11 @@
 
                 <!-- FUNDAMENT: TEAM -->
                 <div id="dash-team" class="dash-tab">
-                    <div class="flex-between">
-                        <h2>Medarbejdere & Teams</h2>
+                    <div class="tab-header">
+                        <div>
+                            <h1>Medarbejdere & Teams</h1>
+                            <p>Administrer dine teknikere og deres adgang.</p>
+                        </div>
                         <button class="btn-primary" onclick="openModal('modal-team')">+ Tilføj Medlem</button>
                     </div>
                     <div class="table-container">
@@ -247,8 +273,11 @@
 
                 <!-- FUNDAMENT: KATEGORIER -->
                 <div id="dash-categories" class="dash-tab">
-                    <div class="flex-between">
-                        <h2>Opgave-kategorier</h2>
+                    <div class="tab-header">
+                        <div>
+                            <h1>Opgave-kategorier</h1>
+                            <p>Klassificer dine arbejdsordrer for bedre rapportering.</p>
+                        </div>
                         <button class="btn-primary" onclick="openModal('modal-category')">+ Ny Kategori</button>
                     </div>
                     <div class="table-container">
@@ -261,8 +290,11 @@
 
                 <!-- SYSTEM: APP BUILDER -->
                 <div id="dash-indstillinger" class="dash-tab">
-                    <div class="flex-between">
-                        <h2>App Builder (Admin Motor)</h2>
+                    <div class="tab-header">
+                        <div>
+                            <h1>App Builder (Admin Motor)</h1>
+                            <p>Konfigurer systemets kernefunktioner og workflows.</p>
+                        </div>
                         <button class="btn-primary" onclick="saveIndstillinger()">Gem Indstillinger</button>
                     </div>
                     <div class="auth-card" style="margin: 30px 0; text-align: left; max-width: 100%;">
@@ -285,9 +317,10 @@
                             <label class="switch"><input type="checkbox" id="set_sop" checked><span class="slider"></span></label>
                         </div>
                     </div>
-                </div>
-            </div>
-        </section>
+                </div> <!-- indstillinger -->
+            </div> <!-- dash-content -->
+        </div> <!-- dash-main-container -->
+    </section>
     </main>
 
     <!-- MODAL SYSTEM -->

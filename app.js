@@ -53,10 +53,15 @@ async function updateNavUI() {
 
 function showView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    
+    // Toggle dashboard-mode for SPA effect
+    if (viewId === 'dashboard') document.body.classList.add('dashboard-mode');
+    else document.body.classList.remove('dashboard-mode');
+
     const target = document.getElementById('view-' + viewId);
     if (target) {
         target.classList.add('active');
-        window.scrollTo(0, 0);
+        if (viewId !== 'dashboard') window.scrollTo(0, 0);
     }
 }
 
@@ -138,11 +143,17 @@ async function loadDashboard() {
 }
 
 function dashTab(tab) {
+    // Isolated Tab Switching
     document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.dash-nav').forEach(a => a.classList.remove('active'));
     
     const target = document.getElementById('dash-' + tab);
-    if (target) target.classList.add('active');
+    if (target) {
+        target.classList.add('active');
+        // Reset scroll within the isolated container only
+        const container = document.getElementById('dashMain');
+        if (container) container.scrollTop = 0;
+    }
     
     document.querySelectorAll('.dash-nav').forEach(a => {
         if (a.getAttribute('data-tab') === tab) a.classList.add('active');
@@ -158,6 +169,11 @@ function dashTab(tab) {
     if (tab === 'categories') fetchCategories();
     if (tab === 'indstillinger') fetchIndstillinger();
     if (tab === 'statistics') renderStatistics();
+}
+
+function dashNavTab(e, tab) {
+    if (e) e.preventDefault();
+    dashTab(tab);
 }
 
 // ---------------- FOUNDATION: CATEGORIES ----------------
