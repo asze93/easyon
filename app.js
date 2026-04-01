@@ -33,13 +33,13 @@ async function checkSession() {
         if (data && data.firma_id) {
             currentFirmaId = data.firma_id;
             await fetchIndstillinger();
-            loadDashboard();
+            loadDashboard(); // Will fetch profile based on session
         } else {
             showView('wizard');
         }
     } else {
         updateNavUI();
-        showView('landing');
+        // Stay on landing page only if NOT logged in
     }
 }
 
@@ -200,7 +200,7 @@ async function handleAuth(e) {
                     if (error || !data) throw new Error("Ugyldigt login. Tjek Firmanavn, Medarbejder-ID og PIN.");
                     
                     currentFirmaId = data.firma_id;
-                    loadDashboard();
+                    loadDashboard(data); // Provide profile data directly
                     showSnackbar("Velkommen, " + data.navn + "!");
                 }
             }
@@ -218,30 +218,49 @@ async function logout() {
 }
 
 // ---------------- DASHBOARD & NAVIGATION ----------------
-async function loadDashboard() {
+async function loadDashboard(providedProfile = null) {
     showView('dashboard');
     
-    const { data: profile } = await supabaseClient.from('brugere')
-        .select('navn, arbejdsnummer, firma_id')
-        .eq('email', currentUser.email)
-        .filter('rolle', 'in', '("admin", "admin.admin")')
-        .maybeSingle();
+    let profile = providedProfile;
+    
+    if (!profile && currentUser) {
+        // Fetch profile if not provided but we have a session
+        const { data } = await supabaseClient.from('brugere')
+            .select('navn, arbejdsnummer, firma_id, rolle')
+            .eq('email', currentUser.email)
+            .maybeSingle();
+        profile = data;
+    }
 
     if (profile) {
         currentFirmaId = profile.firma_id;
         const userRole = profile.rolle;
-        console.log("Dashboard loaded for firma:", currentFirmaId, "Rolle:", userRole);
         
-        const displayName = `${profile.arbejdsnummer} | ${profile.navn}`;
+        // Fetch Firma Navn to personalize header
+        const { data: firmaInfo } = await supabaseClient.from('firmaer')
+            .select('navn')
+            .eq('id', currentFirmaId)
+            .maybeSingle();
+
+        const firmaNavn = (firmaInfo?.navn || "Dit Firma");
+        const displayName = `${profile.navn} - ${firmaNavn}`;
+        
         document.querySelectorAll('.adminName').forEach(el => el.innerText = displayName);
         
-        // RBAC: Show/Hide based on role 'admin.admin' vs others
-        const isAdmin = (userRole === 'admin.admin');
+        // RBAC Logic: 
+        // 1. Only admin.admin is a 'Master'
+        const isMaster = (userRole === 'admin.admin');
+        
+        // 2. admin role is a 'Secondary Admin' (can manage but maybe less, for now = Master)
+        const isAdmin = (userRole === 'admin' || isMaster);
+
         document.querySelectorAll('.admin-only').forEach(el => {
             el.classList.toggle('hidden', !isAdmin);
         });
+        
+        console.log("Logged in as:", userRole, "Admin status:", isAdmin);
     } else {
-        console.error("Kunne ikke finde profil for bruger:", currentUser.email);
+        console.warn("Profil ikke fundet for denne bruger.");
     }
     
     // Initial data fetch
