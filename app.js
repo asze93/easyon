@@ -484,13 +484,14 @@ async function handleLocationSubmit(e) {
     
     if (!res.error) { closeAllModals(); fetchLocations(); showSnackbar("Lokation gemt!"); }
 }
-
 async function handleTeamSubmit(e) {
     e.preventDefault();
     if (!currentFirmaId) {
         alert("Fejl: Dit Firma-ID er ikke indlæst korrekt. Prøv at genindlæse siden (F5).");
         return;
     }
+
+    const id = document.getElementById('teamId').value;
 
     const payload = {
         navn: document.getElementById('teamName').value,
