@@ -139,6 +139,20 @@ async function logout() {
 // ---------------- DASHBOARD & NAVIGATION ----------------
 async function loadDashboard() {
     showView('dashboard');
+    
+    const name = currentUser?.user_metadata?.full_name || "Admin";
+    document.querySelectorAll('.adminName').forEach(el => el.innerText = name);
+    
+    // Initial data fetch
+    fetchStats();
+    fetchTasks();
+    fetchRequests();
+    fetchAssets();
+    fetchLocations();
+    fetchTeam();
+    fetchCategories();
+    fetchIndstillinger();
+    
     dashTab('overview');
 }
 
@@ -257,10 +271,17 @@ async function approveRequest(id) {
     showSnackbar("Anmodning godkendt!");
 }
 
-async function rejectRequest(id) {
-    await supabaseClient.from('anmodninger').update({ status: 'Afvist' }).eq('id', id);
-    fetchRequests();
-    showSnackbar("Anmodning afvist.");
+async function fetchTeam() {
+    const { data } = await supabaseClient.from('brugere').select('*').eq('firma_id', currentFirmaId);
+    const body = document.getElementById('teamBody');
+    body.innerHTML = (data || []).map(p => `
+        <tr>
+            <td><strong>${p.navn}</strong></td>
+            <td>${p.arbejdsnummer}</td>
+            <td><span class="badge status-godkendt">${p.rolle}</span></td>
+            <td><button class="btn-outline btn-xs" onclick="deleteItem('brugere', '${p.id}', fetchTeam)">Slet</button></td>
+        </tr>
+    `).join('');
 }
 
 // ---------------- OPERATIONS: WORK ORDERS ----------------
@@ -303,6 +324,7 @@ async function handleTaskSubmit(e) {
 async function fetchAssets() {
     const { data } = await supabaseClient.from('maskiner').select('*').eq('firma_id', currentFirmaId);
     const body = document.getElementById('assetsBody');
+    if (!body) return;
     body.innerHTML = (data || []).map(a => `
         <div class="asset-card">
             <div class="asset-img" style="background-image: url('${a.billede_path || 'easyon_app_icon.png'}')"></div>
@@ -315,6 +337,45 @@ async function fetchAssets() {
             </div>
         </div>
     `).join('');
+}
+
+async function handleAssetSubmit(e) {
+    e.preventDefault();
+    const id = document.getElementById('assetId').value;
+    const payload = {
+        navn: document.getElementById('assetName').value,
+        placering: document.getElementById('assetLoc').value,
+        firma_id: currentFirmaId
+    };
+    let res;
+    if (id) res = await supabaseClient.from('maskiner').update(payload).eq('id', id);
+    else res = await supabaseClient.from('maskiner').insert(payload);
+    
+    if (!res.error) { closeAllModals(); fetchAssets(); showSnackbar("Asset gemt!"); }
+}
+
+async function handleLocationSubmit(e) {
+    e.preventDefault();
+    const payload = {
+        navn: document.getElementById('locName').value,
+        beskrivelse: document.getElementById('locDesc').value,
+        firma_id: currentFirmaId
+    };
+    const { error } = await supabaseClient.from('lokationer').insert(payload);
+    if (!error) { closeAllModals(); fetchLocations(); showSnackbar("Lokation oprettet!"); }
+}
+
+async function handleTeamSubmit(e) {
+    e.preventDefault();
+    const payload = {
+        navn: document.getElementById('teamName').value,
+        arbejdsnummer: document.getElementById('teamNr').value,
+        rolle: document.getElementById('teamRolle').value,
+        adgangskode: document.getElementById('teamPin').value,
+        firma_id: currentFirmaId
+    };
+    const { error } = await supabaseClient.from('brugere').insert(payload);
+    if (!error) { closeAllModals(); fetchTeam(); showSnackbar("Medlem tilføjet!"); }
 }
 
 async function fetchLocations() {

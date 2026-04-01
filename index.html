@@ -143,12 +143,12 @@
         <section id="view-dashboard" class="view dashboard-layout">
             <aside class="sidebar">
                 <div class="sidebar-links">
-                    <li><a href="javascript:void(0)" class="dash-nav active" data-tab="overview" onclick="dashTab('overview')"><i class="icon">🏠</i> Dashboard</a></li>
+                    <li><a href="javascript:void(0)" class="dash-nav active" data-tab="overview" onclick="dashNavTab(event, 'overview')"><i class="icon">🏠</i> Dashboard</a></li>
                     
                     <li class="nav-category">Operationer</li>
-                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="tasks" onclick="dashTab('tasks')"><i class="icon">📋</i> Arbejdsordrer</a></li>
-                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="requests" onclick="dashTab('requests')"><i class="icon">📥</i> Anmodninger</a></li>
-                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="statistics" onclick="dashTab('statistics')"><i class="icon">📈</i> Rapportering</a></li>
+                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="tasks" onclick="dashNavTab(event, 'tasks')"><i class="icon">📋</i> Arbejdsordrer</a></li>
+                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="requests" onclick="dashNavTab(event, 'requests')"><i class="icon">📥</i> Anmodninger</a></li>
+                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="statistics" onclick="dashNavTab(event, 'statistics')"><i class="icon">📈</i> Rapportering</a></li>
                     
                     <li class="nav-category">Fundament</li>
                     <li><a href="javascript:void(0)" class="dash-nav" data-tab="assets" onclick="dashNavTab(event, 'assets')"><i class="icon">🏗️</i> Maskiner & Assets</a></li>
@@ -370,6 +370,34 @@
             <div class="input-group"><label>Navn</label><input type="text" id="assetName" required></div>
             <div class="input-group"><label>Lokation</label><select id="assetLoc" required></select></div>
             <button type="submit" class="btn-primary w-100">Gem Asset</button>
+        </form>
+    </div>
+
+    <!-- MODAL: LOCATION -->
+    <div id="modal-location" class="modal-card hidden">
+        <div class="modal-header"><h3>Ny Lokation</h3></div>
+        <form onsubmit="handleLocationSubmit(event)">
+            <div class="input-group"><label>Navn</label><input type="text" id="locName" required placeholder="f.eks. Hal A"></div>
+            <div class="input-group"><label>Beskrivelse</label><input type="text" id="locDesc"></div>
+            <button type="submit" class="btn-primary w-100">Opret Lokation</button>
+        </form>
+    </div>
+
+    <!-- MODAL: TEAM -->
+    <div id="modal-team" class="modal-card hidden">
+        <div class="modal-header"><h3>Medarbejder / Teammedlem</h3></div>
+        <form onsubmit="handleTeamSubmit(event)">
+            <div class="input-group"><label>Navn</label><input type="text" id="teamName" required></div>
+            <div class="input-group"><label>Arbejdsnummer (Login nr)</label><input type="text" id="teamNr" required></div>
+            <div class="input-group"><label>Rolle</label>
+                <select id="teamRolle">
+                    <option value="tekniker">Tekniker (App kun)</option>
+                    <option value="superbruger">Superbruger (Dashboard & App)</option>
+                    <option value="admin">Administrator (Fuld adgang)</option>
+                </select>
+            </div>
+            <div class="input-group"><label>PIN-kode (Login)</label><input type="password" id="teamPin" required placeholder="4 cifre"></div>
+            <button type="submit" class="btn-primary w-100">Gem Medlem</button>
         </form>
     </div>
 
