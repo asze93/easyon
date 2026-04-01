@@ -486,12 +486,14 @@ async function handleLocationSubmit(e) {
 }
 async function handleTeamSubmit(e) {
     e.preventDefault();
+    
+    const teamIdEl = document.getElementById('teamId');
+    const id = teamIdEl ? teamIdEl.value : "";
+
     if (!currentFirmaId) {
         alert("Fejl: Dit Firma-ID er ikke indlæst korrekt. Prøv at genindlæse siden (F5).");
         return;
     }
-
-    const id = document.getElementById('teamId').value;
 
     const payload = {
         navn: document.getElementById('teamName').value,
@@ -501,24 +503,26 @@ async function handleTeamSubmit(e) {
         firma_id: currentFirmaId
     };
     
-    console.log("Prøver at gemme medarbejder:", payload);
+    console.log("Forsøger at gemme:", payload);
     
-    let res;
     try {
-        if (id) res = await supabaseClient.from('brugere').update(payload).eq('id', id);
-        else res = await supabaseClient.from('brugere').insert(payload);
+        let res;
+        if (id) {
+            res = await supabaseClient.from('brugere').update(payload).eq('id', id);
+        } else {
+            res = await supabaseClient.from('brugere').insert(payload);
+        }
         
         if (res.error) {
-            console.error("Database fejl:", res.error);
-            alert("Database fejl: " + res.error.message + "\nDetaljer: " + (res.error.details || "Ingen"));
+            throw res.error;
         } else {
             closeAllModals(); 
             fetchTeam(); 
-            showSnackbar("Medlem gemt!");
+            showSnackbar("Medarbejder gemt!");
         }
-    } catch (exc) {
-        console.error("System fejl:", exc);
-        alert("System fejl: " + exc.message);
+    } catch (err) {
+        console.error("Fejl i handleTeamSubmit:", err);
+        alert("Kunne ikke gemme: " + err.message);
     }
 }
 
