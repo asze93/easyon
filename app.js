@@ -651,14 +651,9 @@ async function renderStatistics() {
 }
 // ---------------- WIZARD / ONBOARDING ----------------
 async function nextWizard(step) {
-    if (step === 2) {
-        document.getElementById('step1').classList.add('hidden');
-        document.getElementById('step2').classList.remove('hidden');
-    } else if (step === 3) {
-        document.getElementById('step2').classList.add('hidden');
-        document.getElementById('step3').classList.remove('hidden');
-        finishSetup();
-    }
+    document.getElementById('step1').classList.add('hidden');
+    document.getElementById('step3').classList.remove('hidden');
+    finishSetup();
 }
 
 async function finishSetup() {
@@ -702,12 +697,6 @@ async function finishSetup() {
 
         // 3. Create Default Settings
         await supabaseClient.from('firma_indstillinger').insert({ firma_id: currentFirmaId });
-
-        // 4. Create first asset and location if provided
-        const fA = document.getElementById('firstAsset').value;
-        const fL = document.getElementById('firstLoc').value;
-        if (fL) await supabaseClient.from('lokationer').insert({ firma_id: currentFirmaId, navn: fL });
-        if (fA) await supabaseClient.from('maskiner').insert({ firma_id: currentFirmaId, navn: fA, placering: fL });
 
         // 5. Done!
         status.innerText = "Alt er klar! Åbner dashboard...";

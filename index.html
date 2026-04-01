@@ -128,19 +128,8 @@
                         <div class="input-group"><label>Telefon nr.</label><input type="tel" id="bizPhone" placeholder="+45 12345678"></div>
                         <div class="input-group"><label>CVR-nummer</label><input type="text" id="bizCVR" placeholder="12345678"></div>
                     </div>
-                    <button class="btn-primary w-100" onclick="nextWizard(2)">Næste trin</button>
-                </div>
-
-                <div class="wizard-content hidden" id="step2">
-                    <h2>Opret dit første asset</h2>
-                    <p class="text-muted" style="margin-bottom:20px;">Hvad er den vigtigste maskine eller lokation i dit firma?</p>
-                    <div class="input-group">
-                        <input type="text" id="firstAsset" placeholder="Maskinnavn (f.eks. Pakkelinje 1)">
-                    </div>
-                    <div class="input-group">
-                        <input type="text" id="firstLoc" placeholder="Placering (f.eks. Hal A)">
-                    </div>
-                    <button class="btn-primary w-100" onclick="nextWizard(3)">Konfigurer system...</button>
+                    <!-- Direct finish -->
+                    <button class="btn-primary w-100" onclick="nextWizard(3)">Opret mit firma & Se dashboard</button>
                 </div>
 
                 <div class="wizard-content hidden" id="step3">
