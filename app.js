@@ -36,13 +36,19 @@ async function checkSession() {
         if (data && data.firma_id) {
             currentFirmaId = data.firma_id;
             await fetchIndstillinger();
-            loadDashboard(); // Will fetch profile based on session
+            loadDashboard(); 
         } else {
             showView('wizard');
         }
     } else {
-        updateNavUI();
-        // Stay on landing page only if NOT logged in
+        // No Supabase Auth session - check for Technician Session in LocalStorage
+        const savedProfile = localStorage.getItem('easyon_session_profile');
+        if (savedProfile) {
+            const profile = JSON.parse(savedProfile);
+            loadDashboard(profile);
+        } else {
+            updateNavUI();
+        }
     }
 }
 
@@ -215,6 +221,7 @@ async function handleAuth(e) {
 
 async function logout() {
     await supabaseClient.auth.signOut();
+    localStorage.removeItem('easyon_session_profile'); // Clear technician session
     currentUser = null;
     currentFirmaId = null;
     location.reload();
@@ -237,7 +244,10 @@ async function loadDashboard(providedProfile = null) {
 
     if (profile) {
         currentFirmaId = profile.firma_id;
-        const userRole = profile.rolle;
+        const userRole = (profile.rolle || "").toLowerCase(); // Case-insensitive
+        
+        // Save session for persistence (especially for technicians without Supabase Auth)
+        localStorage.setItem('easyon_session_profile', JSON.stringify(profile));
         
         // Fetch Firma Navn to personalize header
         const { data: firmaInfo } = await supabaseClient.from('firmaer')
@@ -253,6 +263,8 @@ async function loadDashboard(providedProfile = null) {
         // RBAC Logic: 
         const isMaster = (userRole === 'admin.admin');
         isGlobalAdmin = (userRole === 'admin' || isMaster);
+        
+        console.log("RBAC CHECK:", { userRole, isGlobalAdmin });
 
         document.querySelectorAll('.admin-only').forEach(el => {
             el.classList.toggle('hidden', !isGlobalAdmin);
