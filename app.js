@@ -170,8 +170,15 @@ async function logout() {
 async function loadDashboard() {
     showView('dashboard');
     
-    const name = currentUser?.user_metadata?.full_name || "Admin";
-    document.querySelectorAll('.adminName').forEach(el => el.innerText = name);
+    // Fetch info about current logged-in profile
+    const { data: profile } = await supabaseClient.from('brugere')
+        .select('navn, arbejdsnummer, firma_id')
+        .eq('email', currentUser.email)
+        .eq('rolle', 'admin')
+        .maybeSingle();
+
+    const displayName = profile ? `${profile.arbejdsnummer} | ${profile.navn}` : "Admin";
+    document.querySelectorAll('.adminName').forEach(el => el.innerText = displayName);
     
     // Initial data fetch
     fetchStats();
