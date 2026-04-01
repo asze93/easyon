@@ -123,11 +123,24 @@ async function handleAuth(e) {
                 password: pass,
                 options: { data: { full_name: `${firstName} ${lastName}`, company: companyName } }
             });
-            if (error) throw error;
             
-            // Note: firma_id will be created during the Wizard step
-            if (data.session) showView('wizard');
-            else showView('verify-email');
+            if (error) {
+                // Graceful signup: If user exists, just try to sign them in
+                if (error.message.includes("already registered") || error.status === 400) {
+                    const { data: signInData, error: signInError } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
+                    if (signInError) throw signInError;
+                    checkSession(); 
+                    return;
+                }
+                throw error;
+            }
+            
+            if (data.session) {
+                currentUser = data.session.user; // Ensure current user is set
+                showView('wizard');
+            } else {
+                showView('verify-email');
+            }
         } else {
             if (email.includes('@')) {
                 // Regular email login
