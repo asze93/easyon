@@ -417,28 +417,48 @@ async function fetchTeam() {
 
 async function fetchTasks() {
     if (!currentFirmaId) return;
-    const { data } = await supabaseClient.from('opgaver').select('*').eq('firma_id', currentFirmaId).order('created_at', { ascending: false });
-    const b = document.getElementById('tasksBody'); if (!b) return; b.innerHTML = "";
-    data?.forEach(t => {
-        const actionLabel = isSuperUser ? 'Åbn' : 'Vis';
-        const priorityLabel = (t.prioritet == 3) ? 'Høj' : (t.prioritet == 2 ? 'Middel' : 'Lav');
-        b.innerHTML += `<tr>
-            <td>${t.titel}</td>
-            <td>${t.asset_navn || '-'}</td>
-            <td><span class="badge prio-${priorityLabel.toLowerCase()}">${priorityLabel}</span></td>
-            <td>${t.kategori || '-'}</td>
-            <td><button class="btn-outline btn-sm" onclick="editTask('${t.id}')">${actionLabel}</button></td>
-        </tr>`;
-    });
+    try {
+        const { data, error } = await supabaseClient.from('opgaver')
+            .select('*')
+            .eq('firma_id', currentFirmaId)
+            .order('id', { ascending: false }); // Brug ID som sikker sortering
+        
+        if (error) throw error;
+        
+        const b = document.getElementById('tasksBody'); if (!b) return; b.innerHTML = "";
+        data?.forEach(t => {
+            const actionLabel = isSuperUser ? 'Åbn' : 'Vis';
+            const priorityLabel = (t.prioritet == 3) ? 'Høj' : (t.prioritet == 2 ? 'Middel' : 'Lav');
+            b.innerHTML += `<tr>
+                <td>${t.titel}</td>
+                <td>${t.asset_navn || '-'}</td>
+                <td><span class="badge prio-${priorityLabel.toLowerCase()}">${priorityLabel}</span></td>
+                <td>${t.kategori || '-'}</td>
+                <td><button class="btn-outline btn-sm" onclick="editTask('${t.id}')">${actionLabel}</button></td>
+            </tr>`;
+        });
+    } catch (err) {
+        console.error("Fejl ved hentning af opgaver:", err);
+    }
 }
 
 async function fetchRequests() {
     if (!currentFirmaId) return;
-    const { data } = await supabaseClient.from('anmodninger').select('*').eq('firma_id', currentFirmaId).order('created_at', { ascending: false });
-    const b = document.getElementById('requestsBody'); if (!b) return; b.innerHTML = "";
-    data?.forEach(r => {
-        b.innerHTML += `<tr><td>${r.titel}</td><td>${r.beskrivelse}</td><td><button class="btn-primary btn-sm" onclick="convertRequest('${r.id}')">Lav til Opgave</button></td></tr>`;
-    });
+    try {
+        const { data, error } = await supabaseClient.from('anmodninger')
+            .select('*')
+            .eq('firma_id', currentFirmaId)
+            .order('id', { ascending: false });
+            
+        if (error) throw error;
+        
+        const b = document.getElementById('requestsBody'); if (!b) return; b.innerHTML = "";
+        data?.forEach(r => {
+            b.innerHTML += `<tr><td>${r.titel}</td><td>${r.beskrivelse}</td><td><button class="btn-primary btn-sm" onclick="convertRequest('${r.id}')">Lav til Opgave</button></td></tr>`;
+        });
+    } catch (err) {
+        console.error("Fejl ved hentning af anmodninger:", err);
+    }
 }
 
 // ---------------- MODALS & CRUD ----------------
@@ -565,18 +585,47 @@ async function handleTaskSubmit(e) {
 // ---------------- ASSETS & LOCATIONS ----------------
 async function fetchAssets() {
     if (!currentFirmaId) return;
-    const { data } = await supabaseClient.from('assets').select('*, lokationer(navn)').eq('firma_id', currentFirmaId).order('navn');
-    const b = document.getElementById('assetsBody'); if (!b) return; b.innerHTML = "";
-    data?.forEach(a => {
-        b.innerHTML += `
-        <div class="asset-card" style="padding: 15px; border-radius: 8px; border: 1px solid var(--border); background: white;">
-            <div style="font-weight: 700; font-size: 16px; margin-bottom: 5px;">${a.navn}</div>
-            <div style="font-size: 13px; color: var(--text-muted);"><i class="icon">📍</i> ${a.lokationer?.navn || 'Ingen lokation'}</div>
-            <div style="margin-top: 10px; display:flex; gap: 5px;">
-                <button class="btn-outline btn-sm" onclick="deleteAsset('${a.id}')">Slet</button>
-            </div>
-        </div>`;
-    });
+    try {
+        console.log("Henter assets for firma:", currentFirmaId);
+        const { data, error } = await supabaseClient.from('assets')
+            .select('*, lokationer(navn)')
+            .eq('firma_id', currentFirmaId)
+            .order('navn');
+        
+        if (error) throw error;
+        
+        const b = document.getElementById('assetsBody'); if (!b) return; b.innerHTML = "";
+        if (!data || data.length === 0) {
+            b.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: var(--text-muted);">Ingen maskiner fundet. Opret en ny ved at klikke på knappen ovenfor.</div>';
+            return;
+        }
+
+        data.forEach(a => {
+            b.innerHTML += `
+            <div class="asset-card" style="padding: 15px; border-radius: 8px; border: 1px solid var(--border); background: white;">
+                <div style="font-weight: 700; font-size: 16px; margin-bottom: 5px;">${a.navn}</div>
+                <div style="font-size: 13px; color: var(--text-muted);"><i class="icon">📍</i> ${a.lokationer?.navn || 'Ingen lokation'}</div>
+                <div style="margin-top: 10px; display:flex; gap: 5px;">
+                    <button class="btn-outline btn-sm" onclick="deleteAsset('${a.id}')">Slet</button>
+                    <button class="btn-outline btn-sm" onclick="editAsset('${a.id}')">Rediger</button>
+                </div>
+            </div>`;
+        });
+    } catch (err) {
+        console.error("Fejl ved hentning af assets:", err);
+        showSnackbar("Kunne ikke hente maskiner", err.code);
+    }
+}
+
+async function editAsset(id) {
+    const { data, error } = await supabaseClient.from('assets').select('*').eq('id', id).maybeSingle();
+    if (error || !data) return;
+    
+    document.getElementById('assetId').value = data.id;
+    document.getElementById('assetName').value = data.navn;
+    document.getElementById('assetLoc').value = data.lokation_id || "";
+    
+    openModal('modal-asset');
 }
 
 async function deleteAsset(id) {
@@ -691,10 +740,35 @@ async function handleAssetSubmit(e) {
     e.preventDefault();
     const btn = e.submitter;
     setLoading(btn, true);
-    const navn = document.getElementById('assetName').value, lokId = document.getElementById('assetLoc').value;
-    const { error } = await supabaseClient.from('assets').insert({ navn, lokation_id: lokId || null, firma_id: currentFirmaId });
-    setLoading(btn, false);
-    if (error) showSnackbar("Fejl ved oprettelse af asset", error.code); else { showSnackbar("Asset oprettet!"); closeAllModals(); fetchAssets(); }
+    try {
+        const id = document.getElementById('assetId').value;
+        const navn = document.getElementById('assetName').value;
+        const lokId = document.getElementById('assetLoc').value;
+        
+        const assetData = {
+            navn, 
+            lokation_id: lokId || null, 
+            firma_id: currentFirmaId 
+        };
+        
+        let result;
+        if (id) {
+            result = await supabaseClient.from('assets').update(assetData).eq('id', id);
+        } else {
+            result = await supabaseClient.from('assets').insert(assetData);
+        }
+        
+        if (result.error) throw result.error;
+        
+        showSnackbar(id ? "Asset opdateret!" : "Asset oprettet!");
+        closeAllModals();
+        fetchAssets();
+    } catch (err) {
+        console.error("Fejl ved lagring af asset:", err);
+        showSnackbar("Fejl ved lagring af asset", err.code);
+    } finally {
+        setLoading(btn, false);
+    }
 }
 
 async function handleLocationSubmit(e) {
