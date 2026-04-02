@@ -69,9 +69,10 @@ body.dashboard-mode .main-nav {
 }
 
 .logo img { 
-    height: 140px; 
-    filter: drop-shadow(0 0 25px rgba(59, 130, 246, 0.6));
-    mix-blend-mode: screen; /* Fjerner den sorte baggrund og får blå til at poppe */
+    height: 150px; 
+    filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.7));
+    mix-blend-mode: screen; /* Nu fjerner den alt sort pga. #000000 baggrund */
+    background: transparent !important;
 }
 .logo span { color: var(--primary); }
 
