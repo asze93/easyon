@@ -14,12 +14,26 @@ function togglePassVisibility(id) {
     input.type = (input.type === 'password' ? 'text' : 'password');
 }
 
-function showSnackbar(msg) {
+function showSnackbar(msg, code = null) {
     const sb = document.getElementById('snackbar');
     if (!sb) return;
-    sb.innerText = msg;
+    let fullMsg = msg;
+    if (code) fullMsg += ` (Fejlkode: ${code})`;
+    sb.innerText = fullMsg;
     sb.className = 'snackbar show';
-    setTimeout(() => { sb.className = sb.className.replace('show', ''); }, 3000);
+    setTimeout(() => { sb.className = sb.className.replace('show', ''); }, 4000);
+}
+
+function setLoading(btn, isLoading, originalText) {
+    if (!btn) return;
+    if (isLoading) {
+        btn.dataset.originalText = btn.innerText;
+        btn.innerText = 'Arbejder...';
+        btn.disabled = true;
+    } else {
+        btn.innerText = originalText || btn.dataset.originalText || 'Fortsæt';
+        btn.disabled = false;
+    }
 }
 
 function showView(viewId) {
@@ -429,7 +443,7 @@ async function fetchRequests() {
 
 // ---------------- MODALS & CRUD ----------------
 // ---------------- MODALS & HELPERS ----------------
-function openModal(id, reset = false) {
+async function openModal(id, reset = false) {
     const m = document.getElementById(id); if (!m) return;
     if (reset) {
         m.querySelectorAll('form').forEach(f => f.reset());
@@ -437,7 +451,41 @@ function openModal(id, reset = false) {
         const saveBtn = m.querySelector('button[type="submit"]');
         if (saveBtn) saveBtn.style.display = 'block';
     }
+    
+    // Auto-populate dropdowns based on modal type
+    if (id === 'modal-task') {
+        await populateAssignees('taskAssignee');
+        // We'll also need assets for tasks if we want to link them
+    }
+    if (id === 'modal-request') {
+        await populateAssets('reqAsset');
+    }
+    if (id === 'modal-asset') {
+        await populateLocations('assetLoc');
+    }
+
     m.classList.remove('hidden'); document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+async function populateAssignees(selectId) {
+    const el = document.getElementById(selectId); if (!el) return;
+    const { data } = await supabaseClient.from('brugere').select('id, navn').eq('firma_id', currentFirmaId);
+    el.innerHTML = '<option value="">Vælg tekniker...</option>';
+    data?.forEach(u => el.innerHTML += `<option value="${u.navn}">${u.navn}</option>`);
+}
+
+async function populateAssets(selectId) {
+    const el = document.getElementById(selectId); if (!el) return;
+    const { data } = await supabaseClient.from('assets').select('id, navn').eq('firma_id', currentFirmaId);
+    el.innerHTML = '<option value="">Vælg maskine...</option>';
+    data?.forEach(a => el.innerHTML += `<option value="${a.navn}">${a.navn}</option>`);
+}
+
+async function populateLocations(selectId) {
+    const el = document.getElementById(selectId); if (!el) return;
+    const { data } = await supabaseClient.from('lokationer').select('id, navn').eq('firma_id', currentFirmaId);
+    el.innerHTML = '<option value="">Vælg lokation...</option>';
+    data?.forEach(l => el.innerHTML += `<option value="${l.id}">${l.navn}</option>`);
 }
 
 function closeAllModals() {
@@ -447,9 +495,12 @@ function closeAllModals() {
 
 async function handleTeamSubmit(e) {
     e.preventDefault();
-    const name = document.getElementById('teamName').value, nr = document.getElementById('teamNr').value, role = document.getElementById('teamRolle').value;
-    const { error } = await supabaseClient.from('brugere').insert({ firma_id: currentFirmaId, navn: name, arbejdsnummer: nr, rolle: role, adgangskode: '1234' });
-    if (error) showSnackbar("Fejl: " + error.message); else { showSnackbar("Medlem tilføjet!"); closeAllModals(); fetchTeam(); }
+    const btn = e.submitter;
+    setLoading(btn, true);
+    const name = document.getElementById('teamName').value, nr = document.getElementById('teamNr').value, role = document.getElementById('teamRolle').value, pin = document.getElementById('teamPin').value;
+    const { error } = await supabaseClient.from('brugere').insert({ firma_id: currentFirmaId, navn: name, arbejdsnummer: nr, rolle: role, adgangskode: pin });
+    setLoading(btn, false);
+    if (error) showSnackbar("Fejl ved oprettelse af medlem", error.code); else { showSnackbar("Medlem tilføjet!"); closeAllModals(); fetchTeam(); }
 }
 
 async function deleteTeamMember(id) {
@@ -478,11 +529,13 @@ async function editTask(id) {
 
 async function handleTaskSubmit(e) {
     e.preventDefault();
+    const btn = e.submitter;
     if (!isSuperUser && document.getElementById('taskId').value) {
         showSnackbar("Du har ikke rettigheder til at ændre denne opgave.");
         return;
     }
     
+    setLoading(btn, true);
     const id = document.getElementById('taskId').value;
     const title = document.getElementById('taskTitle').value;
     const desc = document.getElementById('taskDesc').value;
@@ -492,34 +545,63 @@ async function handleTaskSubmit(e) {
         firma_id: currentFirmaId,
         titel: title,
         beskrivelse: desc,
-        status: status
+        status: status,
+        created_at: new Date().toISOString()
     };
 
     let result;
     if (id) {
+        delete taskData.created_at; // Don't overwrite original timestamp on update
         result = await supabaseClient.from('opgaver').update(taskData).eq('id', id);
     } else {
         result = await supabaseClient.from('opgaver').insert(taskData);
     }
     
-    if (result.error) showSnackbar("Fejl: " + result.error.message);
-    else { showSnackbar(id ? "Opgave opdateret!" : "Opgave oprettet!"); closeAllModals(); fetchTasks(); }
+    setLoading(btn, false);
+    if (result.error) showSnackbar("Fejl ved lagring", result.error.code);
+    else { showSnackbar(id ? "Opgave opdateret!" : "Opgave oprettet!"); closeAllModals(); fetchTasks(); loadDashboardStats(); }
 }
 
 // ---------------- ASSETS & LOCATIONS ----------------
 async function fetchAssets() {
-    const { data } = await supabaseClient.from('assets').select('*').eq('firma_id', currentFirmaId);
-    const b = document.getElementById('assetsBody'); if (b) {
-        b.innerHTML = "";
-        data?.forEach(a => b.innerHTML += `<tr><td>${a.navn}</td><td>${a.lokation_id || 'Ingen'}</td><td><button class="btn-outline btn-sm">Rediger</button></td></tr>`);
-    }
+    if (!currentFirmaId) return;
+    const { data } = await supabaseClient.from('assets').select('*, lokationer(navn)').eq('firma_id', currentFirmaId).order('navn');
+    const b = document.getElementById('assetsBody'); if (!b) return; b.innerHTML = "";
+    data?.forEach(a => {
+        b.innerHTML += `
+        <div class="asset-card" style="padding: 15px; border-radius: 8px; border: 1px solid var(--border); background: white;">
+            <div style="font-weight: 700; font-size: 16px; margin-bottom: 5px;">${a.navn}</div>
+            <div style="font-size: 13px; color: var(--text-muted);"><i class="icon">📍</i> ${a.lokationer?.navn || 'Ingen lokation'}</div>
+            <div style="margin-top: 10px; display:flex; gap: 5px;">
+                <button class="btn-outline btn-sm" onclick="deleteAsset('${a.id}')">Slet</button>
+            </div>
+        </div>`;
+    });
+}
+
+async function deleteAsset(id) {
+    if (!confirm("Vil du slette denne maskine?")) return;
+    const { error } = await supabaseClient.from('assets').delete().eq('id', id);
+    if (!error) fetchAssets();
 }
 async function fetchCategories() {
-    const { data } = await supabaseClient.from('kategorier').select('*').eq('firma_id', currentFirmaId);
-    const b = document.getElementById('categoriesBody'); if (b) {
-        b.innerHTML = "";
-        data?.forEach(c => b.innerHTML += `<tr><td>${c.navn}</td><td><span style="background:${c.farve}; width:20px; height:20px; display:inline-block; border-radius:50%"></span></td><td>${new Date(c.created_at).toLocaleDateString()}</td></tr>`);
-    }
+    if (!currentFirmaId) return;
+    const { data } = await supabaseClient.from('kategorier').select('*').eq('firma_id', currentFirmaId).order('navn');
+    const b = document.getElementById('categoriesBody'); if (!b) return; b.innerHTML = "";
+    data?.forEach(c => {
+        b.innerHTML += `<tr>
+            <td>${c.navn}</td>
+            <td><span style="background:${c.farve}; width:20px; height:20px; display:inline-block; border-radius:50%; border:1px solid #ccc;"></span></td>
+            <td>${new Date(c.created_at).toLocaleDateString()}</td>
+            <td><button class="btn-outline btn-sm" onclick="deleteCategory('${c.id}')">Slet</button></td>
+        </tr>`;
+    });
+}
+
+async function deleteCategory(id) {
+    if (!confirm("Slet denne kategori?")) return;
+    const { error } = await supabaseClient.from('kategorier').delete().eq('id', id);
+    if (!error) fetchCategories();
 }
 async function fetchIndstillinger() {
     const { data } = await supabaseClient.from('firma_indstillinger').select('*').eq('firma_id', currentFirmaId).maybeSingle();
@@ -557,6 +639,8 @@ async function fetchLager() {
 
 async function handleLagerSubmit(e) {
     if (e) e.preventDefault();
+    const btn = e?.submitter;
+    setLoading(btn, true);
     const id = document.getElementById('lagerId').value;
     const itemData = {
         navn: document.getElementById('lagerNavn').value,
@@ -574,7 +658,8 @@ async function handleLagerSubmit(e) {
         result = await supabaseClient.from('lager').insert(itemData);
     }
 
-    if (result.error) showSnackbar("Fejl: " + result.error.message);
+    setLoading(btn, false);
+    if (result.error) showSnackbar("Fejl ved lagring af vare", result.error.code);
     else {
         showSnackbar(id ? "Reservedel opdateret!" : "Reservedel tilføjet!");
         closeAllModals();
@@ -602,52 +687,100 @@ async function deleteLager(id) {
     }
 }
 
-// ---------------- ASSETS & LOCATIONS ----------------
-async function fetchAssets() {
-    const { data } = await supabaseClient.from('assets').select('*').eq('firma_id', currentFirmaId).order('navn');
-    const b = document.getElementById('assetsBody'); if (!b) return; b.innerHTML = "";
-    data?.forEach(a => {
-        b.innerHTML += `<tr><td>${a.navn}</td><td>${a.lokation_id || 'Ingen'}</td><td><button class="btn-outline btn-sm">Slet</button></td></tr>`;
-    });
-}
 async function handleAssetSubmit(e) {
     e.preventDefault();
+    const btn = e.submitter;
+    setLoading(btn, true);
     const navn = document.getElementById('assetName').value, lokId = document.getElementById('assetLoc').value;
     const { error } = await supabaseClient.from('assets').insert({ navn, lokation_id: lokId || null, firma_id: currentFirmaId });
-    if (error) showSnackbar("Fejl: " + error.message); else { showSnackbar("Asset oprettet!"); closeAllModals(); fetchAssets(); }
+    setLoading(btn, false);
+    if (error) showSnackbar("Fejl ved oprettelse af asset", error.code); else { showSnackbar("Asset oprettet!"); closeAllModals(); fetchAssets(); }
+}
+
+async function handleLocationSubmit(e) {
+    if (e) e.preventDefault();
+    const btn = e.submitter || e.target.querySelector('button[type="submit"]');
+    setLoading(btn, true);
+    
+    try {
+        const nameEl = document.getElementById('locName');
+        const descEl = document.getElementById('locDesc');
+        if (!nameEl) throw new Error("Inputfeltet 'locName' ikke fundet");
+        
+        const name = nameEl.value;
+        const desc = descEl ? descEl.value : "";
+        
+        console.log("Prøver at gemme lokation:", { name, desc, firmaId: currentFirmaId });
+        
+        if (!currentFirmaId) throw new Error("Du er ikke logget ind på et firma.");
+
+        const { data, error } = await supabaseClient.from('lokationer').insert({ 
+            navn: name, 
+            beskrivelse: desc, 
+            firma_id: currentFirmaId 
+        }).select();
+        
+        if (error) throw error;
+        
+        showSnackbar("Lokation oprettet!");
+        closeAllModals();
+        fetchLocations();
+    } catch (err) {
+        console.error("Fejl ved oprettelse af lokation:", err);
+        showSnackbar("Fejl: " + (err.message || "Kunne ikke gemme"), err.code);
+    } finally {
+        setLoading(btn, false);
+    }
 }
 
 async function fetchLocations() {
+    if (!currentFirmaId) return;
     const { data } = await supabaseClient.from('lokationer').select('*').eq('firma_id', currentFirmaId).order('navn');
     const b = document.getElementById('locationsBody'); if (!b) return; b.innerHTML = "";
     data?.forEach(l => {
-        b.innerHTML += `<tr><td>${l.navn}</td><td>${new Date(l.created_at).toLocaleDateString()}</td><td><button class="btn-outline btn-sm">Slet</button></td></tr>`;
+        b.innerHTML += `<tr>
+            <td>${l.navn}</td>
+            <td>${l.beskrivelse || '-'}</td>
+            <td><button class="btn-outline btn-sm" onclick="deleteLocation('${l.id}')">Slet</button></td>
+        </tr>`;
     });
-}
-async function handleLocationSubmit(e) {
-    e.preventDefault();
-    const name = document.getElementById('locationName').value;
-    const { error } = await supabaseClient.from('lokationer').insert({ navn: name, firma_id: currentFirmaId });
-    if (error) showSnackbar("Fejl: " + error.message); else { showSnackbar("Lokation oprettet!"); closeAllModals(); fetchLocations(); }
 }
 
 async function handleCategorySubmit(e) {
     e.preventDefault();
+    const btn = e.submitter;
+    setLoading(btn, true);
     const name = document.getElementById('catName').value, col = document.getElementById('catColor').value;
     const { error } = await supabaseClient.from('kategorier').insert({ navn: name, farve: col, firma_id: currentFirmaId });
-    if (error) showSnackbar("Fejl: " + error.message); else { showSnackbar("Kategori oprettet!"); closeAllModals(); fetchCategories(); }
+    setLoading(btn, false);
+    if (error) showSnackbar("Fejl ved oprettelse af kategori", error.code); else { showSnackbar("Kategori oprettet!"); closeAllModals(); fetchCategories(); }
 }
 
 async function handleRequestSubmit(e) {
     e.preventDefault();
+    const btn = e.submitter;
+    setLoading(btn, true);
     const title = document.getElementById('reqTitle').value, desc = document.getElementById('reqDesc').value, assetId = document.getElementById('reqAsset').value;
     const { error } = await supabaseClient.from('anmodninger').insert({ titel: title, beskrivelse: desc, asset_id: assetId || null, firma_id: currentFirmaId, status: 'Venter' });
-    if (error) showSnackbar("Fejl: " + error.message); else { showSnackbar("Anmodning sendt!"); closeAllModals(); fetchRequests(); }
+    setLoading(btn, false);
+    if (error) showSnackbar("Fejl ved afsendelse", error.code); else { showSnackbar("Anmodning sendt!"); closeAllModals(); fetchRequests(); }
 }
 
 async function convertRequest(id) {
     const { data: req } = await supabaseClient.from('anmodninger').select('*').eq('id', id).maybeSingle();
     if (!req) return;
-    const { error } = await supabaseClient.from('opgaver').insert({ titel: req.titel, beskrivelse: req.beskrivelse, firma_id: currentFirmaId, status: 'Venter' });
-    if (!error) { await supabaseClient.from('anmodninger').delete().eq('id', id); showSnackbar("Konverteret!"); fetchRequests(); fetchTasks(); loadDashboardStats(); }
+    const { error } = await supabaseClient.from('opgaver').insert({ 
+        titel: req.titel, 
+        beskrivelse: req.beskrivelse, 
+        firma_id: currentFirmaId, 
+        status: 'Venter',
+        created_at: new Date().toISOString()
+    });
+    if (!error) { 
+        await supabaseClient.from('anmodninger').delete().eq('id', id); 
+        showSnackbar("Konverteret!"); 
+        fetchRequests(); fetchTasks(); loadDashboardStats(); 
+    } else {
+        showSnackbar("Fejl ved konvertering", error.code);
+    }
 }
