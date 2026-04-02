@@ -59,6 +59,7 @@ function initSupabase() {
     
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
         currentUser = session?.user || null;
+        updateNavbar();
         if (currentUser) {
             loadDashboard();
         } else {
@@ -72,9 +73,25 @@ function initSupabase() {
     });
 }
 
+function updateNavbar() {
+    const guestNav = document.getElementById('guestNav');
+    const userNav = document.getElementById('userNav');
+    const nameDisplay = document.getElementById('userNameDisplay');
+
+    if (currentUser) {
+        guestNav?.classList.add('hidden');
+        userNav?.classList.remove('hidden');
+        if (nameDisplay) nameDisplay.innerText = currentUser.user_metadata?.full_name || currentUser.email;
+    } else {
+        guestNav?.classList.remove('hidden');
+        userNav?.classList.add('hidden');
+    }
+}
+
 async function checkSession() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     currentUser = session?.user || null;
+    updateNavbar();
     if (currentUser) loadDashboard();
 }
 
