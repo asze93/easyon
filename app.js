@@ -64,6 +64,28 @@ async function checkSession() {
     if (currentUser) loadDashboard();
 }
 
+async function loadDashboardStats() {
+    if (!currentFirmaId) return;
+    const { count: tasks } = await supabaseClient.from('opgaver').select('*', { count: 'exact', head: true }).eq('firma_id', currentFirmaId);
+    const { count: assets } = await supabaseClient.from('assets').select('*', { count: 'exact', head: true }).eq('firma_id', currentFirmaId);
+    const { count: reqs } = await supabaseClient.from('anmodninger').select('*', { count: 'exact', head: true }).eq('firma_id', currentFirmaId);
+    
+    const elTasks = document.getElementById('stat-active-tasks'), elAssets = document.getElementById('stat-total-assets'), elReqs = document.getElementById('stat-pending-requests');
+    if (elTasks) elTasks.innerText = tasks || 0; if (elAssets) elAssets.innerText = assets || 0; if (elReqs) elReqs.innerText = reqs || 0;
+    
+    loadCharts();
+}
+
+function loadCharts() {
+    if (window.Chart) {
+        document.querySelectorAll('canvas').forEach(canvas => {
+            if (canvas.id.startsWith('chart')) {
+                new Chart(canvas, { type: 'line', data: { labels: ['M','T','O','T','F','L','S'], datasets: [{label: 'Aktivitet', data: [10, 15, 8, 12, 11, 2, 1], borderColor: 'rgb(75, 192, 192)', tension: 0.1}] } });
+            }
+        });
+    }
+}
+
 // ---------------- AUTHENTICATION ----------------
 function toggleAuthMode(forcedMode) {
     if (forcedMode) authMode = forcedMode;
