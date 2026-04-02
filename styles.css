@@ -63,13 +63,13 @@ body.dashboard-mode .main-nav {
 .logo {
     display: flex;
     align-items: center;
-    font-size: 44px;
+    font-size: 54px;
     font-weight: 800;
-    gap: 20px;
+    gap: 24px;
     letter-spacing: -0.5px;
 }
 
-.logo img { height: 90px; }
+.logo img { height: 120px; }
 .logo span { color: var(--primary); }
 
 .nav-links a {
