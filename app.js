@@ -305,7 +305,10 @@ function dashNavTab(e, tabId) {
     }
     if (tabId === 'lager') fetchLager();
     if (tabId === 'kpi') fetchKpiSettings();
-    if (tabId === 'statistics') loadDashboardStats();
+    if (tabId === 'statistics' || tabId === 'overview') loadDashboardStats();
+    if (tabId === 'assets') fetchAssets();
+    if (tabId === 'locations') fetchLocations();
+    if (tabId === 'categories') fetchCategories();
     dashTab(tabId);
 }
 
@@ -575,4 +578,54 @@ async function deleteLager(id) {
         await supabaseClient.from('lager').delete().eq('id', id);
         fetchLager();
     }
+}
+
+// ---------------- ASSETS & LOCATIONS ----------------
+async function fetchAssets() {
+    const { data } = await supabaseClient.from('assets').select('*').eq('firma_id', currentFirmaId).order('navn');
+    const b = document.getElementById('assetsBody'); if (!b) return; b.innerHTML = "";
+    data?.forEach(a => {
+        b.innerHTML += `<tr><td>${a.navn}</td><td>${a.lokation_id || 'Ingen'}</td><td><button class="btn-outline btn-sm">Slet</button></td></tr>`;
+    });
+}
+async function handleAssetSubmit(e) {
+    e.preventDefault();
+    const navn = document.getElementById('assetName').value, lokId = document.getElementById('assetLoc').value;
+    const { error } = await supabaseClient.from('assets').insert({ navn, lokation_id: lokId || null, firma_id: currentFirmaId });
+    if (error) showSnackbar("Fejl: " + error.message); else { showSnackbar("Asset oprettet!"); closeAllModals(); fetchAssets(); }
+}
+
+async function fetchLocations() {
+    const { data } = await supabaseClient.from('lokationer').select('*').eq('firma_id', currentFirmaId).order('navn');
+    const b = document.getElementById('locationsBody'); if (!b) return; b.innerHTML = "";
+    data?.forEach(l => {
+        b.innerHTML += `<tr><td>${l.navn}</td><td>${new Date(l.created_at).toLocaleDateString()}</td><td><button class="btn-outline btn-sm">Slet</button></td></tr>`;
+    });
+}
+async function handleLocationSubmit(e) {
+    e.preventDefault();
+    const name = document.getElementById('locationName').value;
+    const { error } = await supabaseClient.from('lokationer').insert({ navn: name, firma_id: currentFirmaId });
+    if (error) showSnackbar("Fejl: " + error.message); else { showSnackbar("Lokation oprettet!"); closeAllModals(); fetchLocations(); }
+}
+
+async function handleCategorySubmit(e) {
+    e.preventDefault();
+    const name = document.getElementById('catName').value, col = document.getElementById('catColor').value;
+    const { error } = await supabaseClient.from('kategorier').insert({ navn: name, farve: col, firma_id: currentFirmaId });
+    if (error) showSnackbar("Fejl: " + error.message); else { showSnackbar("Kategori oprettet!"); closeAllModals(); fetchCategories(); }
+}
+
+async function handleRequestSubmit(e) {
+    e.preventDefault();
+    const title = document.getElementById('reqTitle').value, desc = document.getElementById('reqDesc').value, assetId = document.getElementById('reqAsset').value;
+    const { error } = await supabaseClient.from('anmodninger').insert({ titel: title, beskrivelse: desc, asset_id: assetId || null, firma_id: currentFirmaId, status: 'Venter' });
+    if (error) showSnackbar("Fejl: " + error.message); else { showSnackbar("Anmodning sendt!"); closeAllModals(); fetchRequests(); }
+}
+
+async function convertRequest(id) {
+    const { data: req } = await supabaseClient.from('anmodninger').select('*').eq('id', id).maybeSingle();
+    if (!req) return;
+    const { error } = await supabaseClient.from('opgaver').insert({ titel: req.titel, beskrivelse: req.beskrivelse, firma_id: currentFirmaId, status: 'Venter' });
+    if (!error) { await supabaseClient.from('anmodninger').delete().eq('id', id); showSnackbar("Konverteret!"); fetchRequests(); fetchTasks(); loadDashboardStats(); }
 }
