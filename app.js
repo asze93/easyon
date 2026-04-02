@@ -296,7 +296,7 @@ function dashTab(tabId) {
 
 function dashNavTab(e, tabId) {
     if (e) e.preventDefault();
-    const adminTabs = ['team', 'indstillinger', 'categories', 'locations', 'assets', 'lager'];
+    const adminTabs = ['team', 'indstillinger', 'categories', 'locations', 'assets', 'lager', 'kpi'];
     const superUserTabs = ['tasks', 'requests', 'statistics', 'overview'];
     
     if (adminTabs.includes(tabId) && !isGlobalAdmin) { 
@@ -304,7 +304,33 @@ function dashNavTab(e, tabId) {
         return; 
     }
     if (tabId === 'lager') fetchLager();
+    if (tabId === 'kpi') fetchKpiSettings();
+    if (tabId === 'statistics') loadDashboardStats();
     dashTab(tabId);
+}
+
+async function fetchKpiSettings() {
+    if (!currentFirmaId) return;
+    const { data } = await supabaseClient.from('kpi_konfiguration').select('*').eq('firma_id', currentFirmaId).maybeSingle();
+    if (data) {
+        document.getElementById('kpi_svartid').checked = data.vis_svartid;
+        document.getElementById('kpi_materiale').checked = data.vis_materialeforbrug;
+        document.getElementById('kpi_maskin').checked = data.vis_maskinstilstand;
+        document.getElementById('kpi_fordeling').checked = data.vis_opgave_fordeling;
+    }
+}
+
+async function saveKpiSettings() {
+    const s = {
+        firma_id: currentFirmaId,
+        vis_svartid: document.getElementById('kpi_svartid').checked,
+        vis_materialeforbrug: document.getElementById('kpi_materiale').checked,
+        vis_maskinstilstand: document.getElementById('kpi_maskin').checked,
+        vis_opgave_fordeling: document.getElementById('kpi_fordeling').checked,
+        opdateret_at: new Date().toISOString()
+    };
+    await supabaseClient.from('kpi_konfiguration').upsert(s, { onConflict: 'firma_id' });
+    showSnackbar("KPI indstillinger gemt!");
 }
 
 // ---------------- FETCHERS ----------------
@@ -325,6 +351,7 @@ async function fetchTeam() {
 }
 
 async function fetchTasks() {
+    if (!currentFirmaId) return;
     const { data } = await supabaseClient.from('opgaver').select('*').eq('firma_id', currentFirmaId).order('created_at', { ascending: false });
     const b = document.getElementById('tasksBody'); if (!b) return; b.innerHTML = "";
     data?.forEach(t => {
@@ -340,6 +367,7 @@ async function fetchTasks() {
 }
 
 async function fetchRequests() {
+    if (!currentFirmaId) return;
     const { data } = await supabaseClient.from('anmodninger').select('*').eq('firma_id', currentFirmaId).order('created_at', { ascending: false });
     const b = document.getElementById('requestsBody'); if (!b) return; b.innerHTML = "";
     data?.forEach(r => {
