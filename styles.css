@@ -69,10 +69,10 @@ body.dashboard-mode .main-nav {
 }
 
 .logo img { 
-    height: 150px; 
-    filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.7));
-    mix-blend-mode: screen; /* Nu fjerner den alt sort pga. #000000 baggrund */
-    background: transparent !important;
+    height: 160px; 
+    filter: drop-shadow(0 0 35px rgba(59, 130, 246, 0.8));
+    background: #0F172A !important;
+    border-radius: 50%;
 }
 .logo span { color: var(--primary); }
 
@@ -276,7 +276,8 @@ body.dashboard-mode .main-nav {
 .sidebar-logo img { 
     width: 44px; height: 44px;
     filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.3));
-    mix-blend-mode: screen; /* Fjerner sort baggrund i sidemenuen */
+    background: #0F172A !important;
+    border-radius: 50%;
 }
 .sidebar-logo span { color: var(--primary); }
 
