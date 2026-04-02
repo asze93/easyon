@@ -63,13 +63,16 @@ body.dashboard-mode .main-nav {
 .logo {
     display: flex;
     align-items: center;
-    font-size: 54px;
+    font-size: 56px;
     font-weight: 800;
-    gap: 24px;
-    letter-spacing: -0.5px;
+    gap: 4px; /* Tættere på så det kommer ud af siden */
+    letter-spacing: -1px;
 }
 
-.logo img { height: 120px; }
+.logo img { 
+    height: 120px; 
+    filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.4));
+}
 .logo span { color: var(--primary); }
 
 .nav-links a {
@@ -261,7 +264,7 @@ body.dashboard-mode .main-nav {
 .sidebar-logo {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
     padding: 0 20px 48px;
     cursor: pointer;
     font-size: 26px;
@@ -269,7 +272,10 @@ body.dashboard-mode .main-nav {
     letter-spacing: -0.5px;
 }
 
-.sidebar-logo img { width: 40px; height: 40px; }
+.sidebar-logo img { 
+    width: 44px; height: 44px;
+    filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.3));
+}
 .sidebar-logo span { color: var(--primary); }
 
 .sidebar-links a:hover:not(.active) { background: var(--glass); color: white; }
