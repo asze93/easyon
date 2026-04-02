@@ -63,13 +63,13 @@ body.dashboard-mode .main-nav {
 .logo {
     display: flex;
     align-items: center;
-    font-size: 32px;
+    font-size: 38px;
     font-weight: 800;
-    gap: 12px;
+    gap: 16px;
     letter-spacing: -0.5px;
 }
 
-.logo img { height: 44px; }
+.logo img { height: 64px; }
 .logo span { color: var(--primary); }
 
 .nav-links a {
@@ -261,15 +261,15 @@ body.dashboard-mode .main-nav {
 .sidebar-logo {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     padding: 0 20px 48px;
     cursor: pointer;
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 800;
     letter-spacing: -0.5px;
 }
 
-.sidebar-logo img { width: 32px; height: 32px; }
+.sidebar-logo img { width: 40px; height: 40px; }
 .sidebar-logo span { color: var(--primary); }
 
 .sidebar-links a:hover:not(.active) { background: var(--glass); color: white; }
