@@ -55,12 +55,12 @@ ALTER TABLE public.lokationer ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Anyone in firm can see locations" ON public.lokationer;
 CREATE POLICY "Anyone in firm can see locations" ON public.lokationer 
-FOR SELECT USING (firma_id IN (SELECT firma_id FROM public.brugere WHERE id = auth.uid()));
+FOR SELECT USING (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid()));
 
 DROP POLICY IF EXISTS "Admins can manage locations" ON public.lokationer;
 CREATE POLICY "Admins can manage locations" ON public.lokationer 
-FOR ALL USING (firma_id IN (SELECT firma_id FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')))
-WITH CHECK (firma_id IN (SELECT firma_id FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')));
+FOR ALL USING (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')))
+WITH CHECK (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')));
 
 -- 4. ASSETS (Maskiner)
 CREATE TABLE IF NOT EXISTS public.assets (
@@ -76,12 +76,12 @@ ALTER TABLE public.assets ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Anyone in firm can see assets" ON public.assets;
 CREATE POLICY "Anyone in firm can see assets" ON public.assets 
-FOR SELECT USING (firma_id IN (SELECT firma_id FROM public.brugere WHERE id = auth.uid()));
+FOR SELECT USING (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid()));
 
 DROP POLICY IF EXISTS "Admins can manage assets" ON public.assets;
 CREATE POLICY "Admins can manage assets" ON public.assets 
-FOR ALL USING (firma_id IN (SELECT firma_id FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')))
-WITH CHECK (firma_id IN (SELECT firma_id FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')));
+FOR ALL USING (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')))
+WITH CHECK (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')));
 
 -- 5. OPGAVER & ANMODNINGER
 ALTER TABLE public.opgaver ENABLE ROW LEVEL SECURITY;
@@ -89,18 +89,18 @@ ALTER TABLE public.anmodninger ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Anyone in firm can see tasks" ON public.opgaver;
 CREATE POLICY "Anyone in firm can see tasks" ON public.opgaver 
-FOR SELECT USING (firma_id IN (SELECT firma_id FROM public.brugere WHERE id = auth.uid()));
+FOR SELECT USING (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid()));
 
 DROP POLICY IF EXISTS "Admins can manage tasks" ON public.opgaver;
 CREATE POLICY "Admins can manage tasks" ON public.opgaver 
-FOR ALL USING (firma_id IN (SELECT firma_id FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')))
-WITH CHECK (firma_id IN (SELECT firma_id FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')));
+FOR ALL USING (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')))
+WITH CHECK (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')));
 
 DROP POLICY IF EXISTS "Anyone in firm can see requests" ON public.anmodninger;
 CREATE POLICY "Anyone in firm can see requests" ON public.anmodninger 
-FOR SELECT USING (firma_id IN (SELECT firma_id FROM public.brugere WHERE id = auth.uid()));
+FOR SELECT USING (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid()));
 
 DROP POLICY IF EXISTS "Admins can manage requests" ON public.anmodninger;
 CREATE POLICY "Admins can manage requests" ON public.anmodninger 
-FOR ALL USING (firma_id IN (SELECT firma_id FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')))
-WITH CHECK (firma_id IN (SELECT firma_id FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')));
+FOR ALL USING (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')))
+WITH CHECK (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')));

@@ -259,8 +259,15 @@
                             <p>Visualiser din vedligeholdelsesdata og effektivitet.</p>
                         </div>
                     </div>
-                    <div class="stats-grid" style="grid-template-columns: 1fr; margin-bottom: 30px;">
-                        <div class="chart-card" style="height: 400px;"><canvas id="mainChart"></canvas></div>
+                    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                        <div class="chart-card" id="card-svartid" style="height: 300px;"><h4>Svartid</h4><canvas id="chartSvartid"></canvas></div>
+                        <div class="chart-card" id="card-materiale" style="height: 300px;"><h4>Materialeomkostninger</h4><canvas id="chartMateriale"></canvas></div>
+                        <div class="chart-card" id="card-maskin" style="height: 300px;"><h4>Maskinstilstand</h4><canvas id="chartMaskin"></canvas></div>
+                        <div class="chart-card" id="card-fordeling" style="height: 300px;"><h4>Opgavefordeling</h4><canvas id="chartFordeling"></canvas></div>
+                        
+                        <div id="no-kpi-msg" class="chart-card hidden" style="grid-column: 1 / -1; text-align: center; padding: 50px;">
+                            <p class="text-muted">Ingen målepunkter er slået til. Gå til Fundament -> Målepunkter for at vælge data.</p>
+                        </div>
                     </div>
                 </div>
 

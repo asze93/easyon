@@ -309,6 +309,30 @@ function dashNavTab(e, tabId) {
     dashTab(tabId);
 }
 
+function applyKpiSettings(settings) {
+    if (!settings) return;
+    const cards = {
+        'kpi_svartid': 'card-svartid',
+        'kpi_materiale': 'card-materiale',
+        'kpi_maskin': 'card-maskin',
+        'kpi_fordeling': 'card-fordeling'
+    };
+    let anyVisible = false;
+    if (settings.vis_svartid) { document.getElementById('card-svartid')?.classList.remove('hidden'); anyVisible = true; }
+    else { document.getElementById('card-svartid')?.classList.add('hidden'); }
+    
+    if (settings.vis_materialeforbrug) { document.getElementById('card-materiale')?.classList.remove('hidden'); anyVisible = true; }
+    else { document.getElementById('card-materiale')?.classList.add('hidden'); }
+    
+    if (settings.vis_maskinstilstand) { document.getElementById('card-maskin')?.classList.remove('hidden'); anyVisible = true; }
+    else { document.getElementById('card-maskin')?.classList.add('hidden'); }
+    
+    if (settings.vis_opgave_fordeling) { document.getElementById('card-fordeling')?.classList.remove('hidden'); anyVisible = true; }
+    else { document.getElementById('card-fordeling')?.classList.add('hidden'); }
+    
+    document.getElementById('no-kpi-msg')?.classList.toggle('hidden', anyVisible);
+}
+
 async function fetchKpiSettings() {
     if (!currentFirmaId) return;
     const { data } = await supabaseClient.from('kpi_konfiguration').select('*').eq('firma_id', currentFirmaId).maybeSingle();
@@ -317,6 +341,7 @@ async function fetchKpiSettings() {
         document.getElementById('kpi_materiale').checked = data.vis_materialeforbrug;
         document.getElementById('kpi_maskin').checked = data.vis_maskinstilstand;
         document.getElementById('kpi_fordeling').checked = data.vis_opgave_fordeling;
+        applyKpiSettings(data);
     }
 }
 
@@ -330,6 +355,7 @@ async function saveKpiSettings() {
         opdateret_at: new Date().toISOString()
     };
     await supabaseClient.from('kpi_konfiguration').upsert(s, { onConflict: 'firma_id' });
+    applyKpiSettings(s);
     showSnackbar("KPI indstillinger gemt!");
 }
 
@@ -355,12 +381,13 @@ async function fetchTasks() {
     const { data } = await supabaseClient.from('opgaver').select('*').eq('firma_id', currentFirmaId).order('created_at', { ascending: false });
     const b = document.getElementById('tasksBody'); if (!b) return; b.innerHTML = "";
     data?.forEach(t => {
-        // Superbruger and Admin can 'Rediger', Bruger can only 'Vis'
-        const actionLabel = isSuperUser ? 'Rediger' : 'Vis';
+        const actionLabel = isSuperUser ? 'Åbn' : 'Vis';
+        const priorityLabel = (t.prioritet == 3) ? 'Høj' : (t.prioritet == 2 ? 'Middel' : 'Lav');
         b.innerHTML += `<tr>
             <td>${t.titel}</td>
-            <td><span class="badge status-${(t.status || 'venter').toLowerCase()}">${t.status || 'Venter'}</span></td>
-            <td>${t.tildelt_til || 'Ledig'}</td>
+            <td>${t.asset_navn || '-'}</td>
+            <td><span class="badge prio-${priorityLabel.toLowerCase()}">${priorityLabel}</span></td>
+            <td>${t.kategori || '-'}</td>
             <td><button class="btn-outline btn-sm" onclick="editTask('${t.id}')">${actionLabel}</button></td>
         </tr>`;
     });

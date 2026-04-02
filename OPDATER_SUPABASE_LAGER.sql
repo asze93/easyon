@@ -41,12 +41,12 @@ ALTER TABLE public.maskin_reservedele ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can see parts from their own company" ON public.lager;
 CREATE POLICY "Users can see parts from their own company" ON public.lager 
-FOR SELECT USING (firma_id IN (SELECT firma_id FROM public.brugere WHERE id = auth.uid()));
+FOR SELECT USING (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid()));
 
 DROP POLICY IF EXISTS "Admins can manage parts" ON public.lager;
 CREATE POLICY "Admins can manage parts" ON public.lager 
-FOR ALL USING (firma_id IN (SELECT firma_id FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')))
-WITH CHECK (firma_id IN (SELECT firma_id FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')));
+FOR ALL USING (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')))
+WITH CHECK (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE '%admin%' OR rolle ILIKE '%superbruger%')));
 
 DROP POLICY IF EXISTS "Admins can manage materials" ON public.opgave_materialer;
 CREATE POLICY "Admins can manage materials" ON public.opgave_materialer 
