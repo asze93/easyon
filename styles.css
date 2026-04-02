@@ -66,13 +66,15 @@ body.dashboard-mode .main-nav {
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
 }
 
 .logo img { 
     height: 160px; 
-    filter: drop-shadow(0 0 35px rgba(59, 130, 246, 0.8));
-    background: #0F172A !important;
-    border-radius: 50%;
+    filter: brightness(1.1) contrast(1.1);
+    mix-blend-mode: screen; /* Fjerner #000000 perfekt */
+    clip-path: circle(48%); /* Skærer definitivt de sorte hjørner af */
+    background: transparent !important;
 }
 .logo span { color: var(--primary); }
 
