@@ -39,7 +39,10 @@ function setLoading(btn, isLoading, originalText) {
 function showView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     if (viewId === 'dashboard') document.body.classList.add('dashboard-mode');
-    else document.body.classList.remove('dashboard-mode');
+    else {
+        document.body.classList.remove('dashboard-mode');
+        updateNavbar(); // Sørg for at menubaren opdateres når vi viser forsiden
+    }
     const target = document.getElementById('view-' + viewId);
     if (target) {
         target.classList.add('active');
