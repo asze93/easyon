@@ -51,37 +51,61 @@
                 <h2 id="authTitle">Log ind på EasyON</h2>
                 <p id="authSub">Indtast dine oplysninger nedenfor</p>
                 
-                <form id="authForm" onsubmit="handleAuth(event)">
+                <form id="authForm" onsubmit="handleAuth(event)" autocomplete="off">
+                    <!-- LOGIN ONLY -->
                     <div class="input-group" id="loginFirmaGroup">
                         <label>Firmanavn</label>
                         <input type="text" id="authLoginFirma" placeholder="Navnet på dit firma">
                     </div>
 
+                    <!-- SIGNUP ONLY -->
                     <div id="nameGroup" class="hidden">
                         <div class="input-row">
-                            <div class="input-group"><label>Fornavn</label><input type="text" id="authFirstName"></div>
-                            <div class="input-group"><label>Efternavn</label><input type="text" id="authLastName"></div>
+                            <div class="input-group">
+                                <label>Fornavn</label>
+                                <input type="text" id="authFirstName" placeholder="Fornavn" autocomplete="off">
+                            </div>
+                            <div class="input-group">
+                                <label>Efternavn</label>
+                                <input type="text" id="authLastName" placeholder="Efternavn" autocomplete="off">
+                            </div>
                         </div>
                         <div class="input-group">
-                            <label>Firma Login-ID</label>
-                            <input type="text" id="authCompanyName" placeholder="Dette er dit fremtidige login-ID">
-                            <p class="text-xs text-muted" style="margin-top:5px;">⚠️ Bemærk: Dette navn er unikt og bruges som dit fremtidige login.</p>
+                            <label>Hvad skal dit firma-login hedde?</label>
+                            <input type="text" id="authCompanyName" placeholder="f.eks. hansen-vvs" autocomplete="off">
+                            <p class="text-xs text-muted" style="margin-top:5px;">⚠️ Dette navn skal du bruge hver gang du logger ind bagefter.</p>
                         </div>
                     </div>
 
                     <div class="input-group">
-                        <label id="authEmailLabel">Login-ID (Firmanavn eller E-mail)</label>
-                        <input type="text" id="authEmail" placeholder="..." required>
+                        <label id="authEmailLabel">Login-ID (ID eller E-mail)</label>
+                        <input type="text" id="authEmail" placeholder="..." required autocomplete="off">
                     </div>
+                    
                     <div class="input-group">
                         <label>Adgangskode (min. 6 tegn)</label>
-                        <input type="password" id="authPass" placeholder="••••" required>
+                        <div style="position:relative;">
+                            <input type="password" id="authPass" placeholder="••••" required autocomplete="off" style="padding-right:45px;">
+                            <button type="button" class="btn-pass-toggle" onclick="togglePassVisibility('authPass')" tabindex="-1">👁️</button>
+                        </div>
                     </div>
+
                     <div class="input-group hidden" id="passConfirmGroup">
                         <label>Bekræft Adgangskode</label>
-                        <input type="password" id="authPassConfirm" placeholder="••••">
+                        <div style="position:relative;">
+                            <input type="password" id="authPassConfirm" placeholder="••••" autocomplete="off" style="padding-right:45px;">
+                            <button type="button" class="btn-pass-toggle" onclick="togglePassVisibility('authPassConfirm')" tabindex="-1">👁️</button>
+                        </div>
                     </div>
-                    <button type="submit" class="btn-primary w-100" id="authBtn">Fortsæt</button>
+
+                    <button type="submit" class="btn-primary w-100" id="authBtn" style="margin-top:10px;">Fortsæt</button>
+                    <script>
+                        document.getElementById('authForm').addEventListener('submit', function() {
+                            const btn = document.getElementById('authBtn');
+                            btn.innerText = 'Logger ind...';
+                            btn.disabled = true;
+                        });
+                    </script>
                 </form>
                 <p class="auth-toggle">
                     <span id="toggleText">Har du ikke en konto?</span> 
@@ -106,11 +130,9 @@
         <section id="view-wizard" class="view">
             <div class="wizard-box">
                 <div class="wizard-steps" style="display:flex; justify-content:center; gap:20px; align-items:center; margin-bottom:40px;">
-                    <div class="step active" data-step="1">1</div>
+                    <div class="step active" id="stepIndicator1">1</div>
                     <div style="height:2px; width:40px; background:var(--border);"></div>
-                    <div class="step" data-step="2">2</div>
-                    <div style="height:2px; width:40px; background:var(--border);"></div>
-                    <div class="step" data-step="3">3</div>
+                    <div class="step" id="stepIndicator2">2</div>
                 </div>
 
                 <div class="wizard-content" id="step1">
@@ -136,10 +158,10 @@
                         <div class="input-group"><label>CVR-nummer</label><input type="text" id="bizCVR" placeholder="12345678"></div>
                     </div>
                     <!-- Direct finish -->
-                    <button class="btn-primary w-100" onclick="nextWizard(3)">Opret mit firma & Se dashboard</button>
+                    <button class="btn-primary w-100" onclick="const b=this; b.innerText='Opretter...'; b.disabled=true; nextWizard(2, b)">Opret mit firma & Se dashboard</button>
                 </div>
 
-                <div class="wizard-content hidden" id="step3">
+                <div class="wizard-content hidden" id="step2">
                     <div class="loader-container">
                         <div class="loader"></div>
                         <h3>Sætter dit system op...</h3>
@@ -167,6 +189,7 @@
                     <li class="nav-category admin-only">Fundament</li>
                     <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="assets" onclick="dashNavTab(event, 'assets')"><i class="icon">🏗️</i> Maskiner & Assets</a></li>
                     <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="locations" onclick="dashNavTab(event, 'locations')"><i class="icon">📍</i> Lokationer</a></li>
+                    <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="lager" onclick="dashNavTab(event, 'lager')"><i class="icon">📦</i> Lager & Materialer</a></li>
                     <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="team" onclick="dashNavTab(event, 'team')"><i class="icon">👥</i> Team & Personer</a></li>
                     <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="categories" onclick="dashNavTab(event, 'categories')"><i class="icon">🏷️</i> Kategorier</a></li>
                     
@@ -187,9 +210,9 @@
                         </div>
                     </div>
                     <div class="stats-grid">
-                        <div class="stat-card"><h3 id="stat-tasks">-</h3><p>Aktive opgaver</p></div>
-                        <div class="stat-card"><h3 id="stat-requests">-</h3><p>Nye anmodninger</p></div>
-                        <div class="stat-card"><h3 id="stat-assets">-</h3><p>Aktive maskiner</p></div>
+                        <div class="stat-card"><h3 id="stat-active-tasks">-</h3><p>Aktive opgaver</p></div>
+                        <div class="stat-card"><h3 id="stat-pending-requests">-</h3><p>Nye anmodninger</p></div>
+                        <div class="stat-card"><h3 id="stat-total-assets">-</h3><p>Aktive maskiner</p></div>
                     </div>
                 </div>
 
@@ -265,6 +288,32 @@
                         <table id="locationsTable">
                             <thead><tr><th>Navn</th><th>Beskrivelse</th><th>Handling</th></tr></thead>
                             <tbody id="locationsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- FUNDAMENT: LAGER -->
+                <div id="dash-lager" class="dash-tab">
+                    <div class="tab-header">
+                        <div>
+                            <h1>Lager & Reservedele</h1>
+                            <p>Styr dit lager, SSCC-koder og automatiske indkøb.</p>
+                        </div>
+                        <button class="btn-primary admin-only" onclick="openModal('modal-lager', true)">+ Tilføj Lagervare</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="lagerTable">
+                            <thead>
+                                <tr>
+                                    <th>Varenavn</th>
+                                    <th>Lokation</th>
+                                    <th>Beholdning</th>
+                                    <th>Min.</th>
+                                    <th>Bar-/SSCC-kode</th>
+                                    <th>Handling</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lagerBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -356,16 +405,23 @@
 
     <!-- MODAL: WORK ORDER -->
     <div id="modal-task" class="modal-card hidden">
-        <div class="modal-header"><h3>Ny Arbejdsordre</h3></div>
+        <div class="modal-header"><h3>Arbejdsordre</h3></div>
         <form onsubmit="handleTaskSubmit(event)">
             <input type="hidden" id="taskId">
             <div class="input-group"><label>Titel</label><input type="text" id="taskTitle" required></div>
-            <div class="input-group"><label>Kategori</label><select id="taskCategory" required></select></div>
-            <div class="input-group"><label>Asset</label><select id="taskAsset" onchange="autoFillLocation()" required></select></div>
-            <div class="input-group"><label>Lokation</label><input type="text" id="taskLoc" disabled></div>
-            <div class="input-group"><label>Tildelt til</label><select id="taskAssignee" required></select></div>
+            <div class="input-row">
+                <div class="input-group"><label>Status</label>
+                    <select id="taskStatus">
+                        <option value="Venter">Venter</option>
+                        <option value="I gang">I gang</option>
+                        <option value="Færdig">Færdig</option>
+                        <option value="Sat på pause">Sat på pause</option>
+                    </select>
+                </div>
+                <div class="input-group"><label>Tildelt til</label><select id="taskAssignee"></select></div>
+            </div>
             <div class="input-group"><label>Beskrivelse</label><textarea id="taskDesc" rows="3"></textarea></div>
-            <button type="submit" class="btn-primary w-100">Gem & Opret</button>
+            <button type="submit" class="btn-primary w-100">Gem Ændringer</button>
         </form>
     </div>
 
@@ -412,6 +468,22 @@
         </form>
     </div>
 
+    <!-- MODAL: LAGER -->
+    <div id="modal-lager" class="modal-card hidden">
+        <div class="modal-header"><h3>Lagervare / Reservedel</h3></div>
+        <form onsubmit="handleLagerSubmit(event)">
+            <input type="hidden" id="lagerId">
+            <div class="input-group"><label>Varenavn</label><input type="text" id="lagerNavn" required placeholder="f.eks. Leje 6205"></div>
+            <div class="input-group"><label>Lokation</label><input type="text" id="lagerLokation" placeholder="f.eks. Reol A1"></div>
+            <div style="display:flex; gap:10px;">
+                <div class="input-group" style="flex:1;"><label>Antal</label><input type="number" id="lagerAntal" required value="0"></div>
+                <div class="input-group" style="flex:1;"><label>Min.</label><input type="number" id="lagerMin" required value="5"></div>
+            </div>
+            <div class="input-group"><label>Stregkode / SSCC</label><input type="text" id="lagerCode" placeholder="Scan eller skriv"></div>
+            <button type="submit" class="btn-primary w-100">Gem Lagervare</button>
+        </form>
+    </div>
+
     <!-- MODAL: TEAM -->
     <div id="modal-team" class="modal-card hidden">
         <div class="modal-header"><h3>Medarbejder / Teammedlem</h3></div>
@@ -433,7 +505,8 @@
 
     <div id="snackbar" class="snackbar"></div>
 
+    <!-- SCRIPTS -->
     <script src="config.js"></script>
-    <script src="app.js?v=3"></script>
+    <script src="app.js"></script>
 </body>
 </html>

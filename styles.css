@@ -95,6 +95,30 @@ body.dashboard-mode .main-nav {
     box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
 }
 
+.btn-primary:active { transform: translateY(0); }
+
+.btn-pass-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+    z-index: 10;
+}
+
+.btn-pass-toggle:hover {
+    color: var(--primary);
+}
+
 .btn-primary:hover { 
     transform: translateY(-2px); 
     box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5); 
