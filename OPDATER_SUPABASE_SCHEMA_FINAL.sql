@@ -51,7 +51,6 @@ USING (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = a
 
 
 -- 4. ADMIN MANAGEMENT POLICIES (INSERT/UPDATE/DELETE FOR ADMINS)
-
 -- ADMINS KAN ALT PÅ FIRMAETS DATA
 DO $$ 
 DECLARE
@@ -62,7 +61,7 @@ BEGIN
   LOOP
     EXECUTE format('DROP POLICY IF EXISTS "Admins can manage %I" ON public.%I', t, t);
     EXECUTE format('CREATE POLICY "Admins can manage %I" ON public.%I FOR ALL 
-      USING (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE %%admin%% OR rolle ILIKE %%superbruger%%)))
-      WITH CHECK (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE %%admin%% OR rolle ILIKE %%superbruger%%)))', t, t);
+      USING (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE ''%%admin%%'' OR rolle ILIKE ''%%superbruger%%'')))
+      WITH CHECK (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE ''%%admin%%'' OR rolle ILIKE ''%%superbruger%%'')))', t, t);
   END LOOP;
 END $$;
