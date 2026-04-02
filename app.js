@@ -496,9 +496,9 @@ async function populateAssignees(selectId) {
 
 async function populateAssets(selectId) {
     const el = document.getElementById(selectId); if (!el) return;
-    const { data } = await supabaseClient.from('assets').select('id, navn').eq('firma_id', currentFirmaId);
+    const { data } = await supabaseClient.from('assets').select('id, navn').eq('firma_id', currentFirmaId).order('navn');
     el.innerHTML = '<option value="">Vælg maskine...</option>';
-    data?.forEach(a => el.innerHTML += `<option value="${a.navn}">${a.navn}</option>`);
+    data?.forEach(a => el.innerHTML += `<option value="${a.id}">${a.navn}</option>`);
 }
 
 async function populateLocations(selectId) {
@@ -587,29 +587,44 @@ async function fetchAssets() {
     if (!currentFirmaId) return;
     try {
         console.log("Henter assets for firma:", currentFirmaId);
-        const { data, error } = await supabaseClient.from('assets')
+        // Prøv at hente med join først
+        let { data, error } = await supabaseClient.from('assets')
             .select('*, lokationer(navn)')
             .eq('firma_id', currentFirmaId)
             .order('navn');
         
+        // Fallback hvis join fejler pga. schema cache
+        if (error && error.code === 'PGRST200') {
+            console.warn("Join fejlede, henter uden lokationsnavne som fallback...");
+            const simple = await supabaseClient.from('assets')
+                .select('*')
+                .eq('firma_id', currentFirmaId)
+                .order('navn');
+            data = simple.data;
+            error = simple.error;
+        }
+
         if (error) throw error;
         
         const b = document.getElementById('assetsBody'); if (!b) return; b.innerHTML = "";
         if (!data || data.length === 0) {
-            b.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: var(--text-muted);">Ingen maskiner fundet. Opret en ny ved at klikke på knappen ovenfor.</div>';
+            b.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 40px; color: var(--text-muted);">Ingen maskiner fundet. Opret en ny ved at klikke på knappen ovenfor.</td></tr>';
             return;
         }
 
         data.forEach(a => {
+            const locName = a.lokationer?.navn || 'Ingen lokation';
             b.innerHTML += `
-            <div class="asset-card" style="padding: 15px; border-radius: 8px; border: 1px solid var(--border); background: white;">
-                <div style="font-weight: 700; font-size: 16px; margin-bottom: 5px;">${a.navn}</div>
-                <div style="font-size: 13px; color: var(--text-muted);"><i class="icon">📍</i> ${a.lokationer?.navn || 'Ingen lokation'}</div>
-                <div style="margin-top: 10px; display:flex; gap: 5px;">
-                    <button class="btn-outline btn-sm" onclick="deleteAsset('${a.id}')">Slet</button>
-                    <button class="btn-outline btn-sm" onclick="editAsset('${a.id}')">Rediger</button>
-                </div>
-            </div>`;
+            <tr>
+                <td style="font-weight: 600;">${a.navn}</td>
+                <td><i class="icon">📍</i> ${locName}</td>
+                <td>
+                    <div style="display:flex; gap: 10px;">
+                        <button class="btn-outline btn-sm" onclick="editAsset('${a.id}')">✏️ Rediger</button>
+                        <button class="btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger);" onclick="deleteAsset('${a.id}')">🗑️ Slet</button>
+                    </div>
+                </td>
+            </tr>`;
         });
     } catch (err) {
         console.error("Fejl ved hentning af assets:", err);

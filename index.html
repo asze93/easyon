@@ -280,7 +280,18 @@
                         </div>
                         <button class="btn-primary admin-only" onclick="openModal('modal-asset', true)">+ Opret Asset</button>
                     </div>
-                    <div class="assets-grid" id="assetsBody"></div>
+                    <div class="table-container">
+                        <table id="assetsTable">
+                            <thead>
+                                <tr>
+                                    <th>Navn</th>
+                                    <th>Lokation</th>
+                                    <th>Handling</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assetsBody"></tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- FUNDAMENT: LOKATIONER -->
