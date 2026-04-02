@@ -65,3 +65,7 @@ BEGIN
       WITH CHECK (firma_id::uuid IN (SELECT firma_id::uuid FROM public.brugere WHERE id = auth.uid() AND (rolle ILIKE ''%%admin%%'' OR rolle ILIKE ''%%superbruger%%'')))', t, t);
   END LOOP;
 END $$;
+
+-- 5. EKSTRA FIXES (Stregkode unik, men tillad flere NULLs)
+DROP INDEX IF EXISTS lager_stregkode_idx;
+CREATE UNIQUE INDEX IF NOT EXISTS lager_stregkode_idx ON public.lager (stregkode_sscc) WHERE (stregkode_sscc IS NOT NULL);

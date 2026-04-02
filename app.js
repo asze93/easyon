@@ -647,7 +647,7 @@ async function handleLagerSubmit(e) {
         lokation_tekst: document.getElementById('lagerLokation').value,
         antal_paa_lager: parseInt(document.getElementById('lagerAntal').value),
         minimums_beholdning: parseInt(document.getElementById('lagerMin').value),
-        stregkode_sscc: document.getElementById('lagerCode').value,
+        stregkode_sscc: document.getElementById('lagerCode').value.trim() || null,
         firma_id: currentFirmaId
     };
 
