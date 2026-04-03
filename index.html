@@ -205,6 +205,7 @@
                     
                     <li class="nav-category admin-only">System</li>
                     <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="indstillinger" onclick="dashNavTab(event, 'indstillinger')"><i class="icon">⚙️</i> App Builder</a></li>
+                    <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="procedures" onclick="dashNavTab(event, 'procedures')"><i class="icon">📝</i> Procedurer / SOP</a></li>
                     <li><a href="javascript:void(0)" class="dash-nav" onclick="logout()" style="color: var(--danger);"><i class="icon">🚪</i> Log ud</a></li>
                 </div>
             </aside>
@@ -496,6 +497,23 @@
                         </div>
                     </div>
                 </div> <!-- indstillinger -->
+
+                <!-- SYSTEM: PROCEDURE BUILDER (NEW) -->
+                <div id="dash-procedures" class="dash-tab">
+                    <div class="tab-header">
+                        <div>
+                            <h1>Procedure Builder (SOP)</h1>
+                            <p>Opret intelligente tjeklister og vejledninger til dine teknikere.</p>
+                        </div>
+                        <button class="btn-primary" onclick="openSopModal()">+ Opret Ny Procedure</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="sopTable">
+                            <thead><tr><th>Titel</th><th>Tilknyttet Asset</th><th>Trin</th><th>Handling</th></tr></thead>
+                            <tbody id="sopBody"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div> <!-- dash-content -->
         </div> <!-- dash-main-container -->
     </section>
@@ -552,7 +570,13 @@
         <div class="modal-header"><h3>Asset / Maskine</h3></div>
         <form onsubmit="handleAssetSubmit(event)">
             <input type="hidden" id="assetId">
-            <div class="input-group"><label>Navn</label><input type="text" id="assetName" required></div>
+            <div class="input-group"><label>Navn (f.eks. Transportør 1)</label><input type="text" id="assetName" required></div>
+            <div class="input-group">
+                <label>Over-aktiv (Parent)</label>
+                <select id="assetParent" onchange="autoFillAssetLocation()">
+                    <option value="">- Ingen (Dette er hoved-aktivet) -</option>
+                </select>
+            </div>
             <div class="input-group"><label>Lokation</label><select id="assetLoc" required></select></div>
             <button type="submit" class="btn-primary w-100">Gem Asset</button>
         </form>
@@ -602,6 +626,54 @@
             <div class="input-group"><label>PIN-kode (Login)</label><input type="password" id="teamPin" required placeholder="4 cifre"></div>
             <button type="submit" class="btn-primary w-100">Gem Medarbejder</button>
         </form>
+    </div>
+
+    <!-- MODAL: SOP BUILDER (NEW) -->
+    <div id="modal-sop" class="modal-card hidden" style="max-width: 1100px; width: 95%;">
+        <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>SOP Procedure Builder</h3>
+            <button class="btn-outline" onclick="closeAllModals()">Annuller</button>
+        </div>
+        <div style="display: flex; gap: 30px; margin-top: 20px; align-items: flex-start;">
+            <!-- Editor Pane -->
+            <div style="flex: 1.5; background: var(--bg-main); padding: 24px; border-radius: 16px; border: 1px solid var(--border); max-height: 70vh; overflow-y: auto;">
+                <div class="input-group"><label>Navn på procedure (f.eks. Ugentligt eftersyn)</label><input type="text" id="sopTitle" required oninput="updateSopPreview()"></div>
+                <div class="input-group"><label>Tilknyt til Asset / Maskintype</label><select id="sopAsset"></select></div>
+                
+                <h4 style="margin: 30px 0 15px;">Felt-blokke (Trin)</h4>
+                <div id="sopStepsContainer">
+                    <!-- Steps will be added here -->
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+                    <button class="btn-outline" style="font-size: 13px;" onclick="addSopStep('checkbox')">+ Tjekboks</button>
+                    <button class="btn-outline" style="font-size: 13px;" onclick="addSopStep('inspection')">+ Inspektion (P/F/F)</button>
+                    <button class="btn-outline" style="font-size: 13px;" onclick="addSopStep('number')">+ Tal-input (Måling)</button>
+                    <button class="btn-outline" style="font-size: 13px;" onclick="addSopStep('photo')">+ Foto-krav</button>
+                    <button class="btn-outline" style="font-size: 13px;" onclick="addSopStep('text')">+ Fri tekst</button>
+                    <button class="btn-outline" style="font-size: 13px;" onclick="addSopStep('heading')">+ Overskrift/Sektion</button>
+                </div>
+
+                <button class="btn-primary w-100" style="margin-top: 40px;" onclick="saveSop()">Gem & Udgiv Procedure</button>
+            </div>
+
+            <!-- Inspect/Preview Pane (Simulated Mobile) -->
+            <div id="sopPreviewPane" style="flex: 1; position: sticky; top: 0;">
+                <h4 style="margin-bottom: 12px; display:flex; align-items:center; gap:8px;">
+                    <i class="icon">🔍</i> Inspicer (Mobil Preview)
+                </h4>
+                <div style="width: 100%; height: 600px; background: #000; border-radius: 40px; padding: 12px; border: 6px solid #1E293B; box-shadow: 0 30px 60px rgba(0,0,0,0.5);">
+                    <div style="width: 100%; height: 100%; background: var(--bg-main); border-radius: 30px; overflow-y: auto; padding: 20px; position: relative;">
+                        <!-- iPhone notch -->
+                        <div style="width: 80px; height: 15px; background: #000; position: absolute; top: 0; left: 50%; transform: translateX(-50%); border-radius: 0 0 10px 10px;"></div>
+                        <div id="sopLivePreview" style="margin-top: 20px;">
+                            <p class="text-muted" style="text-align:center; margin-top: 100px;">Begynd at tilføje blokke for at se preview...</p>
+                        </div>
+                        <button class="btn-primary w-100" style="margin-top: 30px; opacity: 0.5; pointer-events: none;">Gennemfør Opgave</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="snackbar" class="snackbar"></div>

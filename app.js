@@ -6,6 +6,11 @@ let isGlobalAdmin = false;
 let kraeverAnmodningReview = true;
 let authMode = 'login'; 
 let currentFirmaId = null;
+let allCompanies = [];
+let allLocations = [];
+let allAssets = [];
+let sopSteps = []; // Trin i SOP Builder
+let currentFirma = null;
 
 // ---------------- UI HELPERS ----------------
 function togglePassVisibility(id) {
@@ -38,8 +43,10 @@ function setLoading(btn, isLoading, originalText) {
 
 function showView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    if (viewId === 'dashboard') document.body.classList.add('dashboard-mode');
-    else {
+    if (viewId === 'dashboard') {
+        document.body.classList.add('dashboard-mode');
+        fetchProcedures();
+    } else {
         document.body.classList.remove('dashboard-mode');
         updateNavbar(); // Sørg for at menubaren opdateres når vi viser forsiden
     }
@@ -380,6 +387,154 @@ function dashNavTab(e, tabId) {
     dashTab(tabId);
 }
 
+// S O P   B U I L D E R   L O G I K
+function openSopModal() {
+    sopSteps = [];
+    document.getElementById('sopTitle').value = '';
+    document.getElementById('sopStepsContainer').innerHTML = '';
+    
+    // Fyld asset dropdown
+    const sel = document.getElementById('sopAsset');
+    sel.innerHTML = '<option value="">- Alle Assets af denne type -</option>';
+    allAssets.forEach(a => {
+        sel.innerHTML += `<option value="${a.id}">${a.navn}</option>`;
+    });
+
+    updateSopPreview();
+    openModal('modal-sop');
+}
+
+function addSopStep(type) {
+    const id = Date.now();
+    const step = { id, type, label: '', required: false, min: null, max: null };
+    sopSteps.push(step);
+    renderStepInEditor(step);
+    updateSopPreview();
+}
+
+function renderStepInEditor(step) {
+    const container = document.getElementById('sopStepsContainer');
+    const div = document.createElement('div');
+    div.className = 'auth-card';
+    div.style = 'margin: 10px 0; padding: 15px; text-align: left; border-style: dashed; background: rgba(255,255,255,0.02);';
+    div.id = `step-editor-${step.id}`;
+    
+    let extraFields = '';
+    if (step.type === 'number') {
+        extraFields = `
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <input type="number" placeholder="Min" style="font-size:12px; padding:8px;" onchange="updateStepData(${step.id}, 'min', this.value)">
+                <input type="number" placeholder="Max" style="font-size:12px; padding:8px;" onchange="updateStepData(${step.id}, 'max', this.value)">
+            </div>
+        `;
+    }
+
+    div.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:10px; text-transform:uppercase; color:var(--primary); font-weight:800;">${step.type}</span>
+            <button onclick="removeSopStep(${step.id})" style="background:none; border:none; color:var(--danger); cursor:pointer;">✕</button>
+        </div>
+        <input type="text" placeholder="Instruktion / Label" style="margin-top:8px; border-bottom:1px solid var(--border); border-top:none; border-left:none; border-right:none; background:none; border-radius:0;" oninput="updateStepData(${step.id}, 'label', this.value)">
+        ${extraFields}
+    `;
+    container.appendChild(div);
+}
+
+function updateStepData(id, field, value) {
+    const step = sopSteps.find(s => s.id === id);
+    if (step) {
+        step[field] = value;
+        updateSopPreview();
+    }
+}
+
+function removeSopStep(id) {
+    sopSteps = sopSteps.filter(s => s.id !== id);
+    document.getElementById(`step-editor-${id}`).remove();
+    updateSopPreview();
+}
+
+function updateSopPreview() {
+    const preview = document.getElementById('sopLivePreview');
+    if (sopSteps.length === 0) {
+        preview.innerHTML = '<p class="text-muted" style="text-align:center; margin-top: 100px;">Begynd at tilføje blokke for at se preview...</p>';
+        return;
+    }
+
+    preview.innerHTML = `<h3 style="margin-bottom:20px;">${document.getElementById('sopTitle').value || 'Procedure Titel'}</h3>`;
+    
+    sopSteps.forEach(step => {
+        let html = '';
+        const label = step.label || '(Ingen tekst endnu)';
+        
+        switch(step.type) {
+            case 'heading': html = `<h4 style="margin: 20px 0 10px; color:var(--primary);">${label}</h4>`; break;
+            case 'checkbox': html = `<div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; background:var(--bg-sidebar); padding:12px; border-radius:10px;"><input type="checkbox"> <span>${label}</span></div>`; break;
+            case 'text': html = `<div style="margin-bottom:15px;"><label style="font-size:12px;">${label}</label><textarea style="width:100%; border-radius:10px; background:var(--bg-sidebar); border:1px solid var(--border); padding:10px;" rows="2"></textarea></div>`; break;
+            case 'photo': html = `<div style="margin-bottom:15px; background:var(--bg-sidebar); padding:20px; border-radius:10px; text-align:center; border:2px dashed var(--border);"><i class="icon">📷</i><p style="font-size:12px; margin-top:5px;">${label}</p></div>`; break;
+            case 'number': html = `<div style="margin-bottom:15px;"><label style="font-size:12px;">${label}</label><input type="number" style="width:100%; border-radius:10px; background:var(--bg-sidebar); border:1px solid var(--border); padding:10px;"></div>`; break;
+            case 'inspection': html = `
+                <div style="margin-bottom:15px;">
+                    <label style="font-size:12px;">${label}</label>
+                    <div style="display:flex; gap:5px; margin-top:5px;">
+                        <button style="flex:1; background:#10B981; border:none; height:10px; border-radius:5px;"></button>
+                        <button style="flex:1; background:#F59E0B; border:none; height:10px; border-radius:5px;"></button>
+                        <button style="flex:1; background:#EF4444; border:none; height:10px; border-radius:5px;"></button>
+                    </div>
+                </div>`; break;
+        }
+        preview.innerHTML += html;
+    });
+}
+
+async function saveSop() {
+    const title = document.getElementById('sopTitle').value;
+    const assetId = document.getElementById('sopAsset').value;
+
+    if (!title) { showSnackbar("Giv venligst proceduren en titel."); return; }
+    
+    try {
+        const { data, error } = await supabaseClient.from('procedurer').insert({
+            firma_id: currentFirma.id,
+            titel: title,
+            asset_id: assetId || null,
+            trin: sopSteps
+        }).select();
+
+        if (error) throw error;
+        showSnackbar("Procedure gemt og udgivet! 🦾");
+        closeAllModals();
+        fetchProcedures();
+    } catch (e) {
+        console.error(e);
+        showSnackbar("Fejl ved gemning af procedure.");
+    }
+}
+
+async function fetchProcedures() {
+    const { data, error } = await supabaseClient.from('procedurer').select('*').eq('firma_id', currentFirma.id);
+    if (!error && data) {
+        const body = document.getElementById('sopBody');
+        body.innerHTML = '';
+        data.forEach(sop => {
+            body.innerHTML += `
+                <tr>
+                    <td><strong>${sop.titel}</strong></td>
+                    <td>${sop.asset_id ? 'Specifikt Asset' : 'Alle Assets'}</td>
+                    <td>${sop.trin?.length || 0} trin</td>
+                    <td><button class="btn-outline" style="padding:5px 10px;" onclick="deleteSop('${sop.id}')">Slet</button></td>
+                </tr>
+            `;
+        });
+    }
+}
+
+async function deleteSop(id) {
+    if (!confirm("Er du sikker på du vil slette denne procedure?")) return;
+    await supabaseClient.from('procedurer').delete().eq('id', id);
+    fetchProcedures();
+}
+
 function applyKpiSettings(settings) {
     if (!settings) return;
     const cards = {
@@ -637,30 +792,61 @@ async function fetchAssets() {
         }
 
         if (error) throw error;
+        allAssets = data; // Gem globalt
         
+        // Opdater Parent Dropdown i modalen
+        const parentSel = document.getElementById('assetParent');
+        if (parentSel) {
+            parentSel.innerHTML = '<option value="">- Ingen (Dette er hoved-aktivet) -</option>';
+            data.filter(a => !a.parent_id).forEach(a => {
+                parentSel.innerHTML += `<option value="${a.id}">${a.navn}</option>`;
+            });
+        }
+
         const b = document.getElementById('assetsBody'); if (!b) return; b.innerHTML = "";
         if (!data || data.length === 0) {
             b.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 40px; color: var(--text-muted);">Ingen maskiner fundet. Opret en ny ved at klikke på knappen ovenfor.</td></tr>';
             return;
         }
 
-        data.forEach(a => {
-            const locName = a.lokationer?.navn || 'Ingen lokation';
-            b.innerHTML += `
-            <tr>
-                <td style="font-weight: 600;">${a.navn}</td>
-                <td><i class="icon">📍</i> ${locName}</td>
-                <td>
-                    <div style="display:flex; gap: 10px;">
-                        <button class="btn-outline btn-sm" onclick="editAsset('${a.id}')">✏️ Rediger</button>
-                        <button class="btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger);" onclick="deleteAsset('${a.id}')">🗑️ Slet</button>
-                    </div>
-                </td>
-            </tr>`;
+        // Sorter assets så børn kommer efter forældre
+        const parents = data.filter(a => !a.parent_id);
+        parents.forEach(p => {
+            renderAssetRow(p, b, false);
+            const children = data.filter(a => a.parent_id === p.id);
+            children.forEach(c => renderAssetRow(c, b, true));
         });
     } catch (err) {
         console.error("Fejl ved hentning af assets:", err);
         showSnackbar("Kunne ikke hente maskiner", err.code);
+    }
+}
+
+function renderAssetRow(a, container, isChild) {
+    const locName = a.lokationer?.navn || 'Ingen lokation';
+    container.innerHTML += `
+    <tr style="${isChild ? 'background: rgba(255,255,255,0.02);' : ''}">
+        <td style="font-weight: 600; padding-left: ${isChild ? '40px' : '24px'};">
+            ${isChild ? '<span style="color:var(--text-muted); margin-right:8px;">┕</span>' : ''} ${a.navn}
+        </td>
+        <td><i class="icon">📍</i> ${locName}</td>
+        <td>
+            <div style="display:flex; gap: 10px;">
+                <button class="btn-outline btn-sm" onclick="editAsset('${a.id}')">✏️</button>
+                <button class="btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger);" onclick="deleteAsset('${a.id}')">🗑️</button>
+            </div>
+        </td>
+    </tr>`;
+}
+
+function autoFillAssetLocation() {
+    const parentId = document.getElementById('assetParent').value;
+    if (parentId) {
+        const parent = allAssets.find(a => a.id === parentId);
+        if (parent && parent.lokation_id) {
+            document.getElementById('assetLoc').value = parent.lokation_id;
+            // Valgfrit: Disable lokationsfeltet så man ikke kan ændre arven?
+        }
     }
 }
 
@@ -670,6 +856,7 @@ async function editAsset(id) {
     
     document.getElementById('assetId').value = data.id;
     document.getElementById('assetName').value = data.navn;
+    document.getElementById('assetParent').value = data.parent_id || "";
     document.getElementById('assetLoc').value = data.lokation_id || "";
     
     openModal('modal-asset');
@@ -837,6 +1024,7 @@ async function handleAssetSubmit(e) {
         const assetData = {
             navn, 
             lokation_id: lokId || null, 
+            parent_id: document.getElementById('assetParent').value || null,
             firma_id: currentFirmaId 
         };
         
