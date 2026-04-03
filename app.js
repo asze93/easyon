@@ -693,13 +693,32 @@ async function fetchIndstillinger() {
         document.getElementById('kraever_review').checked = data.kraever_anmodning_review;
         document.getElementById('set_lokationer').checked = data.aktiver_lokationer;
         document.getElementById('set_sop').checked = data.aktiver_sop;
+        document.getElementById('set_billede').checked = data.krav_om_billede;
+        document.getElementById('set_farve').value = data.app_tema_farve || '#3B82F6';
     }
 }
 
 async function saveIndstillinger() {
-    const rev = document.getElementById('kraever_review').checked, lok = document.getElementById('set_lokationer').checked, sop = document.getElementById('set_sop').checked;
-    await supabaseClient.from('firma_indstillinger').upsert({ firma_id: currentFirmaId, kraever_anmodning_review: rev, aktiver_lokationer: lok, aktiver_sop: sop });
-    showSnackbar("Indstillinger gemt!");
+    const rev = document.getElementById('kraever_review').checked;
+    const lok = document.getElementById('set_lokationer').checked;
+    const sop = document.getElementById('set_sop').checked;
+    const bill = document.getElementById('set_billede').checked;
+    const col = document.getElementById('set_farve').value;
+
+    const { error } = await supabaseClient.from('firma_indstillinger').upsert({ 
+        firma_id: currentFirmaId, 
+        kraever_anmodning_review: rev, 
+        aktiver_lokationer: lok, 
+        aktiver_sop: sop,
+        krav_om_billede: bill,
+        app_tema_farve: col.replace('#', '')
+    }, { onConflict: 'firma_id' });
+
+    if (error) {
+        showSnackbar("Fejl ved gem: " + error.message);
+    } else {
+        showSnackbar("Indstillinger gemt!");
+    }
 }
 async function fetchLager() {
     const { data } = await supabaseClient.from('lager').select('*').eq('firma_id', currentFirmaId).order('navn');
