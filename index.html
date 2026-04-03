@@ -36,9 +36,12 @@
             <div class="hero">
                 <h1>Fremtidens vedligeholdelse er <span>digital</span></h1>
                 <p>EasyON samler dit team, dine maskiner og dine opgaver i én enkel sky-løsning. Slip for papirarbejde og få overblik over dit anlæg på få sekunder.</p>
-                <div class="hero-btns" style="display:flex; justify-content:center; gap:20px;">
-                    <button class="btn-primary" onclick="toggleAuthMode('signup')">Kom i gang gratis</button>
-                </div>
+        <div class="hero-btns" style="display:flex; justify-content:center; gap:20px; align-items: center; flex-wrap: wrap;">
+            <button class="btn-primary" onclick="toggleAuthMode('signup')">Kom i gang gratis</button>
+            <a href="easyon-app.apk" class="btn-outline" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
+                <i class="icon" style="font-size: 20px;">🤖</i> Hent App (APK)
+            </a>
+        </div>
                 <div class="hero-mockup">
                     <img src="dashboard_mockup.png" alt="App Dashboard Preview">
                 </div>
@@ -450,6 +453,39 @@
                             <div style="display:flex; gap:10px; margin-top:5px;">
                                 <input type="color" id="set_farve" value="#3B82F6" style="width:50px; height:40px; padding:0; border:none; cursor:pointer;">
                                 <p class="text-muted" style="font-size:13px;">Vælg din firmas signaturfarve til mobilappen.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NY: DISTRIBUTIONS CENTER -->
+                    <div class="tab-header" style="margin-top: 50px;">
+                        <div>
+                            <h1>App Udrulning & Deling</h1>
+                            <p>Gør det nemt for dit team at hente appen med det samme.</p>
+                        </div>
+                    </div>
+                    <div class="auth-card" style="margin: 20px 0; display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap; text-align: left; max-width: 100%;">
+                        <!-- QR Kode Sektion -->
+                        <div style="flex: 0 0 160px; background: white; padding: 10px; border-radius: 12px; text-align: center;">
+                            <img id="app-qr-code" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://asze93.github.io/easyon/easyon-app.apk" alt="QR Code" style="width: 150px; height: 150px; display: block;">
+                            <p style="color: #0F172A; font-size: 11px; margin-top: 8px; font-weight: bold;">SCAN FOR AT HENTE</p>
+                        </div>
+
+                        <!-- Delings Sektion -->
+                        <div style="flex: 1; min-width: 250px;">
+                            <h4 style="margin: 0 0 10px 0;">Send download-link til teamet</h4>
+                            <p class="text-muted" style="font-size: 13px; margin: 0 0 15px 0;">Indtast en e-mail adresse for at sende et direkte link til installationsfilen (APK).</p>
+                            
+                            <div style="display: flex; gap: 10px;">
+                                <input type="email" id="share-email" placeholder="navn@firma.dk" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: white;">
+                                <button class="btn-primary" onclick="sendAppLinkEmail()">Send Link</button>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 25px 0;">
+
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <button class="btn-outline" onclick="copyAppLink()" style="font-size: 13px;">🔗 Kopier Download Link</button>
+                                <a href="easyon-app.apk" class="btn-outline" style="font-size: 13px; text-decoration: none; color: inherit;">📥 Hent APK direkte</a>
                             </div>
                         </div>
                     </div>

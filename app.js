@@ -720,6 +720,29 @@ async function saveIndstillinger() {
         showSnackbar("Indstillinger gemt!");
     }
 }
+
+function sendAppLinkEmail() {
+    const email = document.getElementById('share-email').value.trim();
+    if (!email) {
+        showSnackbar("Indtast venligst en e-mail adresse");
+        return;
+    }
+    
+    const subject = encodeURIComponent("Velkommen til EasyON - Hent din medarbejder-app her");
+    const body = encodeURIComponent(`Hej,\n\nVelkommen til dit nye EasyON vedligeholdelsessystem!\n\nFor at komme i gang, skal du hente og installere vores officielle Android-app via dette link:\n\nhttps://asze93.github.io/easyon/easyon-app.apk\n\nEfter installationen kan du logge ind med dit Firma-ID og Medarbejder-nummer.\n\nGod arbejdslyst!\nEasyON Teamet`);
+    
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    showSnackbar("Mail-klient åbnet!");
+}
+
+function copyAppLink() {
+    const link = "https://asze93.github.io/easyon/easyon-app.apk";
+    navigator.clipboard.writeText(link).then(() => {
+        showSnackbar("Link kopieret til udklipsholder!");
+    }).catch(err => {
+        showSnackbar("Kunne ikke kopiere link: " + err);
+    });
+}
 async function fetchLager() {
     const { data } = await supabaseClient.from('lager').select('*').eq('firma_id', currentFirmaId).order('navn');
     const b = document.getElementById('lagerBody'); if (!b) return; b.innerHTML = "";
