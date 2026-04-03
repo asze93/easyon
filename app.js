@@ -350,6 +350,14 @@ function dashTab(tabId) {
     document.querySelectorAll('.dash-nav[data-tab="'+tabId+'"]').forEach(n => n.classList.add('active'));
 }
 
+function toggleSidebar(force) {
+    const sidebar = document.getElementById('dashboardSidebar');
+    if (!sidebar) return;
+    if (force === true) sidebar.classList.add('mobile-open');
+    else if (force === false) sidebar.classList.remove('mobile-open');
+    else sidebar.classList.toggle('mobile-open');
+}
+
 function dashNavTab(e, tabId) {
     if (e) e.preventDefault();
     const adminTabs = ['team', 'indstillinger', 'categories', 'locations', 'assets', 'lager', 'kpi'];
@@ -359,6 +367,10 @@ function dashNavTab(e, tabId) {
         showSnackbar("Ingen adgang - kun for Administratorer."); 
         return; 
     }
+    
+    // Luk sidebar på mobil
+    toggleSidebar(false);
+
     if (tabId === 'lager') fetchLager();
     if (tabId === 'kpi') fetchKpiSettings();
     if (tabId === 'statistics' || tabId === 'overview') loadDashboardStats();

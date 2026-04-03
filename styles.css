@@ -180,6 +180,7 @@ body.dashboard-mode .main-nav {
 .hero h1 span { 
     background: linear-gradient(to right, #60A5FA, #3B82F6);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 .hero p { font-size: 22px; color: var(--text-muted); max-width: 800px; margin: 0 auto 48px; }
@@ -490,3 +491,69 @@ input:checked + .slider:before { transform: translateX(28px); }
     box-shadow: none !important;
     padding: 32px !important;
 }
+
+/* MOBILE RESPONSIVENESS */
+@media (max-width: 992px) {
+    .hero h1 { font-size: 56px; }
+    .sidebar { width: 240px; }
+}
+
+@media (max-width: 768px) {
+    .container { padding: 0 20px; }
+    
+    /* Nav */
+    .logo { font-size: 32px; }
+    .logo img { height: 80px; }
+    
+    /* Hero */
+    .hero { padding: 80px 0; }
+    .hero h1 { font-size: 42px; letter-spacing: -1.5px; }
+    .hero p { font-size: 18px; margin-bottom: 32px; }
+    .hero-btns { flex-direction: column; width: 100%; max-width: 320px; margin: 0 auto; }
+    .btn-primary, .btn-outline { width: 100%; justify-content: center; }
+    
+    /* Auth */
+    .auth-card { padding: 40px 24px; margin: 40px auto; border-radius: 24px; }
+    .auth-card h2 { font-size: 28px; }
+    
+    /* Dashboard Layout */
+    .sidebar {
+        position: fixed;
+        left: -280px;
+        top: 0;
+        bottom: 0;
+        z-index: 1500;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+    }
+    
+    .sidebar.mobile-open { left: 0; }
+    
+    .dash-main-container { padding: 24px 16px; }
+    .tab-header { flex-direction: column; align-items: flex-start; gap: 20px; margin-bottom: 32px; }
+    .tab-header h1 { font-size: 24px; }
+    
+    .stats-grid { grid-template-columns: 1fr; }
+    .stat-card { padding: 24px; }
+    
+    .table-container { 
+        margin-top: 16px; 
+        overflow-x: auto; 
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Mobile Menu Toggle */
+    .mobile-nav-toggle {
+        display: flex !important;
+        align-items: center;
+        gap: 12px;
+        background: var(--bg-sidebar);
+        padding: 12px 20px;
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 1400;
+    }
+}
+
+.mobile-nav-toggle { display: none; }

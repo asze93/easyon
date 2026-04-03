@@ -176,7 +176,13 @@
 
         <!-- VIEW: DASHBOARD (ADMIN) -->
         <section id="view-dashboard" class="view dashboard-layout">
-            <aside class="sidebar">
+            <!-- Mobile Toggle -->
+            <div class="mobile-nav-toggle" onclick="toggleSidebar()">
+                <i class="icon">☰</i>
+                <span style="font-weight:700; font-size:14px; letter-spacing:1px; text-transform:uppercase;">Admin Menu</span>
+            </div>
+
+            <aside class="sidebar" id="dashboardSidebar">
                 <div class="sidebar-logo" onclick="showView('landing')">
                     <img src="logo_v16.png?v=16" alt="Logo">
                     Easy<span>ON</span>
