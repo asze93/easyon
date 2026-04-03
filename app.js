@@ -69,7 +69,6 @@ function initSupabase() {
     
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
         currentUser = session?.user || null;
-        updateNavbar();
         if (currentUser) {
             await loadDashboard();
         } else {
@@ -77,7 +76,10 @@ function initSupabase() {
             if (savedProfile) {
                  await loadDashboard(JSON.parse(savedProfile));
             } else {
-                 showView('landing');
+                 const activeView = document.querySelector('.view.active')?.id;
+                 if (activeView !== 'view-auth' && activeView !== 'view-verify-email') {
+                     showView('landing');
+                 }
             }
         }
     });
@@ -107,14 +109,20 @@ async function checkSession() {
 
 async function loadDashboardStats() {
     if (!currentFirmaId) return;
-    const { count: tasks } = await supabaseClient.from('opgaver').select('*', { count: 'exact', head: true }).eq('firma_id', currentFirmaId);
-    const { count: assets } = await supabaseClient.from('assets').select('*', { count: 'exact', head: true }).eq('firma_id', currentFirmaId);
-    const { count: reqs } = await supabaseClient.from('anmodninger').select('*', { count: 'exact', head: true }).eq('firma_id', currentFirmaId);
-    
-    const elTasks = document.getElementById('stat-active-tasks'), elAssets = document.getElementById('stat-total-assets'), elReqs = document.getElementById('stat-pending-requests');
-    if (elTasks) elTasks.innerText = tasks || 0; if (elAssets) elAssets.innerText = assets || 0; if (elReqs) elReqs.innerText = reqs || 0;
-    
-    loadCharts();
+    try {
+        const { count: tasks } = await supabaseClient.from('opgaver').select('*', { count: 'exact', head: true }).eq('firma_id', currentFirmaId);
+        const { count: assets } = await supabaseClient.from('assets').select('*', { count: 'exact', head: true }).eq('firma_id', currentFirmaId);
+        const { count: reqs } = await supabaseClient.from('anmodninger').select('*', { count: 'exact', head: true }).eq('firma_id', currentFirmaId);
+        
+        const elTasks = document.getElementById('stat-active-tasks'), elAssets = document.getElementById('stat-total-assets'), elReqs = document.getElementById('stat-pending-requests');
+        if (elTasks) elTasks.innerText = tasks || 0; 
+        if (elAssets) elAssets.innerText = assets || 0; 
+        if (elReqs) elReqs.innerText = reqs || 0;
+        
+        loadCharts();
+    } catch (err) {
+        console.warn("Dashboard stats fetch failed:", err);
+    }
 }
 
 function loadCharts() {
@@ -206,9 +214,8 @@ async function handleAuth(e) {
                 if (profile) {
                     // Fundet via ID + Kode! Gem profil lokalt og log ind.
                     localStorage.setItem('easyon_session_profile', JSON.stringify(profile));
-                    localStorage.setItem('firmaId', profile.firma_id);
-                    localStorage.setItem('brugerNavn', profile.navn);
-                    localStorage.setItem('brugerRolle', profile.rolle);
+                    localStorage.setItem('easyon_firma_id', profile.firma_id);
+                    localStorage.setItem('easyon_user_role', profile.rolle?.toLowerCase() || "");
                     loadDashboard(profile);
                 } else {
                     // 3. Fallback: Er det en admin der bruger sit ID men har en rigtig Auth-kode?
@@ -354,9 +361,18 @@ async function loadDashboard(providedProfile = null) {
         
         // Initial fetches
         fetchStats(); fetchTasks(); fetchRequests(); fetchTeam(); 
+        
+        // Ensure procedures are loaded if the user is already on that tab
+        const procTab = document.getElementById('dash-procedures');
+        if (procTab && procTab.classList.contains('active')) {
+            fetchProcedures();
+        }
     } else {
-        showSnackbar("Kunne ikke indlæse firma-profil. Prøv at logge ud og ind igen.");
-        showView('landing');
+        // If we are already in wizard or verify-email, don't force landing
+        const activeView = document.querySelector('.view.active')?.id;
+        if (activeView !== 'view-wizard' && activeView !== 'view-verify-email' && activeView !== 'view-auth') {
+            showView('landing');
+        }
     }
 }
 
@@ -404,7 +420,9 @@ async function fetchProcedures() {
     if (!list) return;
     
     if (!currentFirmaId) {
-        list.innerHTML = '<div style="padding:40px; text-align:center;" class="text-muted">Vent venligst... Indlæser profil.</div>';
+        list.innerHTML = '<div style="padding:40px; text-align:center;" class="text-muted"><div class="spinner"></div><br>Henter din profil...</div>';
+        // Prøv igen om 2 sekunder hvis vi stadig ikke har et ID
+        setTimeout(fetchProcedures, 2000);
         return;
     }
 
@@ -809,19 +827,22 @@ async function saveKpiSettings() {
 
 // ---------------- FETCHERS ----------------
 async function fetchStats() {
-    const { count: tasks } = await supabaseClient.from('opgaver').select('*', { count: 'exact', head: true }).eq('firma_id', currentFirmaId);
-    const { count: assets } = await supabaseClient.from('assets').select('*', { count: 'exact', head: true }).eq('firma_id', currentFirmaId);
-    const { count: reqs } = await supabaseClient.from('anmodninger').select('*', { count: 'exact', head: true }).eq('firma_id', currentFirmaId);
-    const elTasks = document.getElementById('stat-active-tasks'), elAssets = document.getElementById('stat-total-assets'), elReqs = document.getElementById('stat-pending-requests');
-    if (elTasks) elTasks.innerText = tasks || 0; if (elAssets) elAssets.innerText = assets || 0; if (elReqs) elReqs.innerText = reqs || 0;
+    // Unify with loadDashboardStats to ensure consistency
+    return loadDashboardStats();
 }
 
 async function fetchTeam() {
-    const { data } = await supabaseClient.from('brugere').select('*').eq('firma_id', currentFirmaId);
-    const b = document.getElementById('teamBody'); if (!b) return; b.innerHTML = "";
-    data?.forEach(u => {
-        b.innerHTML += `<tr><td>${u.navn}</td><td>${u.arbejdsnummer}</td><td>${u.rolle}</td><td><button class="btn-outline btn-sm" onclick="deleteTeamMember('${u.id}')">Slet</button></td></tr>`;
-    });
+    if (!currentFirmaId) return;
+    try {
+        const { data, error } = await supabaseClient.from('brugere').select('*').eq('firma_id', currentFirmaId);
+        if (error) throw error;
+        const b = document.getElementById('teamBody'); if (!b) return; b.innerHTML = "";
+        data?.forEach(u => {
+            b.innerHTML += `<tr><td>${u.navn}</td><td>${u.arbejdsnummer}</td><td>${u.rolle}</td><td><button class="btn-outline btn-sm" onclick="deleteTeamMember('${u.id}')">Slet</button></td></tr>`;
+        });
+    } catch (err) {
+        console.warn("Team fetch failed:", err);
+    }
 }
 
 async function fetchTasks() {
@@ -995,52 +1016,38 @@ async function handleTaskSubmit(e) {
 async function fetchAssets() {
     if (!currentFirmaId) return;
     try {
-        console.log("Henter assets for firma:", currentFirmaId);
-        // Prøv at hente med join først
-        let { data, error } = await supabaseClient.from('assets')
+        const { data, error } = await supabaseClient.from('assets')
             .select('*, lokationer(navn)')
             .eq('firma_id', currentFirmaId)
             .order('navn');
         
-        // Fallback hvis join fejler pga. schema cache
-        if (error && error.code === 'PGRST200') {
-            console.warn("Join fejlede, henter uden lokationsnavne som fallback...");
-            const simple = await supabaseClient.from('assets')
-                .select('*')
-                .eq('firma_id', currentFirmaId)
-                .order('navn');
-            data = simple.data;
-            error = simple.error;
-        }
-
         if (error) throw error;
-        allAssets = data; // Gem globalt
+        allAssets = data || [];
         
-        // Opdater Parent Dropdown i modalen
         const parentSel = document.getElementById('assetParent');
         if (parentSel) {
             parentSel.innerHTML = '<option value="">- Ingen (Dette er hoved-aktivet) -</option>';
-            data.filter(a => !a.parent_id).forEach(a => {
+            allAssets.filter(a => !a.parent_id).forEach(a => {
                 parentSel.innerHTML += `<option value="${a.id}">${a.navn}</option>`;
             });
         }
 
-        const b = document.getElementById('assetsBody'); if (!b) return; b.innerHTML = "";
-        if (!data || data.length === 0) {
-            b.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 40px; color: var(--text-muted);">Ingen maskiner fundet. Opret en ny ved at klikke på knappen ovenfor.</td></tr>';
+        const b = document.getElementById('assetsBody'); 
+        if (!b) return; 
+        b.innerHTML = "";
+        
+        if (allAssets.length === 0) {
+            b.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 40px; color: var(--text-muted);">Ingen maskiner fundet.</td></tr>';
             return;
         }
 
-        // Sorter assets så børn kommer efter forældre
-        const parents = data.filter(a => !a.parent_id);
+        const parents = allAssets.filter(a => !a.parent_id);
         parents.forEach(p => {
             renderAssetRow(p, b, false);
-            const children = data.filter(a => a.parent_id === p.id);
-            children.forEach(c => renderAssetRow(c, b, true));
+            allAssets.filter(a => a.parent_id === p.id).forEach(c => renderAssetRow(c, b, true));
         });
     } catch (err) {
-        console.error("Fejl ved hentning af assets:", err);
-        showSnackbar("Kunne ikke hente maskiner", err.code);
+        console.error("Asset fetch error:", err);
     }
 }
 
@@ -1091,16 +1098,21 @@ async function deleteAsset(id) {
 }
 async function fetchCategories() {
     if (!currentFirmaId) return;
-    const { data } = await supabaseClient.from('kategorier').select('*').eq('firma_id', currentFirmaId).order('navn');
-    const b = document.getElementById('categoriesBody'); if (!b) return; b.innerHTML = "";
-    data?.forEach(c => {
-        b.innerHTML += `<tr>
-            <td>${c.navn}</td>
-            <td><span style="background:${c.farve}; width:20px; height:20px; display:inline-block; border-radius:50%; border:1px solid #ccc;"></span></td>
-            <td>${new Date(c.created_at).toLocaleDateString()}</td>
-            <td><button class="btn-outline btn-sm" onclick="deleteCategory('${c.id}')">Slet</button></td>
-        </tr>`;
-    });
+    try {
+        const { data, error } = await supabaseClient.from('kategorier').select('*').eq('firma_id', currentFirmaId).order('navn');
+        if (error) throw error;
+        const b = document.getElementById('categoriesBody'); if (!b) return; b.innerHTML = "";
+        data?.forEach(c => {
+            b.innerHTML += `<tr>
+                <td>${c.navn}</td>
+                <td><span style="background:${c.farve}; width:20px; height:20px; display:inline-block; border-radius:50%; border:1px solid #ccc;"></span></td>
+                <td>${new Date(c.created_at).toLocaleDateString()}</td>
+                <td><button class="btn-outline btn-sm" onclick="deleteCategory('${c.id}')">Slet</button></td>
+            </tr>`;
+        });
+    } catch (err) {
+        console.warn("Categories fetch failed:", err);
+    }
 }
 
 async function deleteCategory(id) {
@@ -1109,6 +1121,7 @@ async function deleteCategory(id) {
     if (!error) fetchCategories();
 }
 async function fetchIndstillinger() {
+    if (!currentFirmaId) return;
     const { data } = await supabaseClient.from('firma_indstillinger').select('*').eq('firma_id', currentFirmaId).maybeSingle();
     if (data) {
         document.getElementById('kraever_review').checked = data.kraever_anmodning_review;
@@ -1165,23 +1178,29 @@ function copyAppLink() {
     });
 }
 async function fetchLager() {
-    const { data } = await supabaseClient.from('lager').select('*').eq('firma_id', currentFirmaId).order('navn');
-    const b = document.getElementById('lagerBody'); if (!b) return; b.innerHTML = "";
-    data?.forEach(item => {
-        const isLow = item.antal_paa_lager <= item.minimums_beholdning;
-        const rowStyle = isLow ? 'background-color: #ffebee; font-weight: bold; color: #c62828;' : '';
-        b.innerHTML += `<tr style="${rowStyle}">
-            <td>${item.navn}</td>
-            <td>${item.lokation_tekst || '-'}</td>
-            <td>${item.antal_paa_lager} ${item.enhed || 'stk'}</td>
-            <td>${item.minimums_beholdning}</td>
-            <td><code>${item.stregkode_sscc || '-'}</code></td>
-            <td>
-                <button class="btn-outline btn-sm" onclick="editLager('${item.id}')">✏️</button>
-                <button class="btn-outline btn-sm" onclick="deleteLager('${item.id}')">🗑️</button>
-            </td>
-        </tr>`;
-    });
+    if (!currentFirmaId) return;
+    try {
+        const { data, error } = await supabaseClient.from('lager').select('*').eq('firma_id', currentFirmaId).order('navn');
+        if (error) throw error;
+        const b = document.getElementById('lagerBody'); if (!b) return; b.innerHTML = "";
+        data?.forEach(item => {
+            const isLow = item.antal_paa_lager <= item.minimums_beholdning;
+            const rowStyle = isLow ? 'background-color: #ffebee; font-weight: bold; color: #c62828;' : '';
+            b.innerHTML += `<tr style="${rowStyle}">
+                <td>${item.navn}</td>
+                <td>${item.lokation_tekst || '-'}</td>
+                <td>${item.antal_paa_lager} ${item.enhed || 'stk'}</td>
+                <td>${item.minimums_beholdning}</td>
+                <td><code>${item.stregkode_sscc || '-'}</code></td>
+                <td>
+                    <button class="btn-outline btn-sm" onclick="editLager('${item.id}')">✏️</button>
+                    <button class="btn-outline btn-sm" onclick="deleteLager('${item.id}')">🗑️</button>
+                </td>
+            </tr>`;
+        });
+    } catch (err) {
+        console.warn("Lager fetch failed:", err);
+    }
 }
 
 async function handleLagerSubmit(e) {
@@ -1308,15 +1327,20 @@ async function handleLocationSubmit(e) {
 
 async function fetchLocations() {
     if (!currentFirmaId) return;
-    const { data } = await supabaseClient.from('lokationer').select('*').eq('firma_id', currentFirmaId).order('navn');
-    const b = document.getElementById('locationsBody'); if (!b) return; b.innerHTML = "";
-    data?.forEach(l => {
-        b.innerHTML += `<tr>
-            <td>${l.navn}</td>
-            <td>${l.beskrivelse || '-'}</td>
-            <td><button class="btn-outline btn-sm" onclick="deleteLocation('${l.id}')">Slet</button></td>
-        </tr>`;
-    });
+    try {
+        const { data, error } = await supabaseClient.from('lokationer').select('*').eq('firma_id', currentFirmaId).order('navn');
+        if (error) throw error;
+        const b = document.getElementById('locationsBody'); if (!b) return; b.innerHTML = "";
+        data?.forEach(l => {
+            b.innerHTML += `<tr>
+                <td>${l.navn}</td>
+                <td>${l.beskrivelse || '-'}</td>
+                <td><button class="btn-outline btn-sm" onclick="deleteLocation('${l.id}')">Slet</button></td>
+            </tr>`;
+        });
+    } catch (err) {
+        console.warn("Locations fetch failed:", err);
+    }
 }
 
 async function handleCategorySubmit(e) {
