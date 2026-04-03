@@ -457,13 +457,97 @@ td { padding: 20px 24px; border-top: 1px solid var(--border); }
     to { bottom: 40px; opacity: 1; }
 }
 
-/* WIZARD */
+/* WIZARD & SOP LIBRARY */
 .wizard-box {
     background: var(--bg-sidebar);
     padding: 60px;
     border-radius: 32px;
     border: 1px solid var(--border);
 }
+
+.sop-library-container {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 30px;
+    height: calc(100vh - 200px);
+    margin-top: 20px;
+}
+
+.sop-list-pane {
+    background: var(--bg-sidebar);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.sop-preview-pane {
+    background: var(--bg-card);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    padding: 30px;
+    overflow-y: auto;
+    position: relative;
+}
+
+.sop-card-item {
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid transparent;
+}
+
+.sop-card-item:hover { background: rgba(255,255,255,0.05); }
+.sop-card-item.active { 
+    background: var(--primary); 
+    color: white;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.sop-editor-block {
+    background: #1E293B;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    position: relative;
+    transition: all 0.2s;
+    cursor: grab;
+}
+
+.sop-editor-block.dragging { opacity: 0.5; border: 2px dashed var(--primary); }
+
+.sop-floating-toolbar {
+    position: sticky;
+    top: 20px;
+    left: 10px;
+    width: 60px;
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    box-shadow: var(--shadow);
+    z-index: 100;
+}
+
+.toolbar-item {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.toolbar-item:hover { background: var(--primary); color: white; }
 
 .step { width: 48px; height: 48px; border-radius: 16px; background: var(--glass); display: flex; align-items: center; justify-content: center; font-weight: 800; }
 .step.active { background: var(--primary); }

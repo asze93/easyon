@@ -384,29 +384,154 @@ function dashNavTab(e, tabId) {
     if (tabId === 'assets') fetchAssets();
     if (tabId === 'locations') fetchLocations();
     if (tabId === 'categories') fetchCategories();
+    if (tabId === 'procedures') fetchProcedures(); // Opdateret til procedurer biblioteket
     dashTab(tabId);
 }
 
-// S O P   B U I L D E R   L O G I K
-function openSopModal() {
+// ---------------- S O P   L I B R A R Y   &   E D I T O R ----------------
+let currentSopId = null;
+
+async function fetchProcedures() {
+    if (!currentFirmaId) return;
+    const { data, error } = await supabaseClient.from('procedurer').select('*').eq('firma_id', currentFirmaId).order('titel');
+    const list = document.getElementById('sopTemplateList');
+    if (!list) return;
+    
+    if (error || !data || data.length === 0) {
+        list.innerHTML = '<div style="padding:40px; text-align:center;" class="text-muted">Ingen procedurer fundet. Opret din første skabelon ovenfor.</div>';
+        return;
+    }
+
+    list.innerHTML = '';
+    data.forEach(sop => {
+        const div = document.createElement('div');
+        div.className = 'sop-card-item';
+        div.id = `sop-item-${sop.id}`;
+        div.onclick = () => selectSopFromLibrary(sop);
+        div.innerHTML = `
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div style="width:40px; height:40px; background:var(--glass); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px;">📄</div>
+                <div style="flex:1;">
+                    <div style="font-weight:700;">${sop.titel}</div>
+                    <div style="font-size:12px; color:var(--text-muted);">${sop.trin?.length || 0} trin</div>
+                </div>
+            </div>
+        `;
+        list.appendChild(div);
+    });
+}
+
+function selectSopFromLibrary(sop) {
+    document.querySelectorAll('.sop-card-item').forEach(el => el.classList.remove('active'));
+    document.getElementById(`sop-item-${sop.id}`)?.classList.add('active');
+    
+    const preview = document.getElementById('sopLibraryPreview');
+    preview.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:30px;">
+            <div>
+                <h2 style="font-size:32px; font-weight:800; margin-bottom:8px;">${sop.titel}</h2>
+                <p class="text-muted">${sop.beskrivelse || 'Ingen beskrivelse.'}</p>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-outline" onclick="openSopEditor('${sop.id}')">Rediger Skabelon</button>
+                <button class="btn-outline" style="color:var(--danger); border-color:var(--danger);" onclick="deleteSop('${sop.id}')">Slet</button>
+            </div>
+        </div>
+        <hr style="border:0; border-top:1px solid var(--border); margin-bottom:30px;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+            <div style="background:rgba(255,255,255,0.02); padding:20px; border-radius:16px; border:1px solid var(--border);">
+                <h4 style="margin-bottom:15px; color:var(--primary);">Oversigt</h4>
+                <div class="text-muted" style="font-size:14px; line-height:2;">
+                    <div>• ${sop.trin?.length || 0} trin i alt</div>
+                    <div>• Tilknyttet: ${sop.asset_id ? 'Specifik maskine' : 'Alle maskiner'}</div>
+                </div>
+            </div>
+            <div style="background:rgba(255,255,255,0.02); padding:20px; border-radius:16px; border:1px solid var(--border);">
+                <h4 style="margin-bottom:15px; color:var(--primary);">Hurtig Preview</h4>
+                <div id="sopQuickPreview" style="font-size:13px; color:var(--text-muted);">
+                    ${sop.trin?.slice(0, 5).map(t => `<div style="margin-bottom:8px;">• ${t.label || t.type}</div>`).join('')}
+                    ${sop.trin?.length > 5 ? '<div>... og flere</div>' : ''}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function startNewSopFlow() {
+    // I en rigtig app ville vi her vise "Blank / Template / Import"
+    // For nu går vi direkte til Blank
+    openSopEditor(null);
+}
+
+async function openSopEditor(id = null) {
+    currentSopId = id;
     sopSteps = [];
     document.getElementById('sopTitle').value = '';
+    document.getElementById('sopDesc').value = '';
     document.getElementById('sopStepsContainer').innerHTML = '';
     
-    // Fyld asset dropdown
-    const sel = document.getElementById('sopAsset');
-    sel.innerHTML = '<option value="">- Alle Assets af denne type -</option>';
-    allAssets.forEach(a => {
-        sel.innerHTML += `<option value="${a.id}">${a.navn}</option>`;
-    });
-
+    await populateEditorDropdowns();
+    switchSopEditorTab('fields');
+    
+    if (id) {
+        const { data } = await supabaseClient.from('procedurer').select('*').eq('id', id).maybeSingle();
+        if (data) {
+            document.getElementById('sopTitle').value = data.titel;
+            document.getElementById('sopDesc').value = data.beskrivelse || '';
+            document.getElementById('sopAsset').value = data.asset_id || '';
+            document.getElementById('sopLocation').value = data.lokation_id || '';
+            sopSteps = data.trin || [];
+            sopSteps.forEach(step => renderStepInEditor(step));
+        }
+    }
+    
     updateSopPreview();
     openModal('modal-sop');
 }
 
+async function populateEditorDropdowns() {
+    const assetsSel = document.getElementById('sopAsset');
+    const locsSel = document.getElementById('sopLocation');
+    const teamsSel = document.getElementById('sopTeam');
+    const catSel = document.getElementById('sopCategory');
+
+    if (assetsSel) {
+        assetsSel.innerHTML = '<option value="">- Ingen (Gælder alle maskiner) -</option>';
+        allAssets.forEach(a => assetsSel.innerHTML += `<option value="${a.id}">${a.navn}</option>`);
+    }
+    if (locsSel) {
+        locsSel.innerHTML = '<option value="">- Vælg lokation -</option>';
+        allLocations.forEach(l => locsSel.innerHTML += `<option value="${l.id}">${l.navn}</option>`);
+    }
+    if (teamsSel) {
+        teamsSel.innerHTML = '<option value="">- Alle teams kan udføre -</option>';
+        const { data } = await supabaseClient.from('brugere').select('navn').eq('firma_id', currentFirmaId);
+        data?.forEach(u => teamsSel.innerHTML += `<option value="${u.navn}">${u.navn}</option>`);
+    }
+}
+
+function switchSopEditorTab(tab) {
+    document.getElementById('sopEditorFields').classList.toggle('hidden', tab !== 'fields');
+    document.getElementById('sopEditorSettings').classList.toggle('hidden', tab !== 'settings');
+    document.getElementById('tabSopFields').classList.toggle('active', tab === 'fields');
+    document.getElementById('tabSopSettings').classList.toggle('active', tab === 'settings');
+}
+
+function toggleSopEditorPreview() {
+    const pane = document.getElementById('sopPreviewPane');
+    const isHidden = pane.style.display === 'none';
+    pane.style.display = isHidden ? 'block' : 'none';
+    document.getElementById('btnSopPreview').classList.toggle('active', isHidden);
+}
+
+function showFieldDrawer() {
+    document.getElementById('fieldTypeDrawer').classList.toggle('hidden');
+}
+
 function addSopStep(type) {
+    document.getElementById('fieldTypeDrawer').classList.add('hidden');
     const id = Date.now();
-    const step = { id, type, label: '', required: false, min: null, max: null };
+    const step = { id, type, label: '', required: false, min: null, max: null, options: [] };
     sopSteps.push(step);
     renderStepInEditor(step);
     updateSopPreview();
@@ -415,71 +540,184 @@ function addSopStep(type) {
 function renderStepInEditor(step) {
     const container = document.getElementById('sopStepsContainer');
     const div = document.createElement('div');
-    div.className = 'auth-card';
-    div.style = 'margin: 10px 0; padding: 15px; text-align: left; border-style: dashed; background: rgba(255,255,255,0.02);';
+    div.className = 'sop-editor-block';
     div.id = `step-editor-${step.id}`;
+    div.draggable = true;
     
-    let extraFields = '';
-    if (step.type === 'number') {
-        extraFields = `
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <input type="number" placeholder="Min" style="font-size:12px; padding:8px;" onchange="updateStepData(${step.id}, 'min', this.value)">
-                <input type="number" placeholder="Max" style="font-size:12px; padding:8px;" onchange="updateStepData(${step.id}, 'max', this.value)">
+    // Drag handlers
+    div.ondragstart = (e) => {
+        e.dataTransfer.setData('text/plain', step.id);
+        div.classList.add('dragging');
+    };
+    div.ondragend = () => div.classList.remove('dragging');
+    div.ondragover = (e) => e.preventDefault();
+    div.ondrop = (e) => {
+        e.preventDefault();
+        const draggedId = e.dataTransfer.getData('text/plain');
+        handleDrop(draggedId, step.id);
+    };
+
+    let typeIcon = '📝';
+    if (step.type === 'checkbox') typeIcon = '☑️';
+    if (step.type === 'inspection') typeIcon = '🔍';
+    if (step.type === 'number') typeIcon = '🔢';
+    if (step.type === 'photo') typeIcon = '📷';
+    if (step.type === 'heading') typeIcon = 'Tt';
+    if (step.type === 'section') typeIcon = '🍱';
+    if (step.type === 'choice') typeIcon = '🔘';
+
+    let contentHtml = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="cursor:grab; color:var(--text-muted);">⣿</span>
+                <span style="font-size:12px; font-weight:800; color:var(--primary); text-transform:uppercase;">${step.type}</span>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button onclick="removeSopStep(${step.id})" style="background:none; border:none; color:var(--danger); cursor:pointer;">🗑️</button>
+            </div>
+        </div>
+        <input type="text" value="${step.label || ''}" placeholder="${step.type === 'heading' ? 'Overskrift' : 'Felt-navn eller instruktion'}" 
+               style="font-size:18px; font-weight:600; background:none; border:none; border-bottom:1px solid var(--border); outline:none; color:white; width:100%;"
+               oninput="updateStepData(${step.id}, 'label', this.value)">
+    `;
+
+    if (step.type === 'choice') {
+        contentHtml += `
+            <div style="margin-top:15px;" id="options-${step.id}">
+                ${(step.options || []).map((opt, i) => `
+                    <div style="display:flex; gap:10px; margin-bottom:8px;">
+                        <input type="text" value="${opt}" placeholder="Option ${i+1}" style="flex:1; background:var(--bg-main); border:1px solid var(--border); padding:8px; border-radius:8px;" ononinput="updateOption(${step.id}, ${i}, this.value)">
+                        <button onclick="removeOption(${step.id}, ${i})" style="background:none; border:none; color:var(--danger);">✕</button>
+                    </div>
+                `).join('')}
+                <button class="btn-outline" style="width:100%; padding:8px; font-size:12px; margin-top:5px;" onclick="addOption(${step.id})">+ Add Option</button>
             </div>
         `;
     }
 
-    div.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:10px; text-transform:uppercase; color:var(--primary); font-weight:800;">${step.type}</span>
-            <button onclick="removeSopStep(${step.id})" style="background:none; border:none; color:var(--danger); cursor:pointer;">✕</button>
-        </div>
-        <input type="text" placeholder="Instruktion / Label" style="margin-top:8px; border-bottom:1px solid var(--border); border-top:none; border-left:none; border-right:none; background:none; border-radius:0;" oninput="updateStepData(${step.id}, 'label', this.value)">
-        ${extraFields}
-    `;
+    if (step.type === 'number') {
+        contentHtml += `
+            <div style="display:flex; gap:15px; margin-top:15px;">
+                <div style="flex:1;"><label style="font-size:10px; text-transform:uppercase; color:var(--text-muted);">Min Værdi</label>
+                <input type="number" placeholder="Ingen" value="${step.min || ''}" style="width:100%; background:var(--bg-main); border:1px solid var(--border); padding:8px; border-radius:8px;" onchange="updateStepData(${step.id}, 'min', this.value)"></div>
+                <div style="flex:1;"><label style="font-size:10px; text-transform:uppercase; color:var(--text-muted);">Max Værdi</label>
+                <input type="number" placeholder="Ingen" value="${step.max || ''}" style="width:100%; background:var(--bg-main); border:1px solid var(--border); padding:8px; border-radius:8px;" onchange="updateStepData(${step.id}, 'max', this.value)"></div>
+            </div>
+        `;
+    }
+
+    if (step.type !== 'heading' && step.type !== 'section') {
+        contentHtml += `
+            <div style="display:flex; justify-content:flex-end; align-items:center; gap:10px; margin-top:20px; border-top:1px solid var(--border); padding-top:10px;">
+               <label style="font-size:12px; color:var(--text-muted); cursor:pointer;">
+                <input type="checkbox" ${step.required ? 'checked' : ''} onchange="updateStepData(${step.id}, 'required', this.checked)"> Required
+               </label>
+            </div>
+        `;
+    }
+
+    div.innerHTML = contentHtml;
     container.appendChild(div);
 }
 
+function handleDrop(draggedId, targetId) {
+    if (draggedId == targetId) return;
+    const fromIndex = sopSteps.findIndex(s => s.id == draggedId);
+    const toIndex = sopSteps.findIndex(s => s.id == targetId);
+    
+    const [movedStep] = sopSteps.splice(fromIndex, 1);
+    sopSteps.splice(toIndex, 0, movedStep);
+    
+    // Re-render editor
+    const container = document.getElementById('sopStepsContainer');
+    container.innerHTML = '';
+    sopSteps.forEach(step => renderStepInEditor(step));
+    updateSopPreview();
+}
+
 function updateStepData(id, field, value) {
-    const step = sopSteps.find(s => s.id === id);
+    const step = sopSteps.find(s => s.id == id);
     if (step) {
         step[field] = value;
         updateSopPreview();
     }
 }
 
+function addOption(stepId) {
+    const step = sopSteps.find(s => s.id == stepId);
+    if (step) {
+        if (!step.options) step.options = [];
+        step.options.push("");
+        renderStepInEditor(step); // Re-render this block specifically
+        // Actually, just re-render all for simplicity in this version
+        const container = document.getElementById('sopStepsContainer');
+        container.innerHTML = '';
+        sopSteps.forEach(s => renderStepInEditor(s));
+    }
+}
+
+function updateOption(stepId, index, value) {
+    const step = sopSteps.find(s => s.id == stepId);
+    if (step && step.options) {
+        step.options[index] = value;
+        updateSopPreview();
+    }
+}
+
+function removeOption(stepId, index) {
+    const step = sopSteps.find(s => s.id == stepId);
+    if (step && step.options) {
+        step.options.splice(index, 1);
+        const container = document.getElementById('sopStepsContainer');
+        container.innerHTML = '';
+        sopSteps.forEach(s => renderStepInEditor(s));
+        updateSopPreview();
+    }
+}
+
 function removeSopStep(id) {
-    sopSteps = sopSteps.filter(s => s.id !== id);
-    document.getElementById(`step-editor-${id}`).remove();
+    sopSteps = sopSteps.filter(s => s.id != id);
+    document.getElementById(`step-editor-${id}`)?.remove();
     updateSopPreview();
 }
 
 function updateSopPreview() {
     const preview = document.getElementById('sopLivePreview');
-    if (sopSteps.length === 0) {
-        preview.innerHTML = '<p class="text-muted" style="text-align:center; margin-top: 100px;">Begynd at tilføje blokke for at se preview...</p>';
-        return;
-    }
-
-    preview.innerHTML = `<h3 style="margin-bottom:20px;">${document.getElementById('sopTitle').value || 'Procedure Titel'}</h3>`;
+    if (!preview) return;
+    
+    const title = document.getElementById('sopTitle').value || 'Procedure Navn';
+    const desc = document.getElementById('sopDesc').value || '';
+    
+    preview.innerHTML = `
+        <h3 style="font-size:24px; font-weight:800; margin-bottom:5px;">${title}</h3>
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">${desc}</p>
+    `;
     
     sopSteps.forEach(step => {
         let html = '';
-        const label = step.label || '(Ingen tekst endnu)';
+        const label = step.label || '(Navngiv feltet...)';
         
         switch(step.type) {
-            case 'heading': html = `<h4 style="margin: 20px 0 10px; color:var(--primary);">${label}</h4>`; break;
-            case 'checkbox': html = `<div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; background:var(--bg-sidebar); padding:12px; border-radius:10px;"><input type="checkbox"> <span>${label}</span></div>`; break;
-            case 'text': html = `<div style="margin-bottom:15px;"><label style="font-size:12px;">${label}</label><textarea style="width:100%; border-radius:10px; background:var(--bg-sidebar); border:1px solid var(--border); padding:10px;" rows="2"></textarea></div>`; break;
-            case 'photo': html = `<div style="margin-bottom:15px; background:var(--bg-sidebar); padding:20px; border-radius:10px; text-align:center; border:2px dashed var(--border);"><i class="icon">📷</i><p style="font-size:12px; margin-top:5px;">${label}</p></div>`; break;
-            case 'number': html = `<div style="margin-bottom:15px;"><label style="font-size:12px;">${label}</label><input type="number" style="width:100%; border-radius:10px; background:var(--bg-sidebar); border:1px solid var(--border); padding:10px;"></div>`; break;
+            case 'section': html = `<div style="margin: 30px 0 10px; border-bottom:2px solid var(--primary); padding-bottom:5px; font-weight:800; font-size:14px; text-transform:uppercase; color:var(--primary);">${label}</div>`; break;
+            case 'heading': html = `<h4 style="margin: 20px 0 10px; font-weight:700;">${label}</h4>`; break;
+            case 'checkbox': html = `<div style="background:var(--bg-sidebar); border:1px solid var(--border); padding:12px; border-radius:10px; margin-bottom:12px; display:flex; align-items:center; gap:10px; font-size:13px;"><input type="checkbox" disabled> <span>${label}</span></div>`; break;
+            case 'text': html = `<div style="margin-bottom:15px;"><label style="font-size:11px; color:var(--text-muted);">${label}</label><div style="background:var(--bg-sidebar); border:1px solid var(--border); height:40px; border-radius:10px; margin-top:5px;"></div></div>`; break;
+            case 'number': html = `<div style="margin-bottom:15px;"><label style="font-size:11px; color:var(--text-muted);">${label}</label><div style="background:var(--bg-sidebar); border:1px solid var(--border); height:40px; border-radius:10px; margin-top:5px; display:flex; align-items:center; padding:0 12px; font-size:12px; color:var(--text-muted);">Indtast værdi... ${step.min ? `(min: ${step.min})` : ''}</div></div>`; break;
+            case 'photo': html = `<div style="margin-bottom:15px; background:var(--bg-sidebar); border:2px dashed var(--border); padding:15px; border-radius:10px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px;"><i class="icon" style="font-size:24px;">📷</i><span style="font-size:11px;">${label}</span></div>`; break;
+            case 'choice': html = `
+                <div style="margin-bottom:15px;">
+                    <label style="font-size:11px; color:var(--text-muted);">${label}</label>
+                    <div style="margin-top:8px; display:flex; flex-direction:column; gap:8px;">
+                        ${(step.options || []).map(opt => `<div style="padding:10px; border:1px solid var(--border); border-radius:10px; font-size:13px; display:flex; align-items:center; gap:10px;"><div style="width:14px; height:14px; border:1px solid var(--primary); border-radius:50%;"></div> ${opt || '(Tom svarmulighed)'}</div>`).join('')}
+                    </div>
+                </div>`; break;
             case 'inspection': html = `
                 <div style="margin-bottom:15px;">
-                    <label style="font-size:12px;">${label}</label>
-                    <div style="display:flex; gap:5px; margin-top:5px;">
-                        <button style="flex:1; background:#10B981; border:none; height:10px; border-radius:5px;"></button>
-                        <button style="flex:1; background:#F59E0B; border:none; height:10px; border-radius:5px;"></button>
-                        <button style="flex:1; background:#EF4444; border:none; height:10px; border-radius:5px;"></button>
+                    <label style="font-size:12px; font-weight:600;">${label}</label>
+                    <div style="display:flex; gap:5px; margin-top:8px;">
+                        <div style="flex:1; border:1px solid #10B981; color:#10B981; font-size:10px; font-weight:700; text-align:center; padding:6px; border-radius:6px;">PASS</div>
+                        <div style="flex:1; border:1px solid #F59E0B; color:#F59E0B; font-size:10px; font-weight:700; text-align:center; padding:6px; border-radius:6px;">FLAG</div>
+                        <div style="flex:1; border:1px solid #EF4444; color:#EF4444; font-size:10px; font-weight:700; text-align:center; padding:6px; border-radius:6px;">FAIL</div>
                     </div>
                 </div>`; break;
         }
@@ -489,50 +727,43 @@ function updateSopPreview() {
 
 async function saveSop() {
     const title = document.getElementById('sopTitle').value;
+    const desc = document.getElementById('sopDesc').value;
     const assetId = document.getElementById('sopAsset').value;
+    const locId = document.getElementById('sopLocation').value;
 
-    if (!title) { showSnackbar("Giv venligst proceduren en titel."); return; }
+    if (!title) { showSnackbar("Angiv venligst et navn på proceduren."); return; }
     
     try {
-        const { data, error } = await supabaseClient.from('procedurer').insert({
-            firma_id: currentFirma.id,
+        const sopData = {
+            firma_id: currentFirmaId,
             titel: title,
+            beskrivelse: desc,
             asset_id: assetId || null,
+            lokation_id: locId || null,
             trin: sopSteps
-        }).select();
+        };
 
-        if (error) throw error;
-        showSnackbar("Procedure gemt og udgivet! 🦾");
+        let res;
+        if (currentSopId) res = await supabaseClient.from('procedurer').update(sopData).eq('id', currentSopId);
+        else res = await supabaseClient.from('procedurer').insert(sopData);
+
+        if (res.error) throw res.error;
+        showSnackbar("Skabelon gemt i biblioteket! 🦾");
         closeAllModals();
         fetchProcedures();
     } catch (e) {
-        console.error(e);
-        showSnackbar("Fejl ved gemning af procedure.");
-    }
-}
-
-async function fetchProcedures() {
-    const { data, error } = await supabaseClient.from('procedurer').select('*').eq('firma_id', currentFirma.id);
-    if (!error && data) {
-        const body = document.getElementById('sopBody');
-        body.innerHTML = '';
-        data.forEach(sop => {
-            body.innerHTML += `
-                <tr>
-                    <td><strong>${sop.titel}</strong></td>
-                    <td>${sop.asset_id ? 'Specifikt Asset' : 'Alle Assets'}</td>
-                    <td>${sop.trin?.length || 0} trin</td>
-                    <td><button class="btn-outline" style="padding:5px 10px;" onclick="deleteSop('${sop.id}')">Slet</button></td>
-                </tr>
-            `;
-        });
+        showSnackbar("Fejl ved gemning: " + e.message);
     }
 }
 
 async function deleteSop(id) {
-    if (!confirm("Er du sikker på du vil slette denne procedure?")) return;
-    await supabaseClient.from('procedurer').delete().eq('id', id);
-    fetchProcedures();
+    if (!confirm("Er du sikker på, at du vil slette denne skabelon permanent?")) return;
+    const { error } = await supabaseClient.from('procedurer').delete().eq('id', id);
+    if (!error) {
+        showSnackbar("Procedure slettet.");
+        document.getElementById('sopLibraryPreview').innerHTML = '<div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:var(--text-muted);"><i class="icon" style="font-size:48px; margin-bottom:20px;">📄</i><h3>Template Slettet.</h3></div>';
+        fetchProcedures();
+    }
 }
 
 function applyKpiSettings(settings) {

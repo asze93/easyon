@@ -498,20 +498,30 @@
                     </div>
                 </div> <!-- indstillinger -->
 
-                <!-- SYSTEM: PROCEDURE BUILDER (NEW) -->
+                <!-- SYSTEM: PROCEDURE LIBRARY (REPLACEMENT) -->
                 <div id="dash-procedures" class="dash-tab">
                     <div class="tab-header">
                         <div>
-                            <h1>Procedure Builder (SOP)</h1>
-                            <p>Opret intelligente tjeklister og vejledninger til dine teknikere.</p>
+                            <h1>Procedure Library</h1>
+                            <p>Opret og administrer dine professionelle SOP'er og vejledninger.</p>
                         </div>
-                        <button class="btn-primary" onclick="openSopModal()">+ Opret Ny Procedure</button>
+                        <button class="btn-primary" onclick="startNewSopFlow()">+ New Procedure Template</button>
                     </div>
-                    <div class="table-container">
-                        <table id="sopTable">
-                            <thead><tr><th>Titel</th><th>Tilknyttet Asset</th><th>Trin</th><th>Handling</th></tr></thead>
-                            <tbody id="sopBody"></tbody>
-                        </table>
+                    
+                    <div class="sop-library-container">
+                        <!-- Left: Template List -->
+                        <div class="sop-list-pane" id="sopTemplateList">
+                            <div style="padding:20px; text-align:center;" class="text-muted">Indlæser bibliotek...</div>
+                        </div>
+                        
+                        <!-- Right: Quick Preview / Details -->
+                        <div class="sop-preview-pane" id="sopLibraryPreview">
+                            <div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:var(--text-muted);">
+                                <i class="icon" style="font-size:48px; margin-bottom:20px;">📄</i>
+                                <h3>Vælg en procedure</h3>
+                                <p>Vælg fra listen til venstre for at se detaljer eller redigere.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div> <!-- dash-content -->
@@ -628,51 +638,91 @@
         </form>
     </div>
 
-    <!-- MODAL: SOP BUILDER (NEW) -->
-    <div id="modal-sop" class="modal-card hidden" style="max-width: 1100px; width: 95%;">
-        <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center;">
-            <h3>SOP Procedure Builder</h3>
-            <button class="btn-outline" onclick="closeAllModals()">Annuller</button>
-        </div>
-        <div style="display: flex; gap: 30px; margin-top: 20px; align-items: flex-start;">
-            <!-- Editor Pane -->
-            <div style="flex: 1.5; background: var(--bg-main); padding: 24px; border-radius: 16px; border: 1px solid var(--border); max-height: 70vh; overflow-y: auto;">
-                <div class="input-group"><label>Navn på procedure (f.eks. Ugentligt eftersyn)</label><input type="text" id="sopTitle" required oninput="updateSopPreview()"></div>
-                <div class="input-group"><label>Tilknyt til Asset / Maskintype</label><select id="sopAsset"></select></div>
-                
-                <h4 style="margin: 30px 0 15px;">Felt-blokke (Trin)</h4>
-                <div id="sopStepsContainer">
-                    <!-- Steps will be added here -->
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
-                    <button class="btn-outline" style="font-size: 13px;" onclick="addSopStep('checkbox')">+ Tjekboks</button>
-                    <button class="btn-outline" style="font-size: 13px;" onclick="addSopStep('inspection')">+ Inspektion (P/F/F)</button>
-                    <button class="btn-outline" style="font-size: 13px;" onclick="addSopStep('number')">+ Tal-input (Måling)</button>
-                    <button class="btn-outline" style="font-size: 13px;" onclick="addSopStep('photo')">+ Foto-krav</button>
-                    <button class="btn-outline" style="font-size: 13px;" onclick="addSopStep('text')">+ Fri tekst</button>
-                    <button class="btn-outline" style="font-size: 13px;" onclick="addSopStep('heading')">+ Overskrift/Sektion</button>
-                </div>
-
-                <button class="btn-primary w-100" style="margin-top: 40px;" onclick="saveSop()">Gem & Udgiv Procedure</button>
+    <!-- MODAL: INDUSTRIAL SOP EDITOR (COMPLETE REDESIGN) -->
+    <div id="modal-sop" class="modal-card hidden" style="max-width: 1400px; width: 95%; height: 90vh; display: flex; flex-direction: column; padding: 0; overflow: hidden; border-radius: 20px;">
+        <!-- Editor Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; border-bottom: 1px solid var(--border); background: var(--bg-sidebar);">
+            <div style="display:flex; align-items:center; gap:20px;">
+                <button class="btn-outline" style="padding: 8px 15px;" onclick="closeAllModals()">← Back</button>
+                <h3 id="editorSopTitle">New Procedure Template</h3>
             </div>
+            <div style="display:flex; gap:12px;">
+                <button class="btn-outline" id="btnSopPreview" onclick="toggleSopEditorPreview()">👁️ Preview</button>
+                <button class="btn-primary" onclick="saveSop()">Save Template</button>
+            </div>
+        </div>
 
-            <!-- Inspect/Preview Pane (Simulated Mobile) -->
-            <div id="sopPreviewPane" style="flex: 1; position: sticky; top: 0;">
-                <h4 style="margin-bottom: 12px; display:flex; align-items:center; gap:8px;">
-                    <i class="icon">🔍</i> Inspicer (Mobil Preview)
-                </h4>
-                <div style="width: 100%; height: 600px; background: #000; border-radius: 40px; padding: 12px; border: 6px solid #1E293B; box-shadow: 0 30px 60px rgba(0,0,0,0.5);">
-                    <div style="width: 100%; height: 100%; background: var(--bg-main); border-radius: 30px; overflow-y: auto; padding: 20px; position: relative;">
-                        <!-- iPhone notch -->
-                        <div style="width: 80px; height: 15px; background: #000; position: absolute; top: 0; left: 50%; transform: translateX(-50%); border-radius: 0 0 10px 10px;"></div>
-                        <div id="sopLivePreview" style="margin-top: 20px;">
-                            <p class="text-muted" style="text-align:center; margin-top: 100px;">Begynd at tilføje blokke for at se preview...</p>
+        <!-- Editor Tabs -->
+        <div style="display: flex; gap: 40px; padding: 0 40px; border-bottom: 1px solid var(--border); background: var(--bg-sidebar);">
+            <div class="dash-nav active" style="padding: 15px 0; cursor:pointer;" id="tabSopFields" onclick="switchSopEditorTab('fields')">Fields</div>
+            <div class="dash-nav" style="padding: 15px 0; cursor:pointer;" id="tabSopSettings" onclick="switchSopEditorTab('settings')">Settings</div>
+        </div>
+
+        <div style="flex: 1; display: flex; overflow: hidden;">
+            <!-- Main Content Area -->
+            <div style="flex: 1; overflow-y: auto; padding: 40px; background: var(--bg-main);" id="sopEditorMain">
+                
+                <!-- Fields Tab -->
+                <div id="sopEditorFields">
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        <input type="text" id="sopTitle" placeholder="Procedure Name" style="font-size: 32px; font-weight: 800; background: none; border: none; outline: none; color: white; width: 100%; margin-bottom: 10px;" oninput="updateSopPreview()">
+                        <textarea id="sopDesc" placeholder="What needs to be done..." style="font-size: 16px; background: none; border: none; outline: none; color: var(--text-muted); width: 100%; margin-bottom: 40px; min-height: 40px; resize: none;" oninput="updateSopPreview()"></textarea>
+                        
+                        <div id="sopStepsContainer">
+                            <!-- Drag & Drop Blocks -->
                         </div>
-                        <button class="btn-primary w-100" style="margin-top: 30px; opacity: 0.5; pointer-events: none;">Gennemfør Opgave</button>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div id="sopEditorSettings" class="hidden">
+                    <div style="max-width: 600px; margin: 0 auto; padding-top: 20px;">
+                        <div class="input-group">
+                            <label>Kategori</label>
+                            <select id="sopCategory" class="w-100"></select>
+                        </div>
+                        <div class="input-group">
+                            <label>Tilknyttet Asset</label>
+                            <select id="sopAsset" class="w-100"></select>
+                        </div>
+                        <div class="input-group">
+                            <label>Lokation</label>
+                            <select id="sopLocation" class="w-100"></select>
+                        </div>
+                        <div class="input-group">
+                            <label>Ansvarligt Team</label>
+                            <select id="sopTeam" class="w-100"></select>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Floating Sidebar Toolbar -->
+            <div class="sop-floating-toolbar" style="margin: 40px 20px;">
+                <div class="toolbar-item" title="Add Field" onclick="showFieldDrawer()"><i class="icon">➕</i></div>
+                <div class="toolbar-item" title="Add Heading" onclick="addSopStep('heading')"><i class="icon">Tt</i></div>
+                <div class="toolbar-item" title="Add Section" onclick="addSopStep('section')"><i class="icon">🍱</i></div>
+            </div>
+
+            <!-- Inspect/Preview Pane (Mobile Mockup) -->
+            <div id="sopPreviewPane" style="width: 450px; border-left: 1px solid var(--border); background: var(--bg-sidebar); padding: 40px; display: none; overflow-y: auto;">
+                <div style="width: 320px; height: 600px; background: #000; border-radius: 40px; margin: 0 auto; padding: 12px; border: 6px solid #1E293B; box-shadow: 0 30px 60px rgba(0,0,0,0.5);">
+                    <div style="width: 100%; height: 100%; background: var(--bg-main); border-radius: 30px; overflow-y: auto; padding: 20px; position: relative;" id="sopLivePreviewContainer">
+                        <div style="width: 80px; height: 15px; background: #000; position: absolute; top: 0; left: 50%; transform: translateX(-50%); border-radius: 0 0 10px 10px;"></div>
+                        <div id="sopLivePreview" style="margin-top: 20px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Field Type Drawer (Hidden by default) -->
+        <div id="fieldTypeDrawer" class="hidden" style="position: absolute; right: 80px; top: 120px; background: var(--bg-sidebar); border: 1px solid var(--primary); border-radius: 12px; padding: 10px; z-index: 1000; width: 220px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 10px; padding: 5px;">Select Field Type</div>
+            <div class="sop-card-item" onclick="addSopStep('checkbox')"><i class="icon">☑️</i> Checkbox</div>
+            <div class="sop-card-item" onclick="addSopStep('inspection')"><i class="icon">🔍</i> Inspection Check</div>
+            <div class="sop-card-item" onclick="addSopStep('number')"><i class="icon">🔢</i> Number Field</div>
+            <div class="sop-card-item" onclick="addSopStep('text')"><i class="icon">✍️</i> Text Field</div>
+            <div class="sop-card-item" onclick="addSopStep('photo')"><i class="icon">📷</i> Photo Requirement</div>
         </div>
     </div>
 
