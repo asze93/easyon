@@ -71,11 +71,11 @@ function initSupabase() {
         currentUser = session?.user || null;
         updateNavbar();
         if (currentUser) {
-            loadDashboard();
+            await loadDashboard();
         } else {
             const savedProfile = localStorage.getItem('easyon_session_profile');
             if (savedProfile) {
-                 loadDashboard(JSON.parse(savedProfile));
+                 await loadDashboard(JSON.parse(savedProfile));
             } else {
                  showView('landing');
             }
@@ -306,12 +306,16 @@ async function nextWizard(step, btn) {
 
 // ---------------- DASHBOARD & DATA ----------------
 async function loadDashboard(providedProfile = null) {
-    showView('dashboard');
     let profile = providedProfile;
-    if (!profile && currentUser) {
+    if (!profile && currentUser?.email) {
         for (let i = 0; i < 3; i++) {
-            const { data } = await supabaseClient.from('brugere').select('*').eq('email', currentUser.email).maybeSingle();
-            if (data) { profile = data; break; }
+            try {
+                const { data, error } = await supabaseClient.from('brugere').select('*').eq('email', currentUser.email).maybeSingle();
+                if (data) { profile = data; break; }
+                if (error) console.error("Database error fetching profile:", error);
+            } catch (exc) {
+                console.warn("Retrying profile fetch...", exc);
+            }
             await new Promise(r => setTimeout(r, 1000));
         }
     }
@@ -342,12 +346,18 @@ async function loadDashboard(providedProfile = null) {
             isSuperUser = false; 
         }
     }
-    
-    // UI Visibility Toggles
-    document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !isGlobalAdmin));
-    
-    // Foundation & System categories are Admin-only
-    fetchStats(); fetchTasks(); fetchRequests(); fetchTeam(); dashTab('overview');
+
+    if (currentFirmaId) {
+        showView('dashboard');
+        // UI Visibility Toggles
+        document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !isGlobalAdmin));
+        
+        // Initial fetches
+        fetchStats(); fetchTasks(); fetchRequests(); fetchTeam(); 
+    } else {
+        showSnackbar("Kunne ikke indlæse firma-profil. Prøv at logge ud og ind igen.");
+        showView('landing');
+    }
 }
 
 function dashTab(tabId) {
@@ -387,15 +397,18 @@ function dashNavTab(e, tabId) {
     if (tabId === 'procedures') fetchProcedures(); // Opdateret til procedurer biblioteket
     dashTab(tabId);
 }
-
-// ---------------- S O P   L I B R A R Y   &   E D I T O R ----------------
-let currentSopId = null;
+let currentStepId = null; 
 
 async function fetchProcedures() {
-    if (!currentFirmaId) return;
-    const { data, error } = await supabaseClient.from('procedurer').select('*').eq('firma_id', currentFirmaId).order('titel');
     const list = document.getElementById('sopTemplateList');
     if (!list) return;
+    
+    if (!currentFirmaId) {
+        list.innerHTML = '<div style="padding:40px; text-align:center;" class="text-muted">Vent venligst... Indlæser profil.</div>';
+        return;
+    }
+
+    const { data, error } = await supabaseClient.from('procedurer').select('*').eq('firma_id', currentFirmaId).order('titel');
     
     if (error || !data || data.length === 0) {
         list.innerHTML = '<div style="padding:40px; text-align:center;" class="text-muted">Ingen procedurer fundet. Opret din første skabelon ovenfor.</div>';
@@ -426,31 +439,32 @@ function selectSopFromLibrary(sop) {
     document.getElementById(`sop-item-${sop.id}`)?.classList.add('active');
     
     const preview = document.getElementById('sopLibraryPreview');
+    if (!preview) return;
     preview.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:30px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:30px; padding:40px;">
             <div>
                 <h2 style="font-size:32px; font-weight:800; margin-bottom:8px;">${sop.titel}</h2>
                 <p class="text-muted">${sop.beskrivelse || 'Ingen beskrivelse.'}</p>
             </div>
             <div style="display:flex; gap:10px;">
                 <button class="btn-outline" onclick="openSopEditor('${sop.id}')">Rediger Skabelon</button>
-                <button class="btn-outline" style="color:var(--danger); border-color:var(--danger);" onclick="deleteSop('${sop.id}')">Slet</button>
+                <button class="btn-outline" style="color:var(--danger); border-color:transparent;" onclick="deleteSop('${sop.id}')">Slet</button>
             </div>
         </div>
-        <hr style="border:0; border-top:1px solid var(--border); margin-bottom:30px;">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-            <div style="background:rgba(255,255,255,0.02); padding:20px; border-radius:16px; border:1px solid var(--border);">
-                <h4 style="margin-bottom:15px; color:var(--primary);">Oversigt</h4>
+        <hr style="border:0; border-top:1px solid var(--border); margin:0 40px 30px;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; padding:0 40px;">
+            <div style="background:#F8FAFC; padding:24px; border-radius:20px; border:1px solid var(--border);">
+                <h4 style="margin-bottom:15px; color:var(--primary); font-size:12px; text-transform:uppercase; letter-spacing:1px;">Oversigt</h4>
                 <div class="text-muted" style="font-size:14px; line-height:2;">
-                    <div>• ${sop.trin?.length || 0} trin i alt</div>
+                    <div>• ${sop.trin?.length || 0} kontrolpunkter</div>
                     <div>• Tilknyttet: ${sop.asset_id ? 'Specifik maskine' : 'Alle maskiner'}</div>
                 </div>
             </div>
-            <div style="background:rgba(255,255,255,0.02); padding:20px; border-radius:16px; border:1px solid var(--border);">
-                <h4 style="margin-bottom:15px; color:var(--primary);">Hurtig Preview</h4>
-                <div id="sopQuickPreview" style="font-size:13px; color:var(--text-muted);">
-                    ${sop.trin?.slice(0, 5).map(t => `<div style="margin-bottom:8px;">• ${t.label || t.type}</div>`).join('')}
-                    ${sop.trin?.length > 5 ? '<div>... og flere</div>' : ''}
+            <div style="background:#F8FAFC; padding:24px; border-radius:20px; border:1px solid var(--border);">
+                <h4 style="margin-bottom:15px; color:var(--primary); font-size:12px; text-transform:uppercase; letter-spacing:1px;">Egenskaber</h4>
+                <div class="text-muted" style="font-size:14px; line-height:2;">
+                    <div>• Kategori: ${sop.kategori || 'Standard'}</div>
+                    ${sop.trin?.some(t => t.type === 'photo') ? '<div>• Kræver billed-dok.</div>' : ''}
                 </div>
             </div>
         </div>
@@ -458,297 +472,274 @@ function selectSopFromLibrary(sop) {
 }
 
 function startNewSopFlow() {
-    // I en rigtig app ville vi her vise "Blank / Template / Import"
-    // For nu går vi direkte til Blank
     openSopEditor(null);
 }
 
 async function openSopEditor(id = null) {
     currentSopId = id;
     sopSteps = [];
-    document.getElementById('sopTitle').value = '';
-    document.getElementById('sopDesc').value = '';
-    document.getElementById('sopStepsContainer').innerHTML = '';
+    currentStepId = null;
     
-    await populateEditorDropdowns();
-    switchSopEditorTab('fields');
+    openModal('modal-sop');
+    const titleEl = document.getElementById('sopTitle');
+    const descEl = document.getElementById('sopDesc');
     
     if (id) {
-        const { data } = await supabaseClient.from('procedurer').select('*').eq('id', id).maybeSingle();
+        const { data, error } = await supabaseClient.from('procedurer').select('*').eq('id', id).maybeSingle();
         if (data) {
-            document.getElementById('sopTitle').value = data.titel;
-            document.getElementById('sopDesc').value = data.beskrivelse || '';
-            document.getElementById('sopAsset').value = data.asset_id || '';
-            document.getElementById('sopLocation').value = data.lokation_id || '';
+            titleEl.value = data.titel || "";
+            descEl.value = data.beskrivelse || "";
             sopSteps = data.trin || [];
-            sopSteps.forEach(step => renderStepInEditor(step));
+            if (sopSteps.length > 0) currentStepId = sopSteps[0].id;
+        }
+    } else {
+        titleEl.value = "";
+        descEl.value = "";
+        // Auto-add first section for new SOP
+        addSopStep('section', "Indledende sektion");
+    }
+    
+    renderSopEditor();
+}
+
+function selectSopStep(id) {
+    currentStepId = id;
+    renderSopEditor();
+}
+
+function renderSopEditor() {
+    const navList = document.getElementById('sopStepNavList');
+    if (!navList) return;
+    const scrollPos = navList.scrollTop;
+    
+    navList.innerHTML = '';
+    sopSteps.forEach((step, index) => {
+        const isActive = step.id == currentStepId;
+        const div = document.createElement('div');
+        div.className = `step-nav-card ${isActive ? 'active' : ''}`;
+        div.onclick = () => selectSopStep(step.id);
+        
+        let icon = '📋';
+        if (step.type === 'checkbox') icon = '☑️';
+        if (step.type === 'photo') icon = '📸';
+        if (step.type === 'heading') icon = 'Tt';
+        if (step.type === 'section') icon = '🍱';
+        if (step.type === 'inspection') icon = '🔍';
+        if (step.type === 'number') icon = '🔢';
+        if (step.type === 'choice') icon = '🔘';
+        
+        div.innerHTML = `
+            <div class="step-num">${index + 1}</div>
+            <div style="flex:1; overflow:hidden;">
+                <div style="font-size:10px; opacity:0.6; text-transform:uppercase; font-weight:800; margin-bottom:2px;">${step.type}</div>
+                <div style="font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${step.label || 'Uden navn'}</div>
+            </div>
+            <div style="font-size:12px; opacity:0.5;">${icon}</div>
+        `;
+        navList.appendChild(div);
+    });
+    navList.scrollTop = scrollPos;
+
+    renderActiveStep();
+    updateSopPreview();
+    
+    // Show Toolbar
+    document.getElementById('sopToolbar')?.classList.remove('hidden');
+}
+
+function renderActiveStep() {
+    const container = document.getElementById('activeStepEditorContainer');
+    if (!container) return;
+    
+    const step = sopSteps.find(s => s.id == currentStepId);
+    if (!step) {
+        container.innerHTML = `
+            <div style="text-align:center; color:var(--text-muted); padding:100px 40px;">
+                <div style="font-size:48px; margin-bottom:20px;">⚡</div>
+                <h3>Klar til at bygge</h3>
+                <p>Klik på "+ Add Field" eller vælg et eksisterende trin for at konfigurere.</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="active-step-config-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
+                <span class="badge" style="background:#F1F5F9; color:var(--text-muted); padding:6px 12px; border-radius:8px; font-size:11px; font-weight:800; text-transform:uppercase;">${step.type} Konfiguration</span>
+                <button class="btn-outline" style="border:none; color:var(--danger); padding:0; font-weight:700;" onclick="removeSopStep('${step.id}')">SLET TRIN</button>
+            </div>
+
+            <div class="input-group">
+                <label style="font-size:12px; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; display:block;">Instruktion / Spørgsmål</label>
+                <input type="text" value="${step.label || ''}" placeholder="f.eks. Er maskinen smurt?" 
+                       style="width:100%; font-size:20px; font-weight:700; border:none; border-bottom:2px solid #F1F5F9; padding:12px 0; outline:none;" 
+                       oninput="updateStepData('${step.id}', 'label', this.value)">
+            </div>
+
+            <div id="stepSpecificFields" style="margin-top:32px; padding-top:32px; border-top:1px solid #F1F5F9;">
+                ${renderTypeFields(step)}
+            </div>
+
+            ${step.type !== 'heading' && step.type !== 'section' ? `
+                <div style="margin-top:30px; padding-top:20px; border-top:1px solid #F1F5F9;">
+                    <label style="display:flex; align-items:center; gap:12px; cursor:pointer; font-weight:700; font-size:14px;">
+                        <input type="checkbox" ${step.required ? 'checked' : ''} onchange="updateStepData('${step.id}', 'required', this.checked)" style="width:18px; height:18px;">
+                        Dette kontrolpunkt er påkrævet
+                    </label>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+function renderTypeFields(step) {
+    if (step.type === 'section') return `<p class="text-muted">Denne sektion fungerer som en overskrift i din procedure.</p>`;
+    if (step.type === 'choice') {
+        return `
+            <label style="font-size:12px; font-weight:800; display:block; margin-bottom:12px; color:var(--text-muted);">MULIGHEDER (KOMMA-SEPARERET)</label>
+            <input type="text" value="${step.options?.join(', ') || ''}" placeholder="Ja, Nej, Ved ikke"
+                   style="width:100%; padding:14px; border-radius:12px; border:1px solid var(--border);"
+                   oninput="updateStepData('${step.id}', 'options', this.value.split(',').map(s=>s.trim()))">
+        `;
+    }
+    if (step.type === 'number') {
+        return `
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                <div class="input-group">
+                    <label style="font-size:11px; font-weight:800; color:var(--text-muted);">MIN VÆRDI</label>
+                    <input type="number" value="${step.min || ''}" oninput="updateStepData('${step.id}', 'min', this.value)" style="border-radius:10px;">
+                </div>
+                <div class="input-group">
+                    <label style="font-size:11px; font-weight:800; color:var(--text-muted);">MAX VÆRDI</label>
+                    <input type="number" value="${step.max || ''}" oninput="updateStepData('${step.id}', 'max', this.value)" style="border-radius:10px;">
+                </div>
+            </div>
+        `;
+    }
+    return `<p class="text-muted">Standard ${step.type} felt er valgt for dette kontrolpunkt.</p>`;
+}
+
+function updateStepData(id, key, val) {
+    const idx = sopSteps.findIndex(s => s.id == id);
+    if (idx !== -1) {
+        sopSteps[idx][key] = val;
+        updateSopPreview();
+        if (key === 'label') {
+            const navLabel = document.querySelector(`.step-nav-card.active div[style*="font-weight:700"]`);
+            if (navLabel) navLabel.innerText = val || 'Uden navn';
         }
     }
-    
-    updateSopPreview();
-    openModal('modal-sop');
 }
 
-async function populateEditorDropdowns() {
-    const assetsSel = document.getElementById('sopAsset');
-    const locsSel = document.getElementById('sopLocation');
-    const teamsSel = document.getElementById('sopTeam');
-    const catSel = document.getElementById('sopCategory');
-
-    if (assetsSel) {
-        assetsSel.innerHTML = '<option value="">- Ingen (Gælder alle maskiner) -</option>';
-        allAssets.forEach(a => assetsSel.innerHTML += `<option value="${a.id}">${a.navn}</option>`);
-    }
-    if (locsSel) {
-        locsSel.innerHTML = '<option value="">- Vælg lokation -</option>';
-        allLocations.forEach(l => locsSel.innerHTML += `<option value="${l.id}">${l.navn}</option>`);
-    }
-    if (teamsSel) {
-        teamsSel.innerHTML = '<option value="">- Alle teams kan udføre -</option>';
-        const { data } = await supabaseClient.from('brugere').select('navn').eq('firma_id', currentFirmaId);
-        data?.forEach(u => teamsSel.innerHTML += `<option value="${u.navn}">${u.navn}</option>`);
-    }
-}
-
-function switchSopEditorTab(tab) {
-    document.getElementById('sopEditorFields').classList.toggle('hidden', tab !== 'fields');
-    document.getElementById('sopEditorSettings').classList.toggle('hidden', tab !== 'settings');
-    document.getElementById('tabSopFields').classList.toggle('active', tab === 'fields');
-    document.getElementById('tabSopSettings').classList.toggle('active', tab === 'settings');
-}
-
-function toggleSopEditorPreview() {
-    const pane = document.getElementById('sopPreviewPane');
-    const isHidden = pane.style.display === 'none';
-    pane.style.display = isHidden ? 'block' : 'none';
-    document.getElementById('btnSopPreview').classList.toggle('active', isHidden);
-}
-
-function showFieldDrawer() {
-    document.getElementById('fieldTypeDrawer').classList.toggle('hidden');
-}
-
-function addSopStep(type) {
-    document.getElementById('fieldTypeDrawer').classList.add('hidden');
-    const id = Date.now();
-    const step = { id, type, label: '', required: false, min: null, max: null, options: [] };
-    sopSteps.push(step);
-    renderStepInEditor(step);
-    updateSopPreview();
-}
-
-function renderStepInEditor(step) {
-    const container = document.getElementById('sopStepsContainer');
-    const div = document.createElement('div');
-    div.className = 'sop-editor-block';
-    div.id = `step-editor-${step.id}`;
-    div.draggable = true;
-    
-    // Drag handlers
-    div.ondragstart = (e) => {
-        e.dataTransfer.setData('text/plain', step.id);
-        div.classList.add('dragging');
+function addSopStep(type, label = "") {
+    const id = 'step_' + Date.now();
+    const newStep = {
+        id: id,
+        type: type,
+        label: label || `Ny ${type}`,
+        required: false,
+        options: type === 'choice' ? ['Ja', 'Nej'] : [],
+        min: null,
+        max: null
     };
-    div.ondragend = () => div.classList.remove('dragging');
-    div.ondragover = (e) => e.preventDefault();
-    div.ondrop = (e) => {
-        e.preventDefault();
-        const draggedId = e.dataTransfer.getData('text/plain');
-        handleDrop(draggedId, step.id);
-    };
-
-    let typeIcon = '📝';
-    if (step.type === 'checkbox') typeIcon = '☑️';
-    if (step.type === 'inspection') typeIcon = '🔍';
-    if (step.type === 'number') typeIcon = '🔢';
-    if (step.type === 'photo') typeIcon = '📷';
-    if (step.type === 'heading') typeIcon = 'Tt';
-    if (step.type === 'section') typeIcon = '🍱';
-    if (step.type === 'choice') typeIcon = '🔘';
-
-    let contentHtml = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <span style="cursor:grab; color:var(--text-muted);">⣿</span>
-                <span style="font-size:12px; font-weight:800; color:var(--primary); text-transform:uppercase;">${step.type}</span>
-            </div>
-            <div style="display:flex; gap:10px;">
-                <button onclick="removeSopStep(${step.id})" style="background:none; border:none; color:var(--danger); cursor:pointer;">🗑️</button>
-            </div>
-        </div>
-        <input type="text" value="${step.label || ''}" placeholder="${step.type === 'heading' ? 'Overskrift' : 'Felt-navn eller instruktion'}" 
-               style="font-size:18px; font-weight:600; background:none; border:none; border-bottom:1px solid var(--border); outline:none; color:white; width:100%;"
-               oninput="updateStepData(${step.id}, 'label', this.value)">
-    `;
-
-    if (step.type === 'choice') {
-        contentHtml += `
-            <div style="margin-top:15px;" id="options-${step.id}">
-                ${(step.options || []).map((opt, i) => `
-                    <div style="display:flex; gap:10px; margin-bottom:8px;">
-                        <input type="text" value="${opt}" placeholder="Option ${i+1}" style="flex:1; background:var(--bg-main); border:1px solid var(--border); padding:8px; border-radius:8px;" ononinput="updateOption(${step.id}, ${i}, this.value)">
-                        <button onclick="removeOption(${step.id}, ${i})" style="background:none; border:none; color:var(--danger);">✕</button>
-                    </div>
-                `).join('')}
-                <button class="btn-outline" style="width:100%; padding:8px; font-size:12px; margin-top:5px;" onclick="addOption(${step.id})">+ Add Option</button>
-            </div>
-        `;
-    }
-
-    if (step.type === 'number') {
-        contentHtml += `
-            <div style="display:flex; gap:15px; margin-top:15px;">
-                <div style="flex:1;"><label style="font-size:10px; text-transform:uppercase; color:var(--text-muted);">Min Værdi</label>
-                <input type="number" placeholder="Ingen" value="${step.min || ''}" style="width:100%; background:var(--bg-main); border:1px solid var(--border); padding:8px; border-radius:8px;" onchange="updateStepData(${step.id}, 'min', this.value)"></div>
-                <div style="flex:1;"><label style="font-size:10px; text-transform:uppercase; color:var(--text-muted);">Max Værdi</label>
-                <input type="number" placeholder="Ingen" value="${step.max || ''}" style="width:100%; background:var(--bg-main); border:1px solid var(--border); padding:8px; border-radius:8px;" onchange="updateStepData(${step.id}, 'max', this.value)"></div>
-            </div>
-        `;
-    }
-
-    if (step.type !== 'heading' && step.type !== 'section') {
-        contentHtml += `
-            <div style="display:flex; justify-content:flex-end; align-items:center; gap:10px; margin-top:20px; border-top:1px solid var(--border); padding-top:10px;">
-               <label style="font-size:12px; color:var(--text-muted); cursor:pointer;">
-                <input type="checkbox" ${step.required ? 'checked' : ''} onchange="updateStepData(${step.id}, 'required', this.checked)"> Required
-               </label>
-            </div>
-        `;
-    }
-
-    div.innerHTML = contentHtml;
-    container.appendChild(div);
-}
-
-function handleDrop(draggedId, targetId) {
-    if (draggedId == targetId) return;
-    const fromIndex = sopSteps.findIndex(s => s.id == draggedId);
-    const toIndex = sopSteps.findIndex(s => s.id == targetId);
-    
-    const [movedStep] = sopSteps.splice(fromIndex, 1);
-    sopSteps.splice(toIndex, 0, movedStep);
-    
-    // Re-render editor
-    const container = document.getElementById('sopStepsContainer');
-    container.innerHTML = '';
-    sopSteps.forEach(step => renderStepInEditor(step));
-    updateSopPreview();
-}
-
-function updateStepData(id, field, value) {
-    const step = sopSteps.find(s => s.id == id);
-    if (step) {
-        step[field] = value;
-        updateSopPreview();
-    }
-}
-
-function addOption(stepId) {
-    const step = sopSteps.find(s => s.id == stepId);
-    if (step) {
-        if (!step.options) step.options = [];
-        step.options.push("");
-        renderStepInEditor(step); // Re-render this block specifically
-        // Actually, just re-render all for simplicity in this version
-        const container = document.getElementById('sopStepsContainer');
-        container.innerHTML = '';
-        sopSteps.forEach(s => renderStepInEditor(s));
-    }
-}
-
-function updateOption(stepId, index, value) {
-    const step = sopSteps.find(s => s.id == stepId);
-    if (step && step.options) {
-        step.options[index] = value;
-        updateSopPreview();
-    }
-}
-
-function removeOption(stepId, index) {
-    const step = sopSteps.find(s => s.id == stepId);
-    if (step && step.options) {
-        step.options.splice(index, 1);
-        const container = document.getElementById('sopStepsContainer');
-        container.innerHTML = '';
-        sopSteps.forEach(s => renderStepInEditor(s));
-        updateSopPreview();
-    }
+    sopSteps.push(newStep);
+    currentStepId = id;
+    hideFieldDrawer();
+    renderSopEditor();
 }
 
 function removeSopStep(id) {
     sopSteps = sopSteps.filter(s => s.id != id);
-    document.getElementById(`step-editor-${id}`)?.remove();
-    updateSopPreview();
+    if (currentStepId == id) currentStepId = sopSteps.length > 0 ? sopSteps[0].id : null;
+    renderSopEditor();
+}
+
+function showFieldDrawer() {
+    document.getElementById('fieldTypeDrawer')?.classList.remove('hidden');
+}
+
+function hideFieldDrawer() {
+    document.getElementById('fieldTypeDrawer')?.classList.add('hidden');
 }
 
 function updateSopPreview() {
-    const preview = document.getElementById('sopLivePreview');
+    const preview = document.getElementById('sopFullPreviewContent');
     if (!preview) return;
     
     const title = document.getElementById('sopTitle').value || 'Procedure Navn';
     const desc = document.getElementById('sopDesc').value || '';
     
-    preview.innerHTML = `
-        <h3 style="font-size:24px; font-weight:800; margin-bottom:5px;">${title}</h3>
-        <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">${desc}</p>
+    let html = `
+        <div style="background:white; border-radius:24px; padding:60px; border:1px solid var(--border); box-shadow:var(--shadow-lg);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:40px; border-bottom:2px solid var(--border); padding-bottom:30px;">
+                <div style="flex:1;">
+                    <h1 style="font-size:38px; font-weight:800; color:var(--text-main); margin-bottom:10px;">${title}</h1>
+                    <p style="font-size:18px; color:var(--text-muted); max-width:600px;">${desc}</p>
+                </div>
+                <div style="background:var(--primary); width:60px; height:60px; border-radius:15px; display:flex; align-items:center; justify-content:center; color:white; font-size:30px; opacity:0.8;">🦾</div>
+            </div>
     `;
     
-    sopSteps.forEach(step => {
-        let html = '';
-        const label = step.label || '(Navngiv feltet...)';
+    sopSteps.forEach((step, index) => {
+        const label = step.label || '(Uden titel)';
+        const requiredMark = step.required ? '<span style="color:var(--danger); margin-left:4px;">*</span>' : '';
         
-        switch(step.type) {
-            case 'section': html = `<div style="margin: 30px 0 10px; border-bottom:2px solid var(--primary); padding-bottom:5px; font-weight:800; font-size:14px; text-transform:uppercase; color:var(--primary);">${label}</div>`; break;
-            case 'heading': html = `<h4 style="margin: 20px 0 10px; font-weight:700;">${label}</h4>`; break;
-            case 'checkbox': html = `<div style="background:var(--bg-sidebar); border:1px solid var(--border); padding:12px; border-radius:10px; margin-bottom:12px; display:flex; align-items:center; gap:10px; font-size:13px;"><input type="checkbox" disabled> <span>${label}</span></div>`; break;
-            case 'text': html = `<div style="margin-bottom:15px;"><label style="font-size:11px; color:var(--text-muted);">${label}</label><div style="background:var(--bg-sidebar); border:1px solid var(--border); height:40px; border-radius:10px; margin-top:5px;"></div></div>`; break;
-            case 'number': html = `<div style="margin-bottom:15px;"><label style="font-size:11px; color:var(--text-muted);">${label}</label><div style="background:var(--bg-sidebar); border:1px solid var(--border); height:40px; border-radius:10px; margin-top:5px; display:flex; align-items:center; padding:0 12px; font-size:12px; color:var(--text-muted);">Indtast værdi... ${step.min ? `(min: ${step.min})` : ''}</div></div>`; break;
-            case 'photo': html = `<div style="margin-bottom:15px; background:var(--bg-sidebar); border:2px dashed var(--border); padding:15px; border-radius:10px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px;"><i class="icon" style="font-size:24px;">📷</i><span style="font-size:11px;">${label}</span></div>`; break;
-            case 'choice': html = `
-                <div style="margin-bottom:15px;">
-                    <label style="font-size:11px; color:var(--text-muted);">${label}</label>
-                    <div style="margin-top:8px; display:flex; flex-direction:column; gap:8px;">
-                        ${(step.options || []).map(opt => `<div style="padding:10px; border:1px solid var(--border); border-radius:10px; font-size:13px; display:flex; align-items:center; gap:10px;"><div style="width:14px; height:14px; border:1px solid var(--primary); border-radius:50%;"></div> ${opt || '(Tom svarmulighed)'}</div>`).join('')}
+        if (step.type === 'section') {
+            html += `<div style="margin: 60px 0 20px; border-bottom:3px solid var(--primary); padding-bottom:10px; font-weight:800; font-size:18px; text-transform:uppercase; color:var(--primary); letter-spacing:1px;">${label}</div>`;
+        } else if (step.type === 'heading') {
+            html += `<h2 style="margin: 40px 0 20px; font-weight:700; color:var(--text-main); font-size:24px;">${label}</h2>`;
+        } else {
+            html += `
+                <div class="preview-step-card" style="display:flex; flex-direction:column; gap:15px; margin-bottom:24px; background:#FFFFFF; border:1px solid var(--border); border-radius:16px; padding:24px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <label style="font-size:16px; font-weight:700; color:var(--text-main);">${index + 1}. ${label}${requiredMark}</label>
+                        <span style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase; background:var(--bg-main); padding:4px 10px; border-radius:6px; border:1px solid var(--border);">${step.type}</span>
                     </div>
-                </div>`; break;
-            case 'inspection': html = `
-                <div style="margin-bottom:15px;">
-                    <label style="font-size:12px; font-weight:600;">${label}</label>
-                    <div style="display:flex; gap:5px; margin-top:8px;">
-                        <div style="flex:1; border:1px solid #10B981; color:#10B981; font-size:10px; font-weight:700; text-align:center; padding:6px; border-radius:6px;">PASS</div>
-                        <div style="flex:1; border:1px solid #F59E0B; color:#F59E0B; font-size:10px; font-weight:700; text-align:center; padding:6px; border-radius:6px;">FLAG</div>
-                        <div style="flex:1; border:1px solid #EF4444; color:#EF4444; font-size:10px; font-weight:700; text-align:center; padding:6px; border-radius:6px;">FAIL</div>
-                    </div>
-                </div>`; break;
+                </div>
+            `;
         }
-        preview.innerHTML += html;
     });
+
+    html += `
+            <div style="margin-top:60px; padding-top:30px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-size:12px; color:var(--text-muted); font-weight:600;">© 2026 EasyON Digital SOP Management</div>
+                <div style="font-size:12px; color:var(--text-muted); font-weight:600;">Ref: ${currentSopId || 'NY-SKABELON'}</div>
+            </div>
+        </div>
+    `;
+    
+    preview.innerHTML = html;
 }
 
 async function saveSop() {
     const title = document.getElementById('sopTitle').value;
     const desc = document.getElementById('sopDesc').value;
-    const assetId = document.getElementById('sopAsset').value;
-    const locId = document.getElementById('sopLocation').value;
-
-    if (!title) { showSnackbar("Angiv venligst et navn på proceduren."); return; }
     
-    try {
-        const sopData = {
-            firma_id: currentFirmaId,
-            titel: title,
-            beskrivelse: desc,
-            asset_id: assetId || null,
-            lokation_id: locId || null,
-            trin: sopSteps
-        };
+    if (!title) {
+        showSnackbar("Giv venligst proceduren en titel.");
+        return;
+    }
 
+    const sopData = {
+        firma_id: currentFirmaId,
+        titel: title,
+        beskrivelse: desc,
+        trin: sopSteps,
+        created_at: new Date().toISOString()
+    };
+
+    try {
         let res;
-        if (currentSopId) res = await supabaseClient.from('procedurer').update(sopData).eq('id', currentSopId);
-        else res = await supabaseClient.from('procedurer').insert(sopData);
+        if (currentSopId) {
+            delete sopData.created_at;
+            res = await supabaseClient.from('procedurer').update(sopData).eq('id', currentSopId);
+        } else {
+            res = await supabaseClient.from('procedurer').insert(sopData);
+        }
 
         if (res.error) throw res.error;
-        showSnackbar("Skabelon gemt i biblioteket! 🦾");
+        showSnackbar("Procedure gemt i biblioteket! 🦾");
         closeAllModals();
         fetchProcedures();
     } catch (e) {
