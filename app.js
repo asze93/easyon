@@ -675,53 +675,64 @@ async function handleTaskSubmit(e) {
     const btn = e.submitter; 
     setLoading(btn, true);
 
-    if (!currentFirmaId) currentFirmaId = localStorage.getItem('easyon_firma_id');
+    // SIKR AT VI HAR ET FIRMA_ID
+    if (!currentFirmaId) {
+        currentFirmaId = localStorage.getItem('easyon_firma_id');
+    }
 
     try {
-        const id = document.getElementById('taskId').value, 
-              title = document.getElementById('taskTitle').value, 
-              desc = document.getElementById('taskDesc').value,
-              status = document.getElementById('taskStatus')?.value || 'Venter',
-              priority = document.getElementById('taskPriority').value,
-              dueDate = document.getElementById('taskDueDate').value,
-              rawCatIds = document.getElementById('taskCategoryIds').value || '[]',
-              catIds = JSON.parse(rawCatIds),
-              lokId = document.getElementById('taskLocation').value, 
-              assetId = document.getElementById('taskAsset').value, 
-              sopId = document.getElementById('taskSop').value, 
-              userId = document.getElementById('taskAssignee').value,
-              photoUrl = document.getElementById('taskPhotoUrl').value;
+        if (!currentFirmaId) {
+            throw new Error("Kunne ikke finde dit Firma-ID. Prøv at genindlæse siden (F5).");
+        }
 
+        const id = document.getElementById('taskId').value;
+        const title = document.getElementById('taskTitle').value;
+        const desc = document.getElementById('taskDesc').value;
+        const status = document.getElementById('taskStatus').value || 'Åben';
+        const prio = document.getElementById('taskPrio').value || 2;
+        const frist = document.getElementById('taskFrist').value;
+        const locId = document.getElementById('taskLocation').value;
+        const assetId = document.getElementById('taskAsset').value;
+        const empId = document.getElementById('taskEmployee').value;
+        const photoUrl = document.getElementById('taskPhotoUrl').value;
+
+        // Forbered data til Supabase
         const d = { 
             firma_id: currentFirmaId, 
             titel: title, 
             beskrivelse: desc, 
-            status: status,
-            prioritet: parseInt(priority) || 1,
-            frist: dueDate || null,
-            kategori_ids: catIds, 
-            lokation_id: lokId || null, 
-            asset_id: assetId || null, 
-            sop_id: sopId || null, 
-            medarbejder_id: userId || null,
-            billed_url: photoUrl || null
+            status: status, 
+            prioritet: parseInt(prio),
+            frist: frist || null,
+            lokation_id: locId || null,
+            asset_id: assetId || null,
+            medarbejder_id: empId || null,
+            billed_url: photoUrl || null,
+            er_arkiveret: false
         };
 
-        if (!currentFirmaId) throw new Error("Intet Firmanavn fundet. Prøv at logge ud og ind igen.");
+        console.log("[TaskSubmit]: Sender data til Supabase...", d);
 
-        const { error } = id ? 
-            await supabaseClient.from('opgaver').update(d).eq('id', id) : 
-            await supabaseClient.from('opgaver').insert([d]);
+        let result;
+        if (id) {
+            result = await supabaseClient.from('opgaver').update(d).eq('id', id);
+        } else {
+            result = await supabaseClient.from('opgaver').insert([d]);
+        }
+
+        if (result.error) {
+            console.error("[TaskSubmit]: Database fejl:", result.error);
+            throw new Error(`Databasen afviste: ${result.error.message} (Kode: ${result.error.code})`);
+        }
         
-        if (error) throw error;
-        
+        console.log("[TaskSubmit]: Succes! Opgave gemt.");
         closeAllModals(); 
         fetchTasks(); 
         updateDashboardStats(); 
-        showSnackbar("Arbejdsordre gemt!"); 
+        showSnackbar("Arbejdsordre gemt korrekt! ✅"); 
         
     } catch (err) {
-        console.error("TASK SUBMIT ERROR:", err);
+        console.error("[TaskSubmit]: Kritisk fejl:", err);
         showSnackbar("Fejl ved gemning: " + err.message);
     } finally {
         setLoading(btn, false);
