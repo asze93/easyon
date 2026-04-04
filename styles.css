@@ -403,6 +403,12 @@ body.dashboard-mode .main-nav {
     width: 32px; height: 32px;
 }
 
+.sidebar-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
 .sidebar-links a {
     display: flex;
     align-items: center;
@@ -416,7 +422,14 @@ body.dashboard-mode .main-nav {
     font-size: 14px;
 }
 
-.sidebar-links a .icon { margin-right: 12px; font-size: 18px; filter: brightness(0) invert(1) opacity(0.6); }
+.sidebar-links a .icon { 
+    margin-right: 12px; 
+    font-size: 18px; 
+    width: 24px;
+    display: flex;
+    justify-content: center;
+    filter: brightness(0) invert(1) opacity(0.6); 
+}
 
 .sidebar-links a.active {
     background: rgba(255, 255, 255, 0.1);
