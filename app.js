@@ -239,6 +239,7 @@ async function handleAuth(e) {
 
     try {
         if (authMode === 'signup') {
+            // ... (signup logic placeholder, just keeping the same)
             setPhase("Opretter...");
             const firstName = document.getElementById('authFirstName').value, lastName = document.getElementById('authLastName').value,
                   companyName = document.getElementById('authCompanyName').value, passConfirm = document.getElementById('authPassConfirm').value;
@@ -249,13 +250,22 @@ async function handleAuth(e) {
             if (data.session) { currentUser = data.session.user; showView('wizard'); }
             else showView('verify-email');
         } else {
+            // NYT: Rydd session FØR login for at undgå hængende 'Logger ind...'
+            if (currentUser) {
+                await supabaseClient.auth.signOut();
+                currentUser = null;
+                localStorage.clear();
+            }
+
             if (email.includes('@')) {
                 setPhase("Email login...");
                 const { error } = await Promise.race([supabaseClient.auth.signInWithPassword({ email, password: pass }), timeout(15000)]);
                 if (error) throw error;
+                // Session vil automatisk blive fanget af onAuthStateChange
             } else {
                 if (!loginFirma) throw new Error("Firma mangler.");
                 setPhase("Tjekker firma...");
+                // Rest of technician login logic...
                 let firmaData = allCompanies.find(f => f.navn.toLowerCase() === loginFirma);
                 if (!firmaData) {
                     const { data } = await Promise.race([supabaseClient.from('firmaer').select('id').eq('navn', loginFirma).maybeSingle(), timeout(10000)]);
@@ -272,7 +282,16 @@ async function handleAuth(e) {
                 } else { throw new Error("Fejl: ID eller kode er forkert."); }
             }
         }
-    } catch (err) { showSnackbar(err.message); } finally { btn.innerText = oldText; btn.disabled = false; }
+    } catch (err) { 
+        console.error("Auth error:", err);
+        showSnackbar(err.message); 
+        btn.innerText = oldText; btn.disabled = false;
+    } finally { 
+        // Vi nulstiller kun hvis det IKKE var en succes (for ellers skifter vi view)
+        if (document.getElementById('authBtn').innerText === "Logger ind...") {
+            btn.innerText = oldText; btn.disabled = false;
+        }
+    }
 }
 
 async function nextWizard(step, btn) {
