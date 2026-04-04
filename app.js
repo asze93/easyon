@@ -675,7 +675,6 @@ async function handleTaskSubmit(e) {
     const btn = e.submitter; 
     setLoading(btn, true);
 
-    // SIKR AT VI HAR ET FIRMA_ID
     if (!currentFirmaId) {
         currentFirmaId = localStorage.getItem('easyon_firma_id');
     }
@@ -689,29 +688,36 @@ async function handleTaskSubmit(e) {
         const title = document.getElementById('taskTitle').value;
         const desc = document.getElementById('taskDesc').value;
         const status = document.getElementById('taskStatus').value || 'Åben';
-        const prio = document.getElementById('taskPrio').value || 2;
-        const frist = document.getElementById('taskFrist').value;
+        
+        // KORREKTE IDs FRA HTML
+        const prio = document.getElementById('taskPriority').value;
+        const dueDate = document.getElementById('taskDueDate').value;
         const locId = document.getElementById('taskLocation').value;
         const assetId = document.getElementById('taskAsset').value;
-        const empId = document.getElementById('taskEmployee').value;
+        const sopId = document.getElementById('taskSop').value;
+        const assigneeId = document.getElementById('taskAssignee').value;
         const photoUrl = document.getElementById('taskPhotoUrl').value;
+        
+        const rawCatIds = document.getElementById('taskCategoryIds').value || '[]';
+        const catIds = JSON.parse(rawCatIds);
 
-        // Forbered data til Supabase
         const d = { 
             firma_id: currentFirmaId, 
             titel: title, 
             beskrivelse: desc, 
             status: status, 
-            prioritet: parseInt(prio),
-            frist: frist || null,
+            prioritet: parseInt(prio) || 1,
+            frist: dueDate || null,
+            kategori_ids: catIds,
             lokation_id: locId || null,
             asset_id: assetId || null,
-            medarbejder_id: empId || null,
+            sop_id: sopId || null,
+            medarbejder_id: assigneeId || null,
             billed_url: photoUrl || null,
             er_arkiveret: false
         };
 
-        console.log("[TaskSubmit]: Sender data til Supabase...", d);
+        console.log("[TaskSubmit]: Gemmer opgave...", d);
 
         let result;
         if (id) {
@@ -720,20 +726,16 @@ async function handleTaskSubmit(e) {
             result = await supabaseClient.from('opgaver').insert([d]);
         }
 
-        if (result.error) {
-            console.error("[TaskSubmit]: Database fejl:", result.error);
-            throw new Error(`Databasen afviste: ${result.error.message} (Kode: ${result.error.code})`);
-        }
+        if (result.error) throw result.error;
         
-        console.log("[TaskSubmit]: Succes! Opgave gemt.");
         closeAllModals(); 
         fetchTasks(); 
         updateDashboardStats(); 
         showSnackbar("Arbejdsordre gemt korrekt! ✅"); 
         
     } catch (err) {
-        console.error("[TaskSubmit]: Kritisk fejl:", err);
-        showSnackbar("Fejl ved gemning: " + err.message);
+        console.error("[TaskSubmit]: Fejl:", err);
+        showSnackbar("Kunne ikke gemme: " + err.message);
     } finally {
         setLoading(btn, false);
     }
