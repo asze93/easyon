@@ -17,26 +17,27 @@
             <nav class="main-nav">
                 <div class="container">
                     <div class="logo" style="cursor:pointer; display:flex; align-items:center; gap:12px;" onclick="showView('landing')">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary);">
-                            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                        </svg>
                         Easy<span>ON</span>
                     </div>
-                    <div class="nav-links">
+                    <div id="guestNav" class="nav-links">
                         <button class="btn-login" onclick="toggleAuthMode('login')">Log ind</button>
                         <button class="btn-primary" onclick="toggleAuthMode('signup')">Kom i gang</button>
+                    </div>
+                    <div id="userNav" class="nav-links hidden">
+                        <span id="userNameDisplay" style="font-weight:700; color:var(--text-main); margin-right:15px;">...</span>
+                        <button class="btn-primary" onclick="showView('dashboard')">Åbn Dashboard</button>
                     </div>
                 </div>
             </nav>
             <div class="hero">
                 <h1>Fremtidens vedligeholdelse er <span>digital</span></h1>
                 <p>EasyON samler dit team, dine maskiner og dine opgaver i én enkel sky-løsning. Slip for papirarbejde og få overblik over dit anlæg på få sekunder.</p>
-        <div class="hero-btns" style="display:flex; justify-content:center; gap:20px; align-items: center; flex-wrap: wrap;">
-            <button class="btn-primary" onclick="toggleAuthMode('signup')">Kom i gang gratis</button>
-            <a href="easyon-app.apk" class="btn-outline" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
-                <i class="icon" style="font-size: 20px;">🤖</i> Hent App (APK)
-            </a>
-        </div>
+                <div class="hero-btns" id="landingBtns">
+                    <button class="btn-primary" onclick="toggleAuthMode('signup')">Kom i gang gratis</button>
+                    <a href="easyon-app.apk" class="btn-outline" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
+                        <i class="icon" style="font-size: 20px;">🤖</i> Hent App (APK)
+                    </a>
+                </div>
                 <div class="hero-mockup">
                     <img src="dashboard_mockup.png" alt="App Dashboard Preview">
                 </div>
@@ -58,81 +59,78 @@
                     </div>
                 </div>
             </nav>
-            <div class="auth-card">
-                <h2 id="authTitle">Log ind på EasyON</h2>
-                <p id="authSub">Indtast dine oplysninger nedenfor</p>
-                
-                <form id="authForm" onsubmit="handleAuth(event)" autocomplete="off">
-                    <!-- LOGIN ONLY -->
-                    <div class="input-group" id="loginFirmaGroup">
-                        <label>Firmanavn</label>
-                        <input type="text" id="authLoginFirma" placeholder="Navnet på dit firma">
-                    </div>
-
-                    <!-- SIGNUP ONLY -->
-                    <div id="nameGroup" class="hidden">
-                        <div class="input-row">
-                            <div class="input-group">
-                                <label>Fornavn</label>
-                                <input type="text" id="authFirstName" placeholder="Fornavn" autocomplete="off">
-                            </div>
-                            <div class="input-group">
-                                <label>Efternavn</label>
-                                <input type="text" id="authLastName" placeholder="Efternavn" autocomplete="off">
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label>Hvad skal dit firma-login hedde?</label>
-                            <input type="text" id="authCompanyName" placeholder="f.eks. hansen-vvs" autocomplete="off">
-                            <p class="text-xs text-muted" style="margin-top:5px;">⚠️ Dette navn skal du bruge hver gang du logger ind bagefter.</p>
-                        </div>
-                    </div>
-
-                    <div class="input-group">
-                        <label id="authEmailLabel">Login-ID (ID eller E-mail)</label>
-                        <input type="text" id="authEmail" placeholder="..." required autocomplete="off">
-                    </div>
+            <div class="auth-view-wrapper">
+                <div class="auth-card">
+                    <h2 id="authTitle">Log ind på EasyON</h2>
+                    <p id="authSub">Indtast dine oplysninger nedenfor</p>
                     
-                    <div class="input-group">
-                        <label>Adgangskode (min. 6 tegn)</label>
-                        <div style="position:relative;">
-                            <input type="password" id="authPass" placeholder="••••" required autocomplete="off" style="padding-right:45px;">
-                            <button type="button" class="btn-pass-toggle" onclick="togglePassVisibility('authPass')" tabindex="-1">👁️</button>
+                    <form id="authForm" onsubmit="handleAuth(event)" autocomplete="off">
+                        <!-- LOGIN ONLY -->
+                        <div class="input-group" id="loginFirmaGroup">
+                            <label>Firmanavn</label>
+                            <input type="text" id="authLoginFirma" placeholder="Navnet på dit firma">
                         </div>
-                    </div>
 
-                    <div class="input-group hidden" id="passConfirmGroup">
-                        <label>Bekræft Adgangskode</label>
-                        <div style="position:relative;">
-                            <input type="password" id="authPassConfirm" placeholder="••••" autocomplete="off" style="padding-right:45px;">
-                            <button type="button" class="btn-pass-toggle" onclick="togglePassVisibility('authPassConfirm')" tabindex="-1">👁️</button>
+                        <!-- SIGNUP ONLY -->
+                        <div id="nameGroup" class="hidden">
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label>Fornavn</label>
+                                    <input type="text" id="authFirstName" placeholder="Fornavn" autocomplete="off">
+                                </div>
+                                <div class="input-group">
+                                    <label>Efternavn</label>
+                                    <input type="text" id="authLastName" placeholder="Efternavn" autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>Hvad skal dit firma-login hedde?</label>
+                                <input type="text" id="authCompanyName" placeholder="f.eks. hansen-vvs" autocomplete="off">
+                                <p class="text-xs text-muted" style="margin-top:5px;">⚠️ Dette navn skal du bruge hver gang du logger ind bagefter.</p>
+                            </div>
                         </div>
-                    </div>
 
-                    <button type="submit" class="btn-primary w-100" id="authBtn" style="margin-top:10px;">Fortsæt</button>
-                    <script>
-                        document.getElementById('authForm').addEventListener('submit', function() {
-                            const btn = document.getElementById('authBtn');
-                            btn.innerText = 'Logger ind...';
-                            btn.disabled = true;
-                        });
-                    </script>
-                </form>
-                <p class="auth-toggle">
-                    <span id="toggleText">Har du ikke en konto?</span> 
-                    <a href="#" id="toggleLink" onclick="toggleAuthMode()">Opret her</a>
-                </p>
+                        <div class="input-group">
+                            <label id="authEmailLabel">Login-ID (ID eller E-mail)</label>
+                            <input type="text" id="authEmail" placeholder="..." required autocomplete="off">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Adgangskode (min. 6 tegn)</label>
+                            <div style="position:relative;">
+                                <input type="password" id="authPass" placeholder="••••" required autocomplete="off" style="padding-right:45px;">
+                                <button type="button" class="btn-pass-toggle" onclick="togglePassVisibility('authPass')" tabindex="-1">👁️</button>
+                            </div>
+                        </div>
+
+                        <div class="input-group hidden" id="passConfirmGroup">
+                            <label>Bekræft Adgangskode</label>
+                            <div style="position:relative;">
+                                <input type="password" id="authPassConfirm" placeholder="••••" autocomplete="off" style="padding-right:45px;">
+                                <button type="button" class="btn-pass-toggle" onclick="togglePassVisibility('authPassConfirm')" tabindex="-1">👁️</button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-primary w-100" id="authBtn" style="margin-top:10px;">Fortsæt</button>
+                    </form>
+                    <p class="auth-toggle">
+                        <span id="toggleText">Har du ikke en konto?</span> 
+                        <a href="javascript:void(0)" id="toggleLink" onclick="toggleAuthMode()">Opret her</a>
+                    </p>
+                </div>
             </div>
         </section>
 
         <!-- VIEW: VERIFY EMAIL -->
         <section id="view-verify-email" class="view">
-            <div class="auth-card">
-                <div class="loader-container">
-                    <div class="icon" style="font-size: 60px; margin-bottom: 20px;">📧</div>
-                    <h2>Tjek din inbox!</h2>
-                    <p>Vi har sendt en bekræftelses-mail til din adresse. Du skal klikke på linket i mailen for at aktivere din admin-bruger og fortsætte opsætningen.</p>
-                    <button class="btn-outline w-100" onclick="showView('landing')">Tilbage til forsiden</button>
+            <div class="auth-view-wrapper">
+                <div class="auth-card">
+                    <div class="loader-container">
+                        <div class="icon" style="font-size: 60px; margin-bottom: 20px;">📧</div>
+                        <h2>Tjek din inbox!</h2>
+                        <p>Vi har sendt en bekræftelses-mail til din adresse. Du skal klikke på linket i mailen for at aktivere din admin-bruger og fortsætte opsætningen.</p>
+                        <button class="btn-outline w-100" onclick="showView('landing')">Tilbage til forsiden</button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -229,6 +227,9 @@
                             <h1>Velkommen tilbage, <span class="adminName">Admin</span>!</h1>
                             <p>Her er det hurtige overblik over dagens drift.</p>
                         </div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-primary" onclick="runEasyOnStressTest()" style="background: var(--danger); font-size:14px; padding:10px 20px; border-radius:12px;">🚀 Kør Stress Test (Fuld CRUD)</button>
+                        </div>
                     </div>
                     <div class="stats-grid">
                         <div class="stat-card"><h3 id="stat-active-tasks">-</h3><p>Aktive opgaver</p></div>
@@ -246,11 +247,21 @@
                         </div>
                         <button class="btn-primary" onclick="openModal('modal-task', true)">+ Ny Opgave</button>
                     </div>
-                    <div class="table-container">
-                        <table id="tasksTable">
-                            <thead><tr><th>Titel</th><th>Asset</th><th>Prioritet</th><th>Kategori</th><th>Handling</th></tr></thead>
-                            <tbody id="tasksBody"></tbody>
-                        </table>
+                    
+                    <div class="split-view-container">
+                        <div class="list-pane">
+                            <div class="list-pane-header">Alle Opgaver</div>
+                            <div id="tasksList" class="pane-content">
+                                <!-- Task cards rendered by JS -->
+                            </div>
+                        </div>
+                        <div class="detail-pane" id="taskDetailView">
+                            <div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:var(--text-muted); padding:40px;">
+                                <i class="icon" style="font-size:48px; margin-bottom:20px;">📋</i>
+                                <h3>Ingen opgave valgt</h3>
+                                <p>Vælg en opgave fra listen til venstre for at se detaljer.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -263,11 +274,21 @@
                         </div>
                         <button class="btn-primary" onclick="openModal('modal-request', true)">+ Ny Anmodning</button>
                     </div>
-                    <div class="table-container">
-                        <table id="requestsTable">
-                            <thead><tr><th>Titel</th><th>Fra</th><th>Dato</th><th>Status</th><th>Handling</th></tr></thead>
-                            <tbody id="requestsBody"></tbody>
-                        </table>
+                    
+                    <div class="split-view-container">
+                        <div class="list-pane">
+                            <div class="list-pane-header">Indkomne Anmodninger</div>
+                            <div id="requestsList" class="pane-content">
+                                <!-- Request cards rendered by JS -->
+                            </div>
+                        </div>
+                        <div class="detail-pane" id="requestDetailView">
+                            <div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:var(--text-muted); padding:40px;">
+                                <i class="icon" style="font-size:48px; margin-bottom:20px;">📥</i>
+                                <h3>Ingen anmodning valgt</h3>
+                                <p>Vælg en anmodning fra listen til venstre for at behandle den.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -542,36 +563,157 @@
     <!-- MODAL SYSTEM -->
     <div id="modal-overlay" class="modal-overlay hidden" onclick="closeAllModals()"></div>
 
-    <!-- MODAL: WORK ORDER -->
-    <div id="modal-task" class="modal-card hidden">
-        <div class="modal-header"><h3>Arbejdsordre</h3></div>
-        <form onsubmit="handleTaskSubmit(event)">
+    <!-- MODAL: WORK ORDER (ADVANCED MOBILE PARITY) -->
+    <div id="modal-task" class="modal-card hidden" style="max-width: 900px;">
+        <div class="modal-header"><h3>Arbejdsordre (Master Edit)</h3></div>
+        <form onsubmit="handleTaskSubmit(event)" id="taskForm">
             <input type="hidden" id="taskId">
-            <div class="input-group"><label>Titel</label><input type="text" id="taskTitle" required></div>
             <div class="input-row">
-                <div class="input-group"><label>Status</label>
-                    <select id="taskStatus">
-                        <option value="Venter">Venter</option>
-                        <option value="I gang">I gang</option>
-                        <option value="Færdig">Færdig</option>
-                        <option value="Sat på pause">Sat på pause</option>
+                <div class="input-group" style="flex: 2;"><label>Titel</label><input type="text" id="taskTitle" required placeholder="F.eks. Lækage på transportør"></div>
+                <div class="input-group" style="flex: 1;"><label>Prioritet</label>
+                    <select id="taskPriority">
+                        <option value="1">🟢 Lav</option>
+                        <option value="2" selected>🟡 Medium</option>
+                        <option value="3">🟠 Høj / Vigtig</option>
+                        <option value="4">🔴 Kritisk / Nedbrud</option>
                     </select>
                 </div>
-                <div class="input-group"><label>Tildelt til</label><select id="taskAssignee"></select></div>
             </div>
-            <div class="input-group"><label>Beskrivelse</label><textarea id="taskDesc" rows="3"></textarea></div>
-            <button type="submit" class="btn-primary w-100">Gem Ændringer</button>
+            
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Frist / Deadline</label>
+                    <input type="date" id="taskDueDate">
+                </div>
+                <div class="input-group">
+                    <label>Kategorier (Vælg én eller flere)</label>
+                    <div class="tag-input-container" id="taskTagContainer">
+                        <!-- Tags rendered here -->
+                        <input type="text" class="tag-input-field" placeholder="Søg kategori..." 
+                               oninput="handleTagInput(this, 'task')" 
+                               onfocus="handleTagInput(this, 'task')"
+                               onkeydown="handleTagKeydown(event, 'task')">
+                        <div class="tag-suggestions hidden" id="taskTagSuggestions"></div>
+                    </div>
+                    <input type="hidden" id="taskCategoryIds" value="[]">
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Lokation</label>
+                    <select id="taskLocation" onchange="filterAssetsByLocation()"></select>
+                </div>
+                <div class="input-group">
+                    <label>Asset / Maskine</label>
+                    <select id="taskAsset"></select>
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label>SOP / Procedure</label>
+                    <select id="taskSop"></select>
+                </div>
+                <div class="input-group">
+                    <label>Opgave-Status</label>
+                    <select id="taskStatus">
+                        <option value="Venter">⚪ Venter</option>
+                        <option value="I gang" selected>🔵 I gang</option>
+                        <option value="Færdig">🟢 Færdig</option>
+                        <option value="Sat på pause">🟡 Sat på pause</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Tildelt til</label>
+                    <select id="taskAssignee"></select>
+                </div>
+            </div>
+
+            <div class="input-group"><label>Beskrivelse</label><textarea id="taskDesc" rows="3" placeholder="Uddybende instruktioner til teknikeren..."></textarea></div>
+
+            <div class="input-group">
+                <label>Billed-Dokumentation</label>
+                <div style="border: 2px dashed var(--border); border-radius: 16px; padding: 30px; text-align: center; background: #F8FAFC;">
+                    <input type="file" id="taskPhoto" accept="image/*" style="display:none;" onchange="handleTaskPhotoPreview(this)">
+                    <div id="photoPlaceholder" style="cursor: pointer;" onclick="document.getElementById('taskPhoto').click()">
+                        <i class="icon" style="font-size: 32px; display: block; margin-bottom: 10px;">📸</i>
+                        <span style="font-weight: 700; color: var(--primary);">Tilføj billede</span>
+                        <p class="text-muted" style="font-size: 12px; margin-top: 5px;">Hent fra din computer eller tag et nyt</p>
+                    </div>
+                    <div id="photoPreviewContainer" class="hidden" style="position: relative;">
+                        <img id="taskPhotoPreview" src="" style="max-height: 200px; border-radius: 12px; box-shadow: var(--shadow);">
+                        <button type="button" class="btn-outline" style="position: absolute; top: 10px; right: 10px; padding: 5px 10px; color: var(--danger); background: white;" onclick="removeTaskPhoto()">Slet</button>
+                    </div>
+                    <input type="hidden" id="taskPhotoUrl">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary w-100" style="margin-top: 20px;">Gem Arbejdsordre</button>
         </form>
     </div>
 
-    <!-- MODAL: REQUEST -->
-    <div id="modal-request" class="modal-card hidden">
-        <div class="modal-header"><h3>Ny Anmodning</h3></div>
-        <form onsubmit="handleRequestSubmit(event)">
-            <div class="input-group"><label>Hvad er problemet?</label><input type="text" id="reqTitle" required></div>
-            <div class="input-group"><label>Hvilken maskine?</label><select id="reqAsset"></select></div>
-            <div class="input-group"><label>Beskrivelse</label><textarea id="reqDesc" rows="3"></textarea></div>
-            <button type="submit" class="btn-primary w-100">Indsend Anmodning</button>
+    <!-- MODAL: MAINTENANCE REQUEST (ADVANCED) -->
+    <div id="modal-request" class="modal-card hidden" style="max-width: 900px;">
+        <div class="modal-header"><h3>Ny Anmodning (Fejlmelding)</h3></div>
+        <form onsubmit="handleRequestSubmit(event)" id="requestForm">
+            <div class="input-row">
+                <div class="input-group" style="flex: 2;"><label>Hvad er fejlen?</label><input type="text" id="reqTitle" required placeholder="F.eks. Løsthængende kilerem"></div>
+                <div class="input-group" style="flex: 1;"><label>Prioritet</label>
+                    <select id="reqPriority">
+                        <option value="1">🟢 Lav / Info</option>
+                        <option value="2" selected>🟡 Medium / Snarest</option>
+                        <option value="3">🟠 Høj / Vigtig</option>
+                        <option value="4">🔴 Kritisk / Akut</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Lokation</label>
+                    <select id="reqLocation" onchange="filterAssetsByLocation('req')"></select>
+                </div>
+                <div class="input-group">
+                    <label>Asset / Maskine</label>
+                    <select id="reqAsset"></select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Kategorier</label>
+                <div class="tag-input-container" id="reqTagContainer">
+                    <input type="text" class="tag-input-field" placeholder="Søg kategori..." 
+                           oninput="handleTagInput(this, 'req')" 
+                           onfocus="handleTagInput(this, 'req')"
+                           onkeydown="handleTagKeydown(event, 'req')">
+                    <div class="tag-suggestions hidden" id="reqTagSuggestions"></div>
+                </div>
+                <input type="hidden" id="reqCategoryIds" value="[]">
+            </div>
+            <div class="input-group"><label>Uddybende tekst</label><textarea id="reqDesc" rows="3" placeholder="Beskriv fejlen så teknikeren ved hvad der skal gøres..."></textarea></div>
+
+            <div class="input-group">
+                <label>Billed-Dokumentation</label>
+                <div style="border: 2px dashed var(--border); border-radius: 16px; padding: 30px; text-align: center; background: #F8FAFC;">
+                    <input type="file" id="reqPhoto" accept="image/*" style="display:none;" onchange="handleRequestPhotoPreview(this)">
+                    <div id="reqPhotoPlaceholder" style="cursor: pointer;" onclick="document.getElementById('reqPhoto').click()">
+                        <i class="icon" style="font-size: 32px; display: block; margin-bottom: 10px;">📸</i>
+                        <span style="font-weight: 700; color: var(--primary);">Tilføj billede af fejlen</span>
+                        <p class="text-muted" style="font-size: 12px; margin-top: 5px;">Hjælp teknikeren med et foto</p>
+                    </div>
+                    <div id="reqPhotoPreviewContainer" class="hidden" style="position: relative;">
+                        <img id="reqPhotoPreview" src="" style="max-height: 200px; border-radius: 12px; box-shadow: var(--shadow);">
+                        <button type="button" class="btn-outline" style="position: absolute; top: 10px; right: 10px; padding: 5px 10px; color: var(--danger); background: white;" onclick="removeRequestPhoto()">Slet</button>
+                    </div>
+                    <input type="hidden" id="reqPhotoUrl">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary w-100" style="margin-top: 20px;">Indsend Anmodning</button>
         </form>
     </div>
 
@@ -756,6 +898,7 @@
 
     <!-- SCRIPTS -->
     <script src="config.js"></script>
-    <script src="app.js?v=4"></script>
+    <script src="app.js?v=8"></script>
+    <script src="stress_test.js"></script>
 </body>
 </html>
