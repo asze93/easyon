@@ -304,13 +304,12 @@ async function nextWizard(step, btn) {
             localStorage.setItem('easyon_firma_id', firma.id);
             currentFirmaId = firma.id;
             
-            // HER ER DIN REGEL: Alle der opretter sig er MASTER ADMIN (admin.admin)
             const profileData = { 
                 id: currentUser.id, 
                 email: currentUser.email, 
                 firma_id: firma.id, 
                 navn: currentUser.user_metadata.full_name || "Admin", 
-                rolle: 'admin.admin', // MASTER REGEL
+                rolle: 'admin.admin', 
                 arbejdsnummer: 'master', 
                 adgangskode: '1234' 
             };
@@ -318,80 +317,77 @@ async function nextWizard(step, btn) {
             await supabaseClient.from('brugere').upsert(profileData);
             await supabaseClient.from('firma_indstillinger').upsert({ firma_id: firma.id });
             
-            console.log("[Wizard]: Master Profil oprettet for:", currentUser.email);
+            console.log("[Wizard]: Master Profil oprettet korrekt.");
             location.reload();
         } catch (e) { showSnackbar("Fejl: " + e.message); }
     }
 }
 
-async function loadDashboard(providedProfile = null) {
+async function loadDashboard(providedProfile = null, retryCount = 0) {
     if (isLoggingOut) return;
-    console.log("[Dashboard]: Starter indlæsning...", providedProfile ? "Profil medsendt" : "Henter profil via Auth");
-    let profile = providedProfile;
     
-    const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), ms));
+    try {
+        let profile = providedProfile;
+        
+        if (!profile && currentUser?.email) {
+            console.log(`[Dashboard]: Henter profil (Forsøg ${retryCount + 1})...`);
+            const { data, error } = await supabaseClient
+                .from('brugere')
+                .select('*')
+                .eq('email', currentUser.email)
+                .maybeSingle();
 
-    if (!profile && currentUser?.email) {
-        try {
-            console.log("[Dashboard]: Slår profil op for:", currentUser.email);
-            const { data, error } = await Promise.race([
-                supabaseClient.from('brugere').select('*').eq('email', currentUser.email).maybeSingle(),
-                timeout(45000) // Øget fra 15s til 45s for mobile enheder
-            ]);
-            
-            if (error) throw error;
-
-            if (data) {
-                profile = data;
-            } else {
-                console.warn("[Dashboard]: Ingen profil fundet i databasen for", currentUser.email);
-                showView('wizard');
-                return; 
+            if (error) {
+                if (retryCount < 3 && (error.message.includes('lock') || error.message.includes('Timeout'))) {
+                    console.warn("[Dashboard]: Database lockout. Prøver igen om 1 sek...");
+                    await new Promise(r => setTimeout(r, 1000));
+                    return loadDashboard(null, retryCount + 1);
+                }
+                throw error;
             }
-        } catch (err) {
-            console.error("[Dashboard]: Forbindelsesfejl eller Timeout.", err);
-            if (err.message === "Timeout") {
-                showSnackbar("Forbindelsen er langsom. Prøv at genindlæse siden (F5).", 10000);
-            } else {
-                showSnackbar("Kunne ikke hente din profil. " + err.message);
-            }
-            showView('landing'); 
-            return;
+            profile = data;
         }
-    }
 
-    if (profile) {
-        currentFirmaId = profile.firma_id;
-        const lowRole = (profile.rolle || "").toLowerCase();
-        
-        isGlobalAdmin = lowRole.includes('admin') || currentUser?.email === 'asze@gmail.com' || currentUser?.email === 'peter@easyon.dk';
-        isSuperUser = isGlobalAdmin || lowRole.includes('superbruger') || lowRole.includes('tekniker');
-        
-        localStorage.setItem('easyon_user_role', lowRole);
-        localStorage.setItem('easyon_session_profile', JSON.stringify(profile));
-        if (currentFirmaId) localStorage.setItem('easyon_firma_id', currentFirmaId);
-        
-        updateNavbar();
-        const f = allCompanies.find(fc => fc.id === currentFirmaId);
-        document.querySelectorAll('.adminName').forEach(el => el.innerText = profile.navn + " - " + (f?.navn || "EasyON"));
-        
-        document.querySelectorAll('.admin-only').forEach(el => {
-            el.classList.toggle('hidden', !isGlobalAdmin);
-        });
+        if (profile) {
+            currentFirmaId = profile.firma_id;
+            const lowRole = (profile.rolle || "").toLowerCase();
+            
+            isGlobalAdmin = lowRole.includes('admin') || currentUser?.email === 'asze@gmail.com' || currentUser?.email === 'peter@easyon.dk';
+            isSuperUser = isGlobalAdmin || lowRole.includes('superbruger') || lowRole.includes('tekniker');
+            
+            if (currentFirmaId) localStorage.setItem('easyon_firma_id', currentFirmaId);
+            
+            // Opdater UI Profil Navn
+            const f = allCompanies.find(fc => fc.id === currentFirmaId);
+            document.querySelectorAll('.adminName').forEach(el => el.innerText = profile.navn + " - " + (f?.navn || "EasyON"));
+            
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.classList.toggle('hidden', !isGlobalAdmin);
+            });
 
-        // Indlæs alle data med det samme
-        updateDashboardStats();
-        fetchTasks();
-        fetchRequests();
-        fetchAssets();
-        fetchLocations();
-        fetchTeam();
-        fetchLager();
-        fetchCategories();
-        fetchIndstillinger();
-        fetchProcedures();
-        
-        showView('dashboard');
+            // Start dataindlæsning
+            showView('view-dashboard');
+            updateDashboardStats();
+            fetchTasks();
+            fetchRequests();
+            fetchAssets();
+            fetchLocations();
+            fetchTeam();
+            fetchLager();
+            fetchCategories();
+            fetchIndstillinger();
+            fetchProcedures();
+        } else {
+            console.warn("[Dashboard]: Ingen profil -> Wizard");
+            showView('view-wizard');
+        }
+    } catch (err) {
+        console.error("[Dashboard]: Kritisk fejl:", err);
+        if (retryCount < 2) {
+            await new Promise(r => setTimeout(r, 2000));
+            return loadDashboard(null, retryCount + 1);
+        }
+        showSnackbar("Kunne ikke forbinde til din profil. Prøv at genindlæse (F5).");
     }
 }
 
