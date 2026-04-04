@@ -911,7 +911,17 @@ function removeTaskPhoto() {
 async function fetchAssets() {
     if (!currentFirmaId) return;
     const { data } = await supabaseClient.from('assets').select('*, lokationer(navn)').eq('firma_id', currentFirmaId).order('navn');
-    const b = document.getElementById('assetsBody'); if (b) { b.innerHTML = ""; data?.forEach(a => b.innerHTML += `<tr><td>${a.navn}</td><td>${a.lokationer?.navn || '-'}</td><td><button onclick="editAsset('${a.id}')">Ret</button><button onclick="deleteAsset('${a.id}')">Slet</button></td></tr>`); }
+    const b = document.getElementById('assetsBody'); if (b) { b.innerHTML = ""; data?.forEach(a => b.innerHTML += `<tr><td>${a.navn}</td><td>${a.lokationer?.navn || '-'}</td><td><button class="btn-outline" style="padding:4px 8px; font-size:12px; margin-right:5px;" onclick="editAsset('${a.id}')">Ret</button><button class="btn-outline" style="padding:4px 8px; font-size:12px; color:var(--danger);" onclick="deleteAsset('${a.id}')">Slet</button></td></tr>`); }
+}
+async function editAsset(id) {
+    const { data } = await supabaseClient.from('assets').select('*').eq('id', id).maybeSingle();
+    if (data) {
+        await openModal('modal-asset');
+        document.getElementById('assetId').value = data.id;
+        document.getElementById('assetName').value = data.navn;
+        document.getElementById('assetLoc').value = data.lokation_id || '';
+        document.getElementById('assetParent').value = data.parent_asset_id || '';
+    }
 }
 async function handleAssetSubmit(e) {
     e.preventDefault(); const btn = e.submitter; setLoading(btn, true);
@@ -926,17 +936,27 @@ async function handleAssetSubmit(e) {
 
 async function fetchLocations() {
     if (!currentFirmaId) return;
-    const { data } = await supabaseClient.from('lokationer').select('*').eq('firma_id', currentFirmaId);
-    const b = document.getElementById('locationsBody'); if (b) { b.innerHTML = ""; data?.forEach(l => b.innerHTML += `<tr><td>${l.navn}</td><td>${l.beskrivelse || ''}</td><td><button onclick="deleteLocation('${l.id}')">Slet</button></td></tr>`); }
+    const { data } = await supabaseClient.from('lokationer').select('*').eq('firma_id', currentFirmaId).order('navn');
+    const b = document.getElementById('locationsBody'); if (b) { b.innerHTML = ""; data?.forEach(l => b.innerHTML += `<tr><td>${l.navn}</td><td>${l.beskrivelse || ''}</td><td><button class="btn-outline" style="padding:4px 8px; font-size:12px; margin-right:5px;" onclick="editLocation('${l.id}')">Ret</button><button class="btn-outline" style="padding:4px 8px; font-size:12px; color:var(--danger);" onclick="deleteLocation('${l.id}')">Slet</button></td></tr>`); }
+}
+async function editLocation(id) {
+    const { data } = await supabaseClient.from('lokationer').select('*').eq('id', id).maybeSingle();
+    if (data) {
+        await openModal('modal-location');
+        document.getElementById('locId').value = data.id;
+        document.getElementById('locName').value = data.navn;
+        document.getElementById('locDesc').value = data.beskrivelse || '';
+    }
 }
 async function handleLocationSubmit(e) {
     e.preventDefault(); const btn = e.submitter; setLoading(btn, true);
-    const name = document.getElementById('locName').value, desc = document.getElementById('locDesc').value;
+    const id = document.getElementById('locId').value, name = document.getElementById('locName').value, desc = document.getElementById('locDesc').value;
     const d = { navn: name, beskrivelse: desc, firma_id: currentFirmaId };
+    if (id) d.id = id;
     const { error } = await supabaseClient.from('lokationer').upsert(d, { onConflict: 'navn, firma_id' });
     setLoading(btn, false);
-    if (!error) { closeAllModals(); fetchLocations(); showSnackbar("Lokation oprettet!"); }
-    else { console.error("Location submit error:", error); showSnackbar("Kunne ikke oprette: " + error.message); }
+    if (!error) { closeAllModals(); fetchLocations(); showSnackbar("Lokation gemt!"); }
+    else { console.error("Location submit error:", error); showSnackbar("Kunne ikke gemme: " + error.message); }
 }
 
 async function fetchLager() {
@@ -964,15 +984,26 @@ async function handleLagerSubmit(e) {
 
 async function fetchCategories() {
     if (!currentFirmaId) return;
-    const { data } = await supabaseClient.from('kategorier').select('*').eq('firma_id', currentFirmaId);
-    const b = document.getElementById('categoriesBody'); if (b) { b.innerHTML = ""; data?.forEach(c => b.innerHTML += `<tr><td>${c.navn}</td><td><span style="background:${c.farve}; width:20px; height:20px; border-radius:50%; display:block;"></span></td><td>-</td><td><button onclick="deleteCategory('${c.id}')">Slet</button></td></tr>`); }
+    const { data } = await supabaseClient.from('kategorier').select('*').eq('firma_id', currentFirmaId).order('navn');
+    const b = document.getElementById('categoriesBody'); if (b) { b.innerHTML = ""; data?.forEach(c => b.innerHTML += `<tr><td>${c.navn}</td><td><span style="background:${c.farve}; width:20px; height:20px; border-radius:50%; display:block;"></span></td><td>-</td><td><button class="btn-outline" style="padding:4px 8px; font-size:12px; margin-right:5px;" onclick="editCategory('${c.id}')">Ret</button><button class="btn-outline" style="padding:4px 8px; font-size:12px; color:var(--danger);" onclick="deleteCategory('${c.id}')">Slet</button></td></tr>`); }
+}
+async function editCategory(id) {
+    const { data } = await supabaseClient.from('kategorier').select('*').eq('id', id).maybeSingle();
+    if (data) {
+        await openModal('modal-category');
+        document.getElementById('catId').value = data.id;
+        document.getElementById('catName').value = data.navn;
+        document.getElementById('catColor').value = data.farve;
+    }
 }
 async function handleCategorySubmit(e) {
     e.preventDefault(); const btn = e.submitter; setLoading(btn, true);
-    const name = document.getElementById('catName').value, col = document.getElementById('catColor').value;
-    const { error } = await supabaseClient.from('kategorier').upsert({ navn: name, farve: col, firma_id: currentFirmaId }, { onConflict: 'navn, firma_id' });
+    const id = document.getElementById('catId').value, name = document.getElementById('catName').value, col = document.getElementById('catColor').value;
+    const d = { navn: name, farve: col, firma_id: currentFirmaId };
+    if (id) d.id = id;
+    const { error } = await supabaseClient.from('kategorier').upsert(d, { onConflict: 'navn, firma_id' });
     setLoading(btn, false);
-    if (!error) { closeAllModals(); fetchCategories(); showSnackbar("Kategori oprettet!"); }
+    if (!error) { closeAllModals(); fetchCategories(); showSnackbar("Kategori gemt!"); }
     else { showSnackbar("Fejl: " + error.message); }
 }
 
@@ -1004,7 +1035,7 @@ async function openModal(id, reset = false) {
     const m = document.getElementById(id);
     const overlay = document.getElementById('modal-overlay');
     if (m) m.classList.remove('hidden');
-    if (overlay) overlay.classList.hidden = false;
+    if (overlay) overlay.classList.remove('hidden');
 
     try {
         if (!currentFirmaId) {

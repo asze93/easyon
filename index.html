@@ -722,8 +722,9 @@
 
     <!-- MODAL: CATEGORY -->
     <div id="modal-category" class="modal-card hidden">
-        <div class="modal-header"><h3>Ny Kategori</h3></div>
+        <div class="modal-header"><h3>Kategori</h3></div>
         <form onsubmit="handleCategorySubmit(event)">
+            <input type="hidden" id="catId">
             <div class="input-group"><label>Navn</label><input type="text" id="catName" required placeholder="f.eks. Mekanisk"></div>
             <div class="input-group"><label>Farve</label><input type="color" id="catColor" value="#3b82f6" style="height:50px;"></div>
             <button type="submit" class="btn-primary w-100">Gem Kategori</button>
