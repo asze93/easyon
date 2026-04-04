@@ -336,7 +336,7 @@ async function loadDashboard(providedProfile = null) {
             console.log("[Dashboard]: Slår profil op for:", currentUser.email);
             const { data, error } = await Promise.race([
                 supabaseClient.from('brugere').select('*').eq('email', currentUser.email).maybeSingle(),
-                timeout(15000)
+                timeout(45000) // Øget fra 15s til 45s for mobile enheder
             ]);
             
             if (error) throw error;
@@ -1319,6 +1319,12 @@ function renderActiveStep() {
 }
 function updateStepData(id, key, val) { const idx = sopSteps.findIndex(s => s.id == id); if (idx !== -1) { sopSteps[idx][key] = val; updateSopPreview(); } }
 function addSopStep(type, label = "") { 
+    // SIKRER AT DASHBOARD ER KLAR
+    if (!currentFirmaId) {
+        showSnackbar("Venter på dashboard... Prøv igen om 2 sekunder.");
+        return;
+    }
+
     const id = 'step_' + Date.now(); 
     sopSteps.push({id, type, label: label || `Ny ${type}`}); 
     currentStepId = id; 

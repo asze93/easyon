@@ -6,12 +6,14 @@
 
 async function runEasyOnStressTest() {
     // Unique suffix for this test run
-    const testId = Date.now().toString().slice(-4); 
+    const testId = Math.floor(Math.random() * 9000) + 1000; 
     console.log(`🚀 Starting Advanced EasyON Stress Test (Run ID: ${testId})...`);
     
-    const firmaId = currentFirmaId || localStorage.getItem('easyon_firma_id');
+    // NYT: VENTER PÅ AT DASHBOARD ER KLAR HVIS DET TAGER TID
+    let firmaId = currentFirmaId || localStorage.getItem('easyon_firma_id');
     if (!firmaId) {
-        console.error("❌ No firmaId found. Please log in first.");
+        showSnackbar("Dashboardet er stadig ved at indlæse... Vent 2 sekunder og prøv igen.");
+        console.error("❌ No firmaId found yet.");
         return;
     }
 
