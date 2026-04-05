@@ -7,6 +7,13 @@ ALTER TABLE public.lager ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT
 ALTER TABLE public.kategorier ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
 ALTER TABLE public.brugere ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
 ALTER TABLE public.firmaer ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
+-- Sikr at firmanavne er unikke (Indpakket i sikkerheds-tjek mod 'already exists' fejl)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'firmaer_navn_key') THEN
+        ALTER TABLE public.firmaer ADD CONSTRAINT firmaer_navn_key UNIQUE (navn);
+    END IF;
+END $$;
 
 -- 2. SIKR AT RLS ER AKTIVERET
 ALTER TABLE public.opgaver ENABLE ROW LEVEL SECURITY;

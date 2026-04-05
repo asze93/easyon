@@ -3,906 +3,763 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EasyON</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>EasyON v83 - THE FINAL DIAMOND LINK</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@400;700;800&display=swap');
+
+        :root {
+            --primary: #3B82F6;
+            --primary-light: #EFF6FF;
+            --primary-dark: #1E40AF;
+            --primary-glow: rgba(59, 130, 246, 0.3);
+            --bg-main: #FFFFFF;
+            --bg-canvas: #F8FAFC;
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --bg-sidebar: #0F172A; 
+            --sidebar-accent: rgba(255, 255, 255, 0.1);
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --border: #E2E8F0;
+            --glass: rgba(255, 255, 255, 0.95);
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --danger: #EF4444;
+            --success: #10B981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+        body {
+            font-family: 'Outfit', 'Inter', sans-serif;
+            background: var(--bg-canvas);
+            color: var(--text-main);
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        .view { display: none !important; }
+        .view.active { display: block !important; }
+        .hidden { display: none !important; }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px var(--primary-glow);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary:hover { 
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px var(--primary-glow);
+        }
+
+        .btn-outline {
+            background: white;
+            color: var(--text-main);
+            padding: 11px 23px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-outline:hover { background: var(--bg-canvas); border-color: var(--text-muted); }
+
+        /* SIDEBAR PREMIUM */
+        .dashboard-layout { display: flex !important; height: 100vh; background: var(--bg-canvas); }
+        .sidebar { 
+            width: 280px; 
+            background: var(--bg-sidebar); 
+            padding: 24px 12px; 
+            display: flex; 
+            flex-direction: column; 
+            color: white; 
+            flex-shrink: 0;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.05);
+            z-index: 50;
+        }
+        .sidebar-logo { 
+            font-size: 26px; 
+            font-weight: 800; 
+            margin-bottom: 32px; 
+            padding: 0 20px; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
+        }
+        .sidebar-logo span { color: var(--primary); }
+
+        .nav-group-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 24px 0 12px 20px;
+        }
+
+        .sidebar-links a { 
+            display: flex; 
+            align-items: center; 
+            gap: 14px;
+            padding: 12px 18px; 
+            color: rgba(255,255,255,0.65); 
+            text-decoration: none; 
+            border-radius: 12px; 
+            margin-bottom: 4px; 
+            font-weight: 600; 
+            font-size: 15px;
+            transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .sidebar-links a svg { width: 20px; height: 20px; opacity: 0.7; transition: 0.2s; }
+        .sidebar-links a.active { background: var(--sidebar-accent); color: white; }
+        .sidebar-links a.active svg { color: var(--primary); opacity: 1; }
+        .sidebar-links a:hover:not(.active) { background: rgba(255,255,255,0.05); color: white; }
+
+        /* DASHBOARD CONTENT */
+        .dash-main-container { flex: 1; height: 100vh; overflow-y: auto; padding: 40px 60px; position: relative; }
+        .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .dash-tab { display: none; }
+        .dash-tab.active { display: block; animation: fadeIn 0.3s ease-out; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .stat-card { 
+            background: white; 
+            border: 1px solid var(--border); 
+            border-radius: 20px; 
+            padding: 28px; 
+            box-shadow: var(--shadow-sm); 
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
+        .stat-icon { 
+            width: 60px; height: 60px; border-radius: 16px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 24px;
+        }
+
+        .table-card { background: white; border-radius: 24px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow); margin-top: 32px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #F8FAFC; text-align: left; padding: 16px 24px; font-size: 12px; font-weight: 800; text-transform: uppercase; border-bottom: 1px solid var(--border); color: var(--text-muted); }
+        td { padding: 18px 24px; border-bottom: 1px solid var(--border); font-size: 15px; font-weight: 500; }
+        tr:last-child td { border-bottom: none; }
+
+        .badge { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        .badge.prio-h├©j { background: #FEE2E2; color: #991B1B; }
+        .badge.prio-middel { background: #FEF3C7; color: #92400E; }
+        .badge.prio-lav { background: #DCFCE7; color: #166534; }
+
+        .snackbar { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 16px 32px; border-radius: 16px; box-shadow: var(--shadow-lg); z-index: 10000; display: none; }
+        .snackbar.show { display: block; animation: fadeInUp 0.4s; }
+
+        /* MODAL PREMIUM */
+        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .modal-card { background: white; width: 100%; max-width: 500px; border-radius: 28px; padding: 40px; box-shadow: var(--shadow-lg); position: relative; max-height: 90vh; overflow-y: auto; }
+        .modal-card h2 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+        .modal-card p { color: var(--text-muted); margin-bottom: 32px; font-size: 14px; }
+        .close-modal { position: absolute; top: 24px; right: 24px; cursor: pointer; color: var(--text-muted); padding: 8px; border-radius: 50%; transition: 0.2s; }
+        .close-modal:hover { background: var(--bg-canvas); color: var(--text-main); }
+        
+        #modal-sop.modal-card { max-width: 1200px; padding: 0; display: flex; flex-direction: column; height: 90vh; }
+        .sop-editor-layout { display: flex; flex: 1; overflow: hidden; }
+        .sop-sidebar { width: 300px; border-right: 1px solid var(--border); padding: 24px; display: flex; flex-direction: column; background: #F8FAFC; }
+        .sop-main-editor { flex: 1; padding: 40px; overflow-y: auto; background: white; }
+        .sop-preview-pane { width: 500px; border-left: 1px solid var(--border); padding: 24px; background: #F1F5F9; overflow-y: auto; display: none; } /* Hidden by default toggled via JS if needed */
+        
+        .step-nav-card { padding: 16px; border-radius: 12px; border: 1.5px solid var(--border); margin-bottom: 12px; cursor: pointer; transition: 0.2s; background: white; display: flex; align-items: center; gap: 12px; }
+        .step-nav-card.active { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-glow); }
+        .step-num { width: 24px; height: 24px; background: var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; }
+        .step-nav-card.active .step-num { background: var(--primary); color: white; }
+
+        @keyframes fadeInUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+    </style>
 </head>
 <body>
 
     <main id="app">
-        <section id="view-landing" class="view active">
-            <!-- LOCAL NAV -->
-            <nav class="main-nav">
-                <div class="container">
-                    <div class="logo" style="cursor:pointer; display:flex; align-items:center; gap:12px;" onclick="showView('landing')">
-                        Easy<span>ON</span>
-                    </div>
-                    <div id="guestNav" class="nav-links">
-                        <button class="btn-login" onclick="toggleAuthMode('login')">Log ind</button>
-                        <button class="btn-primary" onclick="toggleAuthMode('signup')">Kom i gang</button>
-                    </div>
-                    <div id="userNav" class="nav-links hidden">
-                        <span id="userNameDisplay" style="font-weight:700; color:var(--text-main); margin-right:15px;">...</span>
-                        <button class="btn-primary" onclick="showView('dashboard')">Åbn Dashboard</button>
-                    </div>
-                </div>
-            </nav>
-            <div class="hero">
-                <h1>Fremtidens vedligeholdelse er <span>digital</span></h1>
-                <p>EasyON samler dit team, dine maskiner og dine opgaver i én enkel sky-løsning. Slip for papirarbejde og få overblik over dit anlæg på få sekunder.</p>
-                <div class="hero-btns" id="landingBtns">
-                    <button class="btn-primary" onclick="toggleAuthMode('signup')">Kom i gang gratis</button>
-                    <a href="easyon-app.apk" class="btn-outline" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
-                        <i class="icon" style="font-size: 20px;">🤖</i> Hent App (APK)
-                    </a>
-                </div>
-                <div class="hero-mockup">
-                    <img src="dashboard_mockup.png" alt="App Dashboard Preview" loading="lazy">
-                </div>
-            </div>
-        </section>
+        <div id="snackbar" class="snackbar"></div>
 
-        <section id="view-auth" class="view">
-            <!-- LOCAL NAV -->
+        <section id="view-landing" class="view active">
             <nav class="main-nav">
                 <div class="container">
-                    <div class="logo" style="cursor:pointer; display:flex; align-items:center; gap:12px;" onclick="showView('landing')">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary);">
+                    <div class="logo" onclick="showView('landing')">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="color:var(--primary); margin-right:8px;">
                             <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
                         </svg>
                         Easy<span>ON</span>
                     </div>
                     <div class="nav-links">
-                        <a href="#view-landing" onclick="showView('landing')" style="text-decoration:none; color:var(--text-main); font-weight:600;">Tilbage</a>
+                        <button class="btn-primary" onclick="toggleAuthMode('login')">Log ind</button>
                     </div>
                 </div>
             </nav>
-            <div class="auth-view-wrapper">
-                <div class="auth-card">
-                    <h2 id="authTitle">Log ind på EasyON</h2>
-                    <p id="authSub">Indtast dine oplysninger nedenfor</p>
-                    
-                    <form id="authForm" onsubmit="handleAuth(event)" autocomplete="off">
-                        <!-- LOGIN ONLY -->
-                        <div class="input-group" id="loginFirmaGroup">
-                            <label>Firmanavn</label>
-                            <input type="text" id="authLoginFirma" placeholder="Navnet på dit firma">
-                        </div>
+            <div class="hero container">
+                <h1>Fremtidens vedligeholdelse<br>er <span>digital</span></h1>
+                <p>Saml dit team, dine maskiner og dine opgaver i en enkel sky-løsning. Slip for papirarbejde og få overblik over dit anlæg på få sekunder.</p>
+                <div class="hero-btns">
+                    <button class="btn-primary" style="padding: 20px 48px; font-size: 18px;" onclick="toggleAuthMode('signup')">Kom i gang gratis</button>
+                </div>
+                <div class="hero-mockup">
+                    <img src="dashboard_mockup.png" alt="Dashboard Preview">
+                </div>
+            </div>
+        </section>
 
-                        <!-- SIGNUP ONLY -->
-                        <div id="nameGroup" class="hidden">
-                            <div class="input-row">
-                                <div class="input-group">
-                                    <label>Fornavn</label>
-                                    <input type="text" id="authFirstName" placeholder="Fornavn" autocomplete="off">
-                                </div>
-                                <div class="input-group">
-                                    <label>Efternavn</label>
-                                    <input type="text" id="authLastName" placeholder="Efternavn" autocomplete="off">
-                                </div>
+        <section id="view-auth" class="view">
+            <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.1), transparent);">
+                <div class="auth-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 48px;">
+                        <div class="logo" onclick="showView('landing')">Easy<span>ON</span></div>
+                        <a href="javascript:void(0)" onclick="showView('landing')" style="text-decoration:none; color:var(--text-muted); font-weight:700;">← Tilbage</a>
+                    </div>
+                    <h2 id="authTitle" style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">Log ind</h2>
+                    <p id="authSub" style="color: var(--text-muted); margin-bottom: 40px;">Indtast dine oplysninger nedenfor</p>
+                    
+                    <form id="authForm" onsubmit="handleAuth(event)">
+                        <div id="nameGroup" class="hidden" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:24px;">
+                            <div class="input-group">
+                                <label>Fornavn</label>
+                                <input type="text" id="authFirstName" placeholder="Peter" autocomplete="off">
                             </div>
                             <div class="input-group">
-                                <label>Hvad skal dit firma-login hedde?</label>
-                                <input type="text" id="authCompanyName" placeholder="f.eks. hansen-vvs" autocomplete="off">
-                                <p class="text-xs text-muted" style="margin-top:5px;">⚠️ Dette navn skal du bruge hver gang du logger ind bagefter.</p>
+                                <label>Efternavn</label>
+                                <input type="text" id="authLastName" placeholder="Hansen" autocomplete="off">
+                            </div>
+                        </div>
+                        <div id="companyGroup" class="hidden">
+                            <div class="input-group">
+                                <label>Nyt Firmanavn</label>
+                                <input type="text" id="authCompanyName" placeholder="Mit Nye Firma" autocomplete="off">
                             </div>
                         </div>
 
-                        <div class="input-group">
-                            <label id="authEmailLabel">Login-ID (ID eller E-mail)</label>
-                            <input type="text" id="authEmail" placeholder="..." required autocomplete="off">
+                        <div class="input-group" id="loginFirmaGroup">
+                            <label>Firmanavn / Domæne</label>
+                            <input type="text" id="authLoginFirma" placeholder="Mit-Firma" autocomplete="off">
                         </div>
+                        <div class="input-group">
+                            <label id="authEmailLabel">Login-ID (E-mail eller ID)</label>
+                            <input type="text" id="authEmail" required placeholder="navn@firma.dk" autocomplete="off">
+                        </div>
+                        <div class="input-group">
+                            <label>Adgangskode</label>
+                            <input type="password" id="authPass" required placeholder="••••••••" autocomplete="off">
+                        </div>
+                        <div id="passConfirmGroup" class="hidden">
+                            <div class="input-group">
+                                <label>Bekræft Adgangskode</label>
+                                <input type="password" id="authPassConfirm" placeholder="••••••••" autocomplete="off">
+                            </div>
+                        </div>
+
+                        <button type="submit" id="authBtn" class="btn-primary" style="width: 100%; padding: 18px; margin-bottom:24px;">Log ind</button>
                         
-                        <div class="input-group">
-                            <label>Adgangskode (min. 6 tegn)</label>
-                            <div style="position:relative;">
-                                <input type="password" id="authPass" placeholder="••••" required autocomplete="off" style="padding-right:45px;">
-                                <button type="button" class="btn-pass-toggle" onclick="togglePassVisibility('authPass')" tabindex="-1">👁️</button>
-                            </div>
+                        <div id="toggleAuth" style="text-align:center; font-size:14px; font-weight:600; color:var(--text-muted);">
+                            <span id="toggleText">Har du ikke en konto?</span> 
+                            <a href="javascript:void(0)" id="toggleLink" onclick="toggleAuthMode('signup')" style="color:var(--primary); text-decoration:none;">Opret her</a>
                         </div>
-
-                        <div class="input-group hidden" id="passConfirmGroup">
-                            <label>Bekræft Adgangskode</label>
-                            <div style="position:relative;">
-                                <input type="password" id="authPassConfirm" placeholder="••••" autocomplete="off" style="padding-right:45px;">
-                                <button type="button" class="btn-pass-toggle" onclick="togglePassVisibility('authPassConfirm')" tabindex="-1">👁️</button>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn-primary w-100" id="authBtn" style="margin-top:10px;">Fortsæt</button>
                     </form>
-                    <p class="auth-toggle">
-                        <span id="toggleText">Har du ikke en konto?</span> 
-                        <a href="javascript:void(0)" id="toggleLink" onclick="toggleAuthMode()">Opret her</a>
-                    </p>
                 </div>
             </div>
         </section>
 
-        <!-- VIEW: VERIFY EMAIL -->
-        <section id="view-verify-email" class="view">
-            <div class="auth-view-wrapper">
-                <div class="auth-card">
-                    <div class="loader-container">
-                        <div class="icon" style="font-size: 60px; margin-bottom: 20px;">📧</div>
-                        <h2>Tjek din inbox!</h2>
-                        <p>Vi har sendt en bekræftelses-mail til din adresse. Du skal klikke på linket i mailen for at aktivere din admin-bruger og fortsætte opsætningen.</p>
-                        <button class="btn-outline w-100" onclick="showView('landing')">Tilbage til forsiden</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- VIEW: WIZARD -->
-        <section id="view-wizard" class="view">
-            <div style="position:absolute; top:20px; right:20px;">
-                <button class="btn-outline" onclick="handleLogout()" style="padding:8px 16px; font-size:12px;">Log ud / Afbryd</button>
-            </div>
-            <div class="wizard-box">
-                <div class="wizard-steps" style="display:flex; justify-content:center; gap:20px; align-items:center; margin-bottom:40px;">
-                    <div class="step active" id="stepIndicator1">1</div>
-                    <div style="height:2px; width:40px; background:var(--border);"></div>
-                    <div class="step" id="stepIndicator2">2</div>
-                </div>
-
-                <div class="wizard-content" id="step1">
-                    <h2>Fortæl os om dit firma</h2>
-                    <div class="input-group">
-                        <input type="text" id="bizName" placeholder="Firmanavn" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Virksomhedens branche</label>
-                        <select id="bizIndustry" required>
-                            <option value="">Vælg branche...</option>
-                            <option value="cssc">Byggebranchen (CSSC)</option>
-                            <option value="manufacturing">Industri & Produktion</option>
-                            <option value="service">Service & Vedligehold</option>
-                            <option value="logistics">Lager & Logistik</option>
-                            <option value="healthcare">Sundhedssektoren</option>
-                            <option value="other">Andet</option>
-                        </select>
-                    </div>
-                    <div class="input-group"><label>Virksomhedens adresse</label><input type="text" id="bizAddress" placeholder="Vejnavn 12, 8000 Aarhus"></div>
-                    <div class="input-row">
-                        <div class="input-group"><label>Telefon nr.</label><input type="tel" id="bizPhone" placeholder="+45 12345678"></div>
-                        <div class="input-group"><label>CVR-nummer</label><input type="text" id="bizCVR" placeholder="12345678"></div>
-                    </div>
-                    <!-- Direct finish -->
-                    <button class="btn-primary w-100" onclick="const b=this; b.innerText='Opretter...'; b.disabled=true; nextWizard(2, b)">Opret mit firma & Se dashboard</button>
-                </div>
-
-                <div class="wizard-content hidden" id="step2">
-                    <div class="loader-container">
-                        <div class="loader"></div>
-                        <h3>Sætter dit system op...</h3>
-                        <p id="wizardStatus" class="text-muted">Opretter sikker cloud-database</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- VIEW: DASHBOARD (ADMIN) -->
         <section id="view-dashboard" class="view dashboard-layout">
-            <!-- Mobile Toggle -->
-            <div class="mobile-nav-toggle" onclick="toggleSidebar()">
-                <i class="icon">☰</i>
-                <span style="font-weight:700; font-size:14px; letter-spacing:1px; text-transform:uppercase;">Admin Menu</span>
-            </div>
-
-            <aside class="sidebar" id="dashboardSidebar">
-                <div class="sidebar-logo" onclick="showView('landing')" style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary);">
+            <aside class="sidebar">
+                <div class="sidebar-logo">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="color:var(--primary);">
                         <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
                     </svg>
                     Easy<span>ON</span>
                 </div>
-                <div class="sidebar-links">
-                    <li><a href="javascript:void(0)" class="dash-nav active" data-tab="overview" onclick="dashNavTab(event, 'overview')"><i class="icon">🏠</i> Dashboard</a></li>
-                    
-                    <li class="nav-category">Operationer</li>
-                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="tasks" onclick="dashNavTab(event, 'tasks')"><i class="icon">📋</i> Arbejdsordrer</a></li>
-                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="requests" onclick="dashNavTab(event, 'requests')"><i class="icon">📥</i> Anmodninger</a></li>
-                    <li><a href="javascript:void(0)" class="dash-nav" data-tab="statistics" onclick="dashNavTab(event, 'statistics')"><i class="icon">📈</i> Rapportering</a></li>
-                    
-                    <li class="nav-category admin-only">Fundament</li>
-                    <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="assets" onclick="dashNavTab(event, 'assets')"><i class="icon">🏗️</i> Maskiner & Assets</a></li>
-                    <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="locations" onclick="dashNavTab(event, 'locations')"><i class="icon">📍</i> Lokationer</a></li>
-                    <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="lager" onclick="dashNavTab(event, 'lager')"><i class="icon">📦</i> Lager & Materialer</a></li>
-                    <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="team" onclick="dashNavTab(event, 'team')"><i class="icon">👥</i> Team & Personer</a></li>
-                    <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="categories" onclick="dashNavTab(event, 'categories')"><i class="icon">🏷️</i> Kategorier</a></li>
-                    <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="kpi" onclick="dashNavTab(event, 'kpi')"><i class="icon">📊</i> Målepunkter & KPI</a></li>
-                    
-                    <li class="nav-category admin-only">System</li>
-                    <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="indstillinger" onclick="dashNavTab(event, 'indstillinger')"><i class="icon">⚙️</i> App Builder</a></li>
-                    <li class="admin-only"><a href="javascript:void(0)" class="dash-nav" data-tab="procedures" onclick="dashNavTab(event, 'procedures')"><i class="icon">📝</i> Procedurer / SOP</a></li>
-                    <li><a href="javascript:void(0)" class="dash-nav" onclick="logout()" style="color: var(--danger);"><i class="icon">🚪</i> Log ud</a></li>
-                </div>
+                
+                <nav class="sidebar-links">
+                    <div class="nav-group-title">Hovedmenu</div>
+                    <a href="javascript:void(0)" class="dash-nav active" data-tab="overview" onclick="dashNavTab(event, 'overview')" id="nav-overview">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        Dashboard
+                    </a>
+                    <a href="javascript:void(0)" class="dash-nav" data-tab="tasks" onclick="dashNavTab(event, 'tasks')" id="nav-tasks">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                        Opgaver
+                    </a>
+                    <a href="javascript:void(0)" class="dash-nav" data-tab="requests" onclick="dashNavTab(event, 'requests')" id="nav-requests">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Anmodninger
+                    </a>
+                    <a href="javascript:void(0)" class="dash-nav" data-tab="lager" onclick="dashNavTab(event, 'lager')" id="nav-lager">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                        Lager & Dele
+                    </a>
+
+                    <div class="nav-group-title admin-only">Materialer & Sted</div>
+                    <a href="javascript:void(0)" class="dash-nav admin-only" data-tab="assets" onclick="dashNavTab(event, 'assets')" id="nav-assets">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                        Maskiner/Assets
+                    </a>
+                    <a href="javascript:void(0)" class="dash-nav admin-only" data-tab="locations" onclick="dashNavTab(event, 'locations')" id="nav-locations">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        Lokationer
+                    </a>
+                    <a href="javascript:void(0)" class="dash-nav admin-only" data-tab="categories" onclick="dashNavTab(event, 'categories')" id="nav-categories">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                        Kategorier
+                    </a>
+
+                    <div class="nav-group-title admin-only">Administration</div>
+                    <a href="javascript:void(0)" class="dash-nav admin-only" data-tab="team" onclick="dashNavTab(event, 'team')" id="nav-team">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        Team & Folk
+                    </a>
+                    <a href="javascript:void(0)" class="dash-nav admin-only" data-tab="procedures" onclick="dashNavTab(event, 'procedures')" id="nav-procedures">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        SOP / Procedurer
+                    </a>
+                    <a href="javascript:void(0)" class="dash-nav admin-only" data-tab="kpi" onclick="dashNavTab(event, 'kpi')" id="nav-kpi">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002 2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        KPI Dashboard
+                    </a>
+                    <a href="javascript:void(0)" class="dash-nav admin-only" data-tab="indstillinger" onclick="dashNavTab(event, 'indstillinger')" id="nav-indst">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        Indstillinger
+                    </a>
+
+                    <a href="javascript:void(0)" onclick="logout()" style="margin-top:auto; color:var(--danger); background: rgba(239, 68, 68, 0.1); border:none; padding:14px 18px; font-weight:700;">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        Log ud
+                    </a>
+                </nav>
             </aside>
-            
-            <div class="dash-main-container" id="dashMain">
-                <div class="dash-content">
-                <!-- DASHBOARD OVERVIEW -->
+
+            <main class="dash-main-container">
+                <header class="dash-header">
+                    <div>
+                        <h1 style="font-size:32px; font-weight:800; letter-spacing:-1px;">Velkommen, <span class="adminName">...</span></h1>
+                        <p style="color:var(--text-muted); font-weight:500;">Her er dit overblik over EasyON Hovedkvarteret</p>
+                    </div>
+                    <div style="display:flex; gap:12px;">
+                        <button class="btn-outline" onclick="dashNavTab(null, 'indstillinger')">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </button>
+                        <button class="btn-primary" onclick="openModal('modal-task', true)">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            Ny Opgave
+                        </button>
+                    </div>
+                </header>
+
+                <!-- TAB: OVERVIEW -->
                 <div id="dash-overview" class="dash-tab active">
-                    <div class="tab-header">
-                        <div>
-                            <h1>Velkommen tilbage, <span class="adminName">Admin</span>!</h1>
-                            <p>Her er det hurtige overblik over dagens drift.</p>
+                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:24px;">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background:#EFF6FF; color:#3B82F6;">­ƒôï</div>
+                            <div>
+                                <h3 style="font-size:12px; text-transform:uppercase; color:var(--text-muted); font-weight:800; letter-spacing:1px; margin-bottom:4px;">Aktive Opgaver</h3>
+                                <div style="font-size:32px; font-weight:800;" id="stat-active-tasks">0</div>
+                            </div>
                         </div>
-                        <div style="display:flex; gap:10px;">
-                            <button class="btn-primary" onclick="runEasyOnStressTest()" style="background: var(--danger); font-size:14px; padding:10px 20px; border-radius:12px;">🚀 Kør Stress Test (Fuld CRUD)</button>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background:#F0FDF4; color:#10B981;">­ƒª¥</div>
+                            <div>
+                                <h3 style="font-size:12px; text-transform:uppercase; color:var(--text-muted); font-weight:800; letter-spacing:1px; margin-bottom:4px;">Total Maskiner</h3>
+                                <div style="font-size:32px; font-weight:800;" id="stat-total-assets">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background:#FFF7ED; color:#F59E0B;">­ƒô©</div>
+                            <div>
+                                <h3 style="font-size:12px; text-transform:uppercase; color:var(--text-muted); font-weight:800; letter-spacing:1px; margin-bottom:4px;">Nye Anmodninger</h3>
+                                <div style="font-size:32px; font-weight:800;" id="stat-pending-requests">0</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="stats-grid">
-                        <div class="stat-card"><h3 id="stat-active-tasks">-</h3><p>Aktive opgaver</p></div>
-                        <div class="stat-card"><h3 id="stat-pending-requests">-</h3><p>Nye anmodninger</p></div>
-                        <div class="stat-card"><h3 id="stat-total-assets">-</h3><p>Aktive maskiner</p></div>
+
+                    <!-- Lyst til mere? Her er plads til grafer eller seneste aktivitet -->
+                    <div class="table-card" style="padding: 24px;">
+                        <h2 style="font-size:18px; font-weight:800; margin-bottom:16px;">Seneste Aktivitet</h2>
+                        <canvas id="chart-main" height="100" style="width:100%;"></canvas>
                     </div>
                 </div>
 
-                <!-- ARBEJDSORDRER (Main Ops) -->
+                <!-- TAB: TASKS -->
                 <div id="dash-tasks" class="dash-tab">
-                    <div class="tab-header">
-                        <div>
-                            <h1>Arbejdsordrer</h1>
-                            <p>Administrer og tildel vedligeholdelsesopgaver.</p>
-                        </div>
-                        <button class="btn-primary" onclick="openModal('modal-task', true)">+ Ny Opgave</button>
-                    </div>
-                    
-                    <div class="split-view-container">
-                        <div class="list-pane">
-                            <div class="list-pane-header">Alle Opgaver</div>
-                            <div id="tasksList" class="pane-content">
-                                <!-- Task cards rendered by JS -->
-                            </div>
-                        </div>
-                        <div class="detail-pane" id="taskDetailView">
-                            <div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:var(--text-muted); padding:40px;">
-                                <i class="icon" style="font-size:48px; margin-bottom:20px;">📋</i>
-                                <h3>Ingen opgave valgt</h3>
-                                <p>Vælg en opgave fra listen til venstre for at se detaljer.</p>
-                            </div>
+                    <div class="dash-header">
+                        <h2 style="font-size:24px; font-weight:800;">Alle Opgaver</h2>
+                        <div style="display:flex; gap:10px;">
+                            <input type="text" placeholder="S├©g opgaver..." style="padding:10px 16px; border-radius:10px; border:1px solid var(--border); width:280px;">
+                            <button class="btn-primary" onclick="openModal('modal-task', true)">+ Ny</button>
                         </div>
                     </div>
-                </div>
-
-                <!-- ANMODNINGER -->
-                <div id="dash-requests" class="dash-tab">
-                    <div class="tab-header">
-                        <div>
-                            <h1>Vedligeholdelses-anmodninger</h1>
-                            <p>Gennemse og godkend indkomne fejlmeldinger.</p>
-                        </div>
-                        <button class="btn-primary" onclick="openModal('modal-request', true)">+ Ny Anmodning</button>
-                    </div>
-                    
-                    <div class="split-view-container">
-                        <div class="list-pane">
-                            <div class="list-pane-header">Indkomne Anmodninger</div>
-                            <div id="requestsList" class="pane-content">
-                                <!-- Request cards rendered by JS -->
-                            </div>
-                        </div>
-                        <div class="detail-pane" id="requestDetailView">
-                            <div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:var(--text-muted); padding:40px;">
-                                <i class="icon" style="font-size:48px; margin-bottom:20px;">📥</i>
-                                <h3>Ingen anmodning valgt</h3>
-                                <p>Vælg en anmodning fra listen til venstre for at behandle den.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- STATISTIK / RAPPORTERING -->
-                <div id="dash-statistics" class="dash-tab">
-                    <div class="tab-header">
-                        <div>
-                            <h1>Rapportering & KPI</h1>
-                            <p>Visualiser din vedligeholdelsesdata og effektivitet.</p>
-                        </div>
-                    </div>
-                    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px;">
-                        <div class="chart-card" id="card-svartid" style="height: 300px;"><h4>Svartid</h4><canvas id="chartSvartid"></canvas></div>
-                        <div class="chart-card" id="card-materiale" style="height: 300px;"><h4>Materialeomkostninger</h4><canvas id="chartMateriale"></canvas></div>
-                        <div class="chart-card" id="card-maskin" style="height: 300px;"><h4>Maskinstilstand</h4><canvas id="chartMaskin"></canvas></div>
-                        <div class="chart-card" id="card-fordeling" style="height: 300px;"><h4>Opgavefordeling</h4><canvas id="chartFordeling"></canvas></div>
-                        
-                        <div id="no-kpi-msg" class="chart-card hidden" style="grid-column: 1 / -1; text-align: center; padding: 50px;">
-                            <p class="text-muted">Ingen målepunkter er slået til. Gå til Fundament -> Målepunkter for at vælge data.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- FUNDAMENT: ASSETS -->
-                <div id="dash-assets" class="dash-tab">
-                    <div class="tab-header">
-                        <div>
-                            <h1>Maskiner & Assets</h1>
-                            <p>Hold styr på alt dit udstyr og deres tilstand.</p>
-                        </div>
-                        <button class="btn-primary admin-only" onclick="openModal('modal-asset', true)">+ Opret Asset</button>
-                    </div>
-                    <div class="table-container">
-                        <table id="assetsTable">
+                    <div class="table-card">
+                        <table>
                             <thead>
-                                <tr>
-                                    <th>Navn</th>
-                                    <th>Lokation</th>
-                                    <th>Handling</th>
-                                </tr>
+                                <tr><th>Titel</th><th>Maskine</th><th>Prioritet</th><th>Kategori</th><th>Handling</th></tr>
+                            </thead>
+                            <tbody id="tasksBody">
+                                <tr><td colspan="5" style="text-align:center; padding:40px;">Indl├ªser opgaver...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB: ASSETS -->
+                <div id="dash-assets" class="dash-tab">
+                    <div class="dash-header">
+                        <h2 style="font-size:24px; font-weight:800;">Maskiner & Assets</h2>
+                        <button class="btn-primary" onclick="openModal('modal-asset', true)">+ Ny Maskine</button>
+                    </div>
+                    <div class="table-card">
+                        <table>
+                            <thead>
+                                <tr><th>Navn</th><th>Lokation</th><th>Handling</th></tr>
                             </thead>
                             <tbody id="assetsBody"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- FUNDAMENT: LOKATIONER -->
-                <div id="dash-locations" class="dash-tab">
-                    <div class="tab-header">
-                        <div>
-                            <h1>Lokationer</h1>
-                            <p>Organiser dine maskiner efter fysisk placering.</p>
-                        </div>
-                        <button class="btn-primary admin-only" onclick="openModal('modal-location', true)">+ Ny Lokation</button>
+                <!-- TAB: TEAM -->
+                <div id="dash-team" class="dash-tab">
+                    <div class="dash-header">
+                        <h2 style="font-size:24px; font-weight:800;">Medarbejdere</h2>
+                        <button class="btn-primary" onclick="openModal('modal-team', true)">+ Tilf├©j Medlem</button>
                     </div>
-                    <div class="table-container">
-                        <table id="locationsTable">
-                            <thead><tr><th>Navn</th><th>Beskrivelse</th><th>Handling</th></tr></thead>
+                    <div class="table-card">
+                        <table>
+                            <thead>
+                                <tr><th>Navn</th><th>Medarbejder nr.</th><th>Rolle</th><th>Handling</th></tr>
+                            </thead>
+                            <tbody id="teamBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB: LOKATIONER -->
+                <div id="dash-locations" class="dash-tab">
+                    <div class="dash-header">
+                        <h2 style="font-size:24px; font-weight:800;">Lokationer</h2>
+                        <button class="btn-primary" onclick="openModal('modal-location', true)">+ Ny Lokation</button>
+                    </div>
+                    <div class="table-card">
+                        <table>
+                            <thead>
+                                <tr><th>Navn</th><th>Beskrivelse</th><th>Handling</th></tr>
+                            </thead>
                             <tbody id="locationsBody"></tbody>
                         </table>
                     </div>
                 </div>
-                
-                <!-- FUNDAMENT: LAGER -->
-                <div id="dash-lager" class="dash-tab">
-                    <div class="tab-header">
-                        <div>
-                            <h1>Lager & Reservedele</h1>
-                            <p>Styr dit lager, SSCC-koder og automatiske indkøb.</p>
-                        </div>
-                        <button class="btn-primary admin-only" onclick="openModal('modal-lager', true)">+ Tilføj Lagervare</button>
+
+                <!-- TAB: KATEGORIER -->
+                <div id="dash-categories" class="dash-tab">
+                    <div class="dash-header">
+                        <h2 style="font-size:24px; font-weight:800;">Kategorier</h2>
+                        <button class="btn-primary" onclick="openModal('modal-category', true)">+ Ny Kategori</button>
                     </div>
-                    <div class="table-container">
-                        <table id="lagerTable">
+                    <div class="table-card">
+                        <table>
                             <thead>
-                                <tr>
-                                    <th>Varenavn</th>
-                                    <th>Lokation</th>
-                                    <th>Beholdning</th>
-                                    <th>Min.</th>
-                                    <th>Bar-/SSCC-kode</th>
-                                    <th>Handling</th>
-                                </tr>
+                                <tr><th>Navn</th><th>Farve</th><th>Oprettet</th><th>Handling</th></tr>
+                            </thead>
+                            <tbody id="categoriesBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB: LAGER -->
+                <div id="dash-lager" class="dash-tab">
+                    <div class="dash-header">
+                        <h2 style="font-size:24px; font-weight:800;">Lager & Reservedele</h2>
+                        <button class="btn-primary" onclick="openModal('modal-lager', true)">+ Tilf├©j Vare</button>
+                    </div>
+                    <div class="table-card">
+                        <table>
+                            <thead>
+                                <tr><th>Navn</th><th>Placering</th><th>Lager</th><th>Min.</th><th>Stregkode</th><th>Handling</th></tr>
                             </thead>
                             <tbody id="lagerBody"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- FUNDAMENT: TEAM -->
-                <div id="dash-team" class="dash-tab">
-                    <script>
-                    async function editTeam(id) {
-                        const { data } = await supabaseClient.from('brugere').select('*').eq('id', id).maybeSingle();
-                        if (data) {
-                            document.getElementById('teamId').value = data.id;
-                            document.getElementById('teamName').value = data.navn || '';
-                            document.getElementById('teamNr').value = data.arbejdsnummer || '';
-                            document.getElementById('teamRolle').value = data.rolle || 'tekniker';
-                            document.getElementById('teamPin').value = data.adgangskode || '';
-                            openModal('modal-team');
-                        }
-                    }
-                    </script>
-                    <div class="tab-header">
-                        <div>
-                            <h1>Medarbejdere & Teams</h1>
-                            <p>Administrer dine teknikere og deres adgang.</p>
-                        </div>
-                        <button class="btn-primary" onclick="openModal('modal-team', true)">+ Tilføj Medlem</button>
-                    </div>
-                    <div class="table-container">
-                        <table id="teamTable">
-                            <thead><tr><th>Navn</th><th>Nr.</th><th>Rolle</th><th>Handling</th></tr></thead>
-                            <tbody id="teamBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- FUNDAMENT: KATEGORIER -->
-                <div id="dash-categories" class="dash-tab">
-                    <div class="tab-header">
-                        <div>
-                            <h1>Opgave-kategorier</h1>
-                            <p>Klassificer dine arbejdsordrer for bedre rapportering.</p>
-                        </div>
-                        <button class="btn-primary" onclick="openModal('modal-category', true)">+ Ny Kategori</button>
-                    </div>
-                    <div class="table-container">
-                        <table id="categoriesTable">
-                            <thead><tr><th>Navn</th><th>Farve</th><th>Oprettet</th><th>Handling</th></tr></thead>
-                            <tbody id="categoriesBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- FUNDAMENT: KPI & MÅLEPUNKTER -->
-                <div id="dash-kpi" class="dash-tab">
-                    <div class="tab-header">
-                        <div>
-                            <h1>Målepunkter & KPI Definitioner</h1>
-                            <p>Vælg hvilke data dit system skal prioritere og måle på.</p>
-                        </div>
-                        <button class="btn-primary" onclick="saveKpiSettings()">Gem KPI Konfiguration</button>
-                    </div>
-                    <div class="auth-card" style="margin: 30px 0; text-align: left; max-width: 100%;">
-                        <div class="input-group flex-between">
-                            <div><h4 style="margin:0;">Svartid (Response Time)</h4><p class="text-muted" style="margin:0; font-size:13px;">Mål hvor hurtigt teknikere reagerer på nye anmodninger.</p></div>
-                            <label class="switch"><input type="checkbox" id="kpi_svartid" checked><span class="slider"></span></label>
-                        </div>
-                        <div class="input-group flex-between">
-                            <div><h4 style="margin:0;">Materialeforbrug & Omkostninger</h4><p class="text-muted" style="margin:0; font-size:13px;">Spor værdien af reservedele brugt pr. maskine.</p></div>
-                            <label class="switch"><input type="checkbox" id="kpi_materiale" checked><span class="slider"></span></label>
-                        </div>
-                        <div class="input-group flex-between">
-                            <div><h4 style="margin:0;">Maskinstilstand (OEE/MTBF)</h4><p class="text-muted" style="margin:0; font-size:13px;">Beregn gennemsnitlig tid mellem nedbrud.</p></div>
-                            <label class="switch"><input type="checkbox" id="kpi_maskin" checked><span class="slider"></span></label>
-                        </div>
-                        <div class="input-group flex-between">
-                            <div><h4 style="margin:0;">Opgavefordeling pr. Tekniker</h4><p class="text-muted" style="margin:0; font-size:13px;">Vis statistik over hvem der udfører flest opgaver.</p></div>
-                            <label class="switch"><input type="checkbox" id="kpi_fordeling" checked><span class="slider"></span></label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SYSTEM: APP BUILDER -->
-                <div id="dash-indstillinger" class="dash-tab">
-                    <div class="tab-header">
-                        <div>
-                            <h1>App Builder (Admin Motor)</h1>
-                            <p>Konfigurer systemets kernefunktioner og workflows.</p>
-                        </div>
-                        <button class="btn-primary" onclick="saveIndstillinger()">Gem Indstillinger</button>
-                    </div>
-                    <div class="auth-card" style="margin: 30px 0; text-align: left; max-width: 100%;">
-                        <div class="input-group flex-between">
-                            <div>
-                                <h4 style="margin:0;">Gennemsyn af anmodninger (Review)</h4>
-                                <p class="text-muted" style="margin:0; font-size:13px;">Skal en admin godkende anmodninger før de bliver til opgaver?</p>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="kraever_review">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="input-group flex-between">
-                            <div><h4 style="margin:0;">Vis Lokationer i App</h4></div>
-                            <label class="switch"><input type="checkbox" id="set_lokationer" checked><span class="slider"></span></label>
-                        </div>
-                        <div class="input-group flex-between">
-                            <div><h4 style="margin:0;">Vis SOP/Manualer</h4></div>
-                            <label class="switch"><input type="checkbox" id="set_sop" checked><span class="slider"></span></label>
-                        </div>
-                        <div class="input-group flex-between">
-                            <div><h4 style="margin:0;">Krav om billed-dokumentation</h4><p class="text-muted" style="margin:0; font-size:13px;">Skal teknikere dokumentere hver opgave med et foto?</p></div>
-                            <label class="switch"><input type="checkbox" id="set_billede"><span class="slider"></span></label>
-                        </div>
-                        <div class="input-group" style="margin-top:20px;">
-                            <label>App Tema Farve</label>
-                            <div style="display:flex; gap:10px; margin-top:5px;">
-                                <input type="color" id="set_farve" value="#3B82F6" style="width:50px; height:40px; padding:0; border:none; cursor:pointer;">
-                                <p class="text-muted" style="font-size:13px;">Vælg din firmas signaturfarve til mobilappen.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- NY: DISTRIBUTIONS CENTER -->
-                    <div class="tab-header" style="margin-top: 50px;">
-                        <div>
-                            <h1>App Udrulning & Deling</h1>
-                            <p>Gør det nemt for dit team at hente appen med det samme.</p>
-                        </div>
-                    </div>
-                    <div class="auth-card" style="margin: 20px 0; display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap; text-align: left; max-width: 100%;">
-                        <!-- QR Kode Sektion (Temporarily disabled due to external API timeout) -->
-                        <div style="flex: 0 0 160px; background: #eeeff3; padding: 10px; border-radius: 12px; text-align: center; display: flex; align-items: center; justify-content: center; flex-direction: column; min-height: 150px; border: 2px dashed var(--border-color);">
-                            <div style="font-size: 24px; margin-bottom: 5px;">📲</div>
-                            <p style="color: #64748b; font-size: 11px; font-weight: bold; line-height: 1.2;">HENT APP VIA<br>LINKET HERVED</p>
-                        </div>
-
-                        <!-- Delings Sektion -->
-                        <div style="flex: 1; min-width: 250px;">
-                            <h4 style="margin: 0 0 10px 0;">Send download-link til teamet</h4>
-                            <p class="text-muted" style="font-size: 13px; margin: 0 0 15px 0;">Indtast en e-mail adresse for at sende et direkte link til installationsfilen (APK).</p>
-                            
-                            <div style="display: flex; gap: 10px;">
-                                <input type="email" id="share-email" placeholder="navn@firma.dk" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: white;">
-                                <button class="btn-primary" onclick="sendAppLinkEmail()">Send Link</button>
-                            </div>
-
-                            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 25px 0;">
-
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <button class="btn-outline" onclick="copyAppLink()" style="font-size: 13px;">🔗 Kopier Download Link</button>
-                                <a href="easyon-app.apk" class="btn-outline" style="font-size: 13px; text-decoration: none; color: inherit;">📥 Hent APK direkte</a>
-                            </div>
-                        </div>
-                    </div>
-                </div> <!-- indstillinger -->
-
-                <!-- SYSTEM: PROCEDURE LIBRARY (REPLACEMENT) -->
+                <!-- TAB: PROCEDURER -->
                 <div id="dash-procedures" class="dash-tab">
-                    <div class="tab-header">
-                        <div>
-                            <h1>Procedure Library</h1>
-                            <p>Opret og administrer dine professionelle SOP'er og vejledninger.</p>
-                        </div>
-                        <button class="btn-primary" onclick="startNewSopFlow()">+ New Procedure Template</button>
+                    <div class="dash-header">
+                        <h2 style="font-size:24px; font-weight:800;">SOP Bibliotek</h2>
+                        <button class="btn-primary" onclick="startNewSopFlow()">+ Opret SOP</button>
                     </div>
-                    
-                    <div class="sop-library-container">
-                        <!-- Left: Template List -->
-                        <div class="sop-list-pane" id="sopTemplateList">
-                            <div style="padding:20px; text-align:center;" class="text-muted">Indlæser bibliotek...</div>
+                    <div style="display:grid; grid-template-columns: 320px 1fr; gap:32px; height:600px;">
+                        <div class="table-card" style="padding:16px; display:flex; flex-direction:column; gap:12px;" id="sopTemplateList"></div>
+                        <div class="table-card" id="sopLibraryPreview" style="background:#F8FAFC;">
+                             <div style="height:100%; display:flex; align-items:center; justify-content:center; color:var(--text-muted); text-align:center; padding:40px;">
+                                 V├ªlg en procedure til venstre for at se detaljer
+                             </div>
                         </div>
-                        
-                        <!-- Right: Quick Preview / Details -->
-                        <div class="sop-preview-pane" id="sopLibraryPreview">
-                            <div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:var(--text-muted);">
-                                <i class="icon" style="font-size:48px; margin-bottom:20px;">📄</i>
-                                <h3>Vælg en procedure</h3>
-                                <p>Vælg fra listen til venstre for at se detaljer eller redigere.</p>
-                            </div>
-                        </div>
-                    </div> <!-- sop-library-container -->
-                </div> <!-- dash-procedures -->
-            </div> <!-- dash-content -->
-        </div> <!-- dash-main-container -->
-    </section>
-</main>
-
-    <!-- MODAL SYSTEM -->
-    <div id="modal-overlay" class="modal-overlay hidden" onclick="closeAllModals()"></div>
-
-    <!-- MODAL: WORK ORDER (ADVANCED MOBILE PARITY) -->
-    <div id="modal-task" class="modal-card hidden" style="max-width: 900px;">
-        <div class="modal-header"><h3>Arbejdsordre (Master Edit)</h3></div>
-        <form onsubmit="handleTaskSubmit(event)" id="taskForm">
-            <input type="hidden" id="taskId">
-            <div class="input-row">
-                <div class="input-group" style="flex: 2;"><label>Titel</label><input type="text" id="taskTitle" required placeholder="F.eks. Lækage på transportør"></div>
-                <div class="input-group" style="flex: 1;"><label>Prioritet</label>
-                    <select id="taskPriority">
-                        <option value="1">🟢 Lav</option>
-                        <option value="2" selected>🟡 Medium</option>
-                        <option value="3">🟠 Høj / Vigtig</option>
-                        <option value="4">🔴 Kritisk / Nedbrud</option>
-                    </select>
+                    </div>
                 </div>
-            </div>
+
+                <!-- TAB: KPI -->
+                <div id="dash-kpi" class="dash-tab">
+                    <div class="dash-header">
+                        <h2 style="font-size:24px; font-weight:800;">KPI Konfiguration</h2>
+                        <button class="btn-primary" onclick="saveKpiSettings()">Gem Indstillinger</button>
+                    </div>
+                    <div class="table-card" style="padding:40px; max-width:600px;">
+                        <div class="input-group" style="display:flex; align-items:center; gap:16px;">
+                            <input type="checkbox" id="kpi_svartid" style="width:24px; height:24px;">
+                            <label style="margin:0;">Vis gennemsnitlig svartid</label>
+                        </div>
+                        <div class="input-group" style="display:flex; align-items:center; gap:16px;">
+                            <input type="checkbox" id="kpi_materiale" style="width:24px; height:24px;">
+                            <label style="margin:0;">Vis materialeforbrug (lager)</label>
+                        </div>
+                        <div class="input-group" style="display:flex; align-items:center; gap:16px;">
+                            <input type="checkbox" id="kpi_maskin" style="width:24px; height:24px;">
+                            <label style="margin:0;">Vis maskinstilstand (OEE estimat)</label>
+                        </div>
+                        <div class="input-group" style="display:flex; align-items:center; gap:16px;">
+                            <input type="checkbox" id="kpi_fordeling" style="width:24px; height:24px;">
+                            <label style="margin:0;">Vis opgavefordeling pr. tekniker</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: INDSTILLINGER -->
+                <div id="dash-indstillinger" class="dash-tab">
+                    <div class="dash-header">
+                        <h2 style="font-size:24px; font-weight:800;">Firma Indstillinger</h2>
+                        <button class="btn-primary" onclick="saveIndstillinger()">Gem Alt</button>
+                    </div>
+                    <!-- Form her -->
+                </div>
+
+            </main>
+        </section>
+
+        <!-- MODAL OVERLAY -->
+        <div id="modal-overlay" class="hidden" onclick="if(event.target==this)closeAllModals()">
             
-            <div class="input-row">
-                <div class="input-group">
-                    <label>Frist / Deadline</label>
-                    <input type="date" id="taskDueDate">
-                </div>
-                <div class="input-group">
-                    <label>Kategorier (Vælg én eller flere)</label>
-                    <div class="tag-input-container" id="taskTagContainer">
-                        <!-- Tags rendered here -->
-                        <input type="text" class="tag-input-field" placeholder="Søg kategori..." 
-                               oninput="handleTagInput(this, 'task')" 
-                               onfocus="handleTagInput(this, 'task')"
-                               onkeydown="handleTagKeydown(event, 'task')">
-                        <div class="tag-suggestions hidden" id="taskTagSuggestions"></div>
+            <!-- MODAL: TASK -->
+            <div id="modal-task" class="modal-card hidden">
+                <span class="close-modal" onclick="closeAllModals()">✕</span>
+                <h2>Opret Opgave</h2>
+                <p>Udfyld detaljerne for den nye vedligeholdelsesopgave.</p>
+                <form onsubmit="handleTaskSubmit(event)">
+                    <input type="hidden" id="taskId">
+                    <div class="input-group">
+                        <label>Titel</label>
+                        <input type="text" id="taskTitle" required placeholder="F.eks. Service på CNC-fræser">
                     </div>
-                    <input type="hidden" id="taskCategoryIds" value="[]">
-                </div>
-            </div>
-
-            <div class="input-row">
-                <div class="input-group">
-                    <label>Lokation</label>
-                    <select id="taskLocation" onchange="filterAssetsByLocation()"></select>
-                </div>
-                <div class="input-group">
-                    <label>Asset / Maskine</label>
-                    <select id="taskAsset"></select>
-                </div>
-            </div>
-
-            <div class="input-row">
-                <div class="input-group">
-                    <label>SOP / Procedure</label>
-                    <select id="taskSop"></select>
-                </div>
-                <div class="input-group">
-                    <label>Opgave-Status</label>
-                    <select id="taskStatus">
-                        <option value="Venter">⚪ Venter</option>
-                        <option value="I gang" selected>🔵 I gang</option>
-                        <option value="Færdig">🟢 Færdig</option>
-                        <option value="Sat på pause">🟡 Sat på pause</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="input-row">
-                <div class="input-group">
-                    <label>Tildelt til</label>
-                    <select id="taskAssignee"></select>
-                </div>
-            </div>
-
-            <div class="input-group"><label>Beskrivelse</label><textarea id="taskDesc" rows="3" placeholder="Uddybende instruktioner til teknikeren..."></textarea></div>
-
-            <div class="input-group">
-                <label>Billed-Dokumentation</label>
-                <div style="border: 2px dashed var(--border); border-radius: 16px; padding: 30px; text-align: center; background: #F8FAFC;">
-                    <input type="file" id="taskPhoto" accept="image/*" style="display:none;" onchange="handleTaskPhotoPreview(this)">
-                    <div id="photoPlaceholder" style="cursor: pointer;" onclick="document.getElementById('taskPhoto').click()">
-                        <i class="icon" style="font-size: 32px; display: block; margin-bottom: 10px;">📸</i>
-                        <span style="font-weight: 700; color: var(--primary);">Tilføj billede</span>
-                        <p class="text-muted" style="font-size: 12px; margin-top: 5px;">Hent fra din computer eller tag et nyt</p>
+                    <div class="input-group">
+                        <label>Beskrivelse</label>
+                        <textarea id="taskDesc" style="width:100%; padding:14px; border-radius:12px; border:1px solid var(--border); height:120px;" placeholder="Hvad skal gøres?"></textarea>
                     </div>
-                    <div id="photoPreviewContainer" class="hidden" style="position: relative;">
-                        <img id="taskPhotoPreview" src="" style="max-height: 200px; border-radius: 12px; box-shadow: var(--shadow);">
-                        <button type="button" class="btn-outline" style="position: absolute; top: 10px; right: 10px; padding: 5px 10px; color: var(--danger); background: white;" onclick="removeTaskPhoto()">Slet</button>
+                    <div class="input-group">
+                        <label>Tildel Tekniker</label>
+                        <select id="taskAssignee" style="width:100%; padding:14px; border-radius:12px; border:1px solid var(--border);">
+                            <option value="">Vælg tekniker...</option>
+                        </select>
                     </div>
-                    <input type="hidden" id="taskPhotoUrl">
-                </div>
-            </div>
-
-            <button type="submit" class="btn-primary w-100" style="margin-top: 20px;">Gem Arbejdsordre</button>
-        </form>
-    </div>
-
-    <!-- MODAL: MAINTENANCE REQUEST (ADVANCED) -->
-    <div id="modal-request" class="modal-card hidden" style="max-width: 900px;">
-        <div class="modal-header"><h3>Ny Anmodning (Fejlmelding)</h3></div>
-        <form onsubmit="handleRequestSubmit(event)" id="requestForm">
-            <div class="input-row">
-                <div class="input-group" style="flex: 2;"><label>Hvad er fejlen?</label><input type="text" id="reqTitle" required placeholder="F.eks. Løsthængende kilerem"></div>
-                <div class="input-group" style="flex: 1;"><label>Prioritet</label>
-                    <select id="reqPriority">
-                        <option value="1">🟢 Lav / Info</option>
-                        <option value="2" selected>🟡 Medium / Snarest</option>
-                        <option value="3">🟠 Høj / Vigtig</option>
-                        <option value="4">🔴 Kritisk / Akut</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="input-row">
-                <div class="input-group">
-                    <label>Lokation</label>
-                    <select id="reqLocation" onchange="filterAssetsByLocation('req')"></select>
-                </div>
-                <div class="input-group">
-                    <label>Asset / Maskine</label>
-                    <select id="reqAsset"></select>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label>Kategorier</label>
-                <div class="tag-input-container" id="reqTagContainer">
-                    <input type="text" class="tag-input-field" placeholder="Søg kategori..." 
-                           oninput="handleTagInput(this, 'req')" 
-                           onfocus="handleTagInput(this, 'req')"
-                           onkeydown="handleTagKeydown(event, 'req')">
-                    <div class="tag-suggestions hidden" id="reqTagSuggestions"></div>
-                </div>
-                <input type="hidden" id="reqCategoryIds" value="[]">
-            </div>
-            <div class="input-group"><label>Uddybende tekst</label><textarea id="reqDesc" rows="3" placeholder="Beskriv fejlen så teknikeren ved hvad der skal gøres..."></textarea></div>
-
-            <div class="input-group">
-                <label>Billed-Dokumentation</label>
-                <div style="border: 2px dashed var(--border); border-radius: 16px; padding: 30px; text-align: center; background: #F8FAFC;">
-                    <input type="file" id="reqPhoto" accept="image/*" style="display:none;" onchange="handleRequestPhotoPreview(this)">
-                    <div id="reqPhotoPlaceholder" style="cursor: pointer;" onclick="document.getElementById('reqPhoto').click()">
-                        <i class="icon" style="font-size: 32px; display: block; margin-bottom: 10px;">📸</i>
-                        <span style="font-weight: 700; color: var(--primary);">Tilføj billede af fejlen</span>
-                        <p class="text-muted" style="font-size: 12px; margin-top: 5px;">Hjælp teknikeren med et foto</p>
+                    <div class="input-group">
+                        <label>Status</label>
+                        <select id="taskStatus" style="width:100%; padding:14px; border-radius:12px; border:1px solid var(--border);">
+                            <option value="Venter">Venter</option>
+                            <option value="I gang">I gang</option>
+                            <option value="Færdig">Færdig</option>
+                        </select>
                     </div>
-                    <div id="reqPhotoPreviewContainer" class="hidden" style="position: relative;">
-                        <img id="reqPhotoPreview" src="" style="max-height: 200px; border-radius: 12px; box-shadow: var(--shadow);">
-                        <button type="button" class="btn-outline" style="position: absolute; top: 10px; right: 10px; padding: 5px 10px; color: var(--danger); background: white;" onclick="removeRequestPhoto()">Slet</button>
+                    <button type="submit" class="btn-primary" style="width:100%;">Gem Opgave</button>
+                </form>
+            </div>
+
+            <!-- MODAL: ASSET -->
+            <div id="modal-asset" class="modal-card hidden">
+                <span class="close-modal" onclick="closeAllModals()">✕</span>
+                <h2>Ny Maskine / Asset</h2>
+                <p>Tilføj en ny maskine til jeres anlæg.</p>
+                <form onsubmit="handleAssetSubmit(event)">
+                    <input type="hidden" id="assetId">
+                    <div class="input-group">
+                        <label>Maskinnavn</label>
+                        <input type="text" id="assetName" required placeholder="F.eks. Kompressor A1">
                     </div>
-                    <input type="hidden" id="reqPhotoUrl">
-                </div>
-            </div>
-
-            <button type="submit" class="btn-primary w-100" style="margin-top: 20px;">Indsend Anmodning</button>
-        </form>
-    </div>
-
-    <!-- MODAL: CATEGORY -->
-    <div id="modal-category" class="modal-card hidden">
-        <div class="modal-header"><h3>Kategori</h3></div>
-        <form onsubmit="handleCategorySubmit(event)">
-            <input type="hidden" id="catId">
-            <div class="input-group"><label>Navn</label><input type="text" id="catName" required placeholder="f.eks. Mekanisk"></div>
-            <div class="input-group"><label>Farve</label><input type="color" id="catColor" value="#3b82f6" style="height:50px;"></div>
-            <button type="submit" class="btn-primary w-100">Gem Kategori</button>
-        </form>
-    </div>
-
-    <!-- MODAL: ASSET -->
-    <div id="modal-asset" class="modal-card hidden">
-        <div class="modal-header"><h3>Asset / Maskine</h3></div>
-        <form onsubmit="handleAssetSubmit(event)">
-            <input type="hidden" id="assetId">
-            <div class="input-group"><label>Navn (f.eks. Transportør 1)</label><input type="text" id="assetName" required></div>
-            <div class="input-group">
-                <label>Over-aktiv (Parent)</label>
-                <select id="assetParent" onchange="autoFillAssetLocation()">
-                    <option value="">- Ingen (Dette er hoved-aktivet) -</option>
-                </select>
-            </div>
-            <div class="input-group"><label>Lokation</label><select id="assetLoc" required></select></div>
-            <button type="submit" class="btn-primary w-100">Gem Asset</button>
-        </form>
-    </div>
-
-    <!-- MODAL: LOCATION -->
-    <div id="modal-location" class="modal-card hidden">
-        <div class="modal-header"><h3>Ny Lokation</h3></div>
-        <form onsubmit="handleLocationSubmit(event)">
-            <input type="hidden" id="locId">
-            <div class="input-group"><label>Navn</label><input type="text" id="locName" required placeholder="f.eks. Hal A"></div>
-            <div class="input-group"><label>Beskrivelse</label><input type="text" id="locDesc"></div>
-            <button type="submit" class="btn-primary w-100">Gem Lokation</button>
-        </form>
-    </div>
-
-    <!-- MODAL: LAGER -->
-    <div id="modal-lager" class="modal-card hidden">
-        <div class="modal-header"><h3>Lagervare / Reservedel</h3></div>
-        <form onsubmit="handleLagerSubmit(event)">
-            <input type="hidden" id="lagerId">
-            <div class="input-group"><label>Varenavn</label><input type="text" id="lagerNavn" required placeholder="f.eks. Leje 6205"></div>
-            <div class="input-group"><label>Lokation</label><input type="text" id="lagerLokation" placeholder="f.eks. Reol A1"></div>
-            <div style="display:flex; gap:10px;">
-                <div class="input-group" style="flex:1;"><label>Antal</label><input type="number" id="lagerAntal" required value="0"></div>
-                <div class="input-group" style="flex:1;"><label>Min.</label><input type="number" id="lagerMin" required value="5"></div>
-            </div>
-            <div class="input-group"><label>Stregkode / SSCC</label><input type="text" id="lagerCode" placeholder="Scan eller skriv"></div>
-            <button type="submit" class="btn-primary w-100">Gem Lagervare</button>
-        </form>
-    </div>
-
-    <!-- MODAL: TEAM -->
-    <div id="modal-team" class="modal-card hidden">
-        <div class="modal-header"><h3>Medarbejder / Teammedlem</h3></div>
-        <form onsubmit="handleTeamSubmit(event)">
-            <input type="hidden" id="teamId">
-            <div class="input-group"><label>Navn</label><input type="text" id="teamName" required></div>
-            <div class="input-group"><label>Arbejdsnummer (Login nr)</label><input type="text" id="teamNr" required></div>
-            <div class="input-group"><label>Rolle</label>
-                <select id="teamRolle">
-                    <option value="tekniker">Tekniker (App kun)</option>
-                    <option value="superbruger">Superbruger (Dashboard & App)</option>
-                    <option value="admin">Administrator (Fuld adgang)</option>
-                </select>
-            </div>
-            <div class="input-group"><label>PIN-kode (Login)</label><input type="password" id="teamPin" required placeholder="4 cifre"></div>
-            <button type="submit" class="btn-primary w-100">Gem Medarbejder</button>
-        </form>
-    </div>
-
-    <!-- MODAL: INDUSTRIAL SOP EDITOR (PROFESSIONAL REHAUL) -->
-    <div id="modal-sop" class="modal-card hidden">
-        <!-- Editor Header -->
-        <div class="modal-header" style="background: #FFF; border-bottom: 2px solid var(--border);">
-            <div style="display:flex; align-items:center; gap:20px;">
-                <button class="btn-outline" style="padding: 8px 15px;" onclick="closeAllModals()">← Back</button>
-                <h3 id="editorSopTitle">New Procedure Template</h3>
-            </div>
-            <div style="display:flex; gap:12px;">
-                <button class="btn-outline" id="btnSopPreviewToggle" onclick="toggleSopEditorPreview()">👁️ Full Preview</button>
-                <button class="btn-primary" onclick="saveSop()">Save Template</button>
-            </div>
-        </div>
-
-        <div class="modal-body">
-            <!-- Split-View Interface -->
-            <div class="sop-editor-container" id="sopEditorSplitView">
-                <!-- Left Sidebar: Step Navigation -->
-                <div class="sop-step-list-sidebar">
-                    <div class="sop-step-list-header">Steps</div>
-                    <div class="sop-step-items" id="sopStepNavList">
-                        <!-- Navigation items rendered by JS -->
+                    <div class="input-group">
+                        <label>Hoved-maskine (Valgfrit)</label>
+                        <select id="assetParent" onchange="autoFillAssetLocation()" style="width:100%; padding:14px; border-radius:12px; border:1px solid var(--border);">
+                            <option value="">- Ingen (Dette er hoved-aktivet) -</option>
+                        </select>
                     </div>
-                    <div style="padding: 20px; border-top: 1px solid var(--border);">
-                        <button class="btn-primary" style="width: 100%; border-radius: 12px; font-size: 13px;" onclick="showFieldDrawer()">+ Add Step</button>
+                    <div class="input-group">
+                        <label>Lokation</label>
+                        <select id="assetLoc" style="width:100%; padding:14px; border-radius:12px; border:1px solid var(--border);">
+                            <option value="">Vælg lokation...</option>
+                        </select>
                     </div>
-                </div>
+                    <button type="submit" class="btn-primary" style="width:100%;">Gem Maskine</button>
+                </form>
+            </div>
 
-                <!-- Center: Active Step Editor -->
-                <div class="sop-editor-workspace">
-                    <div id="sopEditorFields" style="width:100%; max-width:800px;">
-                        <div style="margin-bottom: 40px; border-bottom: 2px solid var(--border); padding-bottom:20px;">
-                            <input type="text" id="sopTitle" placeholder="Procedure Name (e.g. Brandslukker Eftersyn)" style="font-size: 32px; font-weight: 800; background: none; border: none; outline: none; color: var(--text-main); width: 100%;" oninput="updateSopPreview()">
-                            <textarea id="sopDesc" placeholder="Enter a brief overview of this procedure..." style="font-size: 16px; background: none; border: none; outline: none; color: var(--text-muted); width: 100%; margin-top:10px; min-height: 40px; resize: none; font-family:inherit;" oninput="updateSopPreview()"></textarea>
+            <!-- MODAL: TEAM -->
+            <div id="modal-team" class="modal-card hidden">
+                <span class="close-modal" onclick="closeAllModals()">✕</span>
+                <h2>Tilføj Team Medlem</h2>
+                <p>Opret en ny bruger profil i systemet.</p>
+                <form onsubmit="handleTeamSubmit(event)">
+                    <div class="input-group">
+                        <label>Fulde Navn</label>
+                        <input type="text" id="teamName" required placeholder="Peter Hansen">
+                    </div>
+                    <div class="input-group">
+                        <label>Medarbejder nr. (Login ID)</label>
+                        <input type="text" id="teamNr" required placeholder="1001">
+                    </div>
+                    <div class="input-group">
+                        <label>Rolle</label>
+                        <select id="teamRolle" style="width:100%; padding:14px; border-radius:12px; border:1px solid var(--border);">
+                            <option value="tekniker">Tekniker</option>
+                            <option value="superbruger">Superbruger</option>
+                            <option value="admin">Administrator</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>PIN-kode / Adgangskode</label>
+                        <input type="text" id="teamPin" required placeholder="1234">
+                    </div>
+                    <button type="submit" class="btn-primary" style="width:100%;">Opret Medarbejder</button>
+                </form>
+            </div>
+
+            <!-- MODAL: LOKATION -->
+            <div id="modal-location" class="modal-card hidden">
+                <span class="close-modal" onclick="closeAllModals()">✕</span>
+                <h2>Ny Lokation</h2>
+                <p>Tilføj en afdeling eller et område.</p>
+                <form onsubmit="handleLocationSubmit(event)">
+                    <div class="input-group">
+                        <label>Navn</label>
+                        <input type="text" id="locName" required placeholder="Hal 1, Kølelager etc.">
+                    </div>
+                    <div class="input-group">
+                        <label>Beskrivelse</label>
+                        <input type="text" id="locDesc" placeholder="Valgfri beskrivelse">
+                    </div>
+                    <button type="submit" class="btn-primary" style="width:100%;">Gem Lokation</button>
+                </form>
+            </div>
+
+            <!-- MODAL: KATEGORI -->
+            <div id="modal-category" class="modal-card hidden">
+                <span class="close-modal" onclick="closeAllModals()">✕</span>
+                <h2>Ny Kategori</h2>
+                <form onsubmit="handleCategorySubmit(event)">
+                    <div class="input-group">
+                        <label>Navn</label>
+                        <input type="text" id="catName" required placeholder="Elektrisk, Hydraulik...">
+                    </div>
+                    <div class="input-group">
+                        <label>Farve</label>
+                        <input type="color" id="catColor" style="height:50px; padding:2px;">
+                    </div>
+                    <button type="submit" class="btn-primary" style="width:100%;">Gem Kategori</button>
+                </form>
+            </div>
+
+            <!-- MODAL: LAGER -->
+            <div id="modal-lager" class="modal-card hidden">
+                <span class="close-modal" onclick="closeAllModals()">✕</span>
+                <h2>Reservedels Lager</h2>
+                <form onsubmit="handleLagerSubmit(event)">
+                    <input type="hidden" id="lagerId">
+                    <div class="input-group">
+                        <label>Varenavn</label>
+                        <input type="text" id="lagerNavn" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Placering (Tekst)</label>
+                        <input type="text" id="lagerLokation" placeholder="Hylde B-12">
+                    </div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                        <div class="input-group">
+                            <label>Antal på lager</label>
+                            <input type="number" id="lagerAntal" value="0">
                         </div>
-                        
-                        <div id="activeStepEditorContainer">
-                            <!-- The detailed editor for the SELECTED step goes here -->
-                            <div style="text-align:center; color:var(--text-muted); padding:60px 20px;">
-                                <i class="icon" style="font-size:48px; display:block; margin-bottom:20px;">📝</i>
-                                <h3>Select or add a step</h3>
-                                <p>Choose a step from the left to start editing its details.</p>
-                            </div>
+                        <div class="input-group">
+                            <label>Minimums beholdning</label>
+                            <input type="number" id="lagerMin" value="5">
                         </div>
                     </div>
-
-                    <!-- Preview View (Rendered dynamically) -->
-                    <div id="sopPreviewPane" class="hidden" style="width:100%;">
-                        <div id="sopFullPreviewContent" class="full-form-preview"></div>
+                    <div class="input-group">
+                        <label>SSCC / Stregkode</label>
+                        <input type="text" id="lagerCode">
                     </div>
+                    <button type="submit" class="btn-primary" style="width:100%;">Gem i Lager</button>
+                </form>
+            </div>
 
-                    <!-- Settings View -->
-                    <div id="sopEditorSettings" class="hidden" style="width:100%; max-width:600px;">
-                        <h4 style="margin-bottom:20px;">Procedure Configuration</h4>
-                        <div class="input-group"><label>Category</label><select id="sopCategory" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border);"></select></div>
-                        <div class="input-group" style="margin-top:15px;"><label>Asset Type</label><select id="sopAsset" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border);"></select></div>
-                    </div> <!-- sopEditorSettings -->
-                </div> <!-- sop-editor-workspace -->
-            </div> <!-- sop-editor-container / split-view -->
-        </div> <!-- modal-body -->
+            <!-- MODAL: SOP BUILDER -->
+            <div id="modal-sop" class="modal-card hidden">
+                <div style="padding:24px 40px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; background:white; border-radius:28px 28px 0 0;">
+                    <div>
+                        <h2 style="margin:0;">SOP Builder</h2>
+                        <div style="display:flex; gap:20px; margin-top:8px;">
+                             <input type="text" id="sopTitle" placeholder="Procedure Titel" style="font-size:20px; font-weight:800; border:none; outline:none; padding:0; background:transparent; width:300px;">
+                             <input type="text" id="sopDesc" placeholder="Kort beskrivelse..." style="font-size:14px; border:none; outline:none; padding:0; background:transparent; color:var(--text-muted); width:400px;">
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:12px;">
+                        <button class="btn-outline" onclick="closeAllModals()">Annuller</button>
+                        <button class="btn-primary" onclick="saveSop()">Gem Procedure</button>
+                    </div>
+                </div>
+                
+                <div class="sop-editor-layout">
+                    <aside class="sop-sidebar">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                            <h4 style="font-size:12px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">Trin & Kontrolpunkter</h4>
+                            <button class="btn-primary" style="padding:4px 8px; font-size:12px;" onclick="showFieldDrawer()">+ Tilføj</button>
+                        </div>
+                        <div id="sopStepNavList" style="flex:1; overflow-y:auto;">
+                            <!-- Dynamisk liste over trin -->
+                        </div>
+                    </aside>
+                    
+                    <main class="sop-main-editor" id="activeStepEditorContainer">
+                        <!-- Her redigeres det valgte trin -->
+                    </main>
 
-        <!-- Add Field Toolbar (Fixed Bottom - Now correctly inside Modal) -->
-        <div class="sop-floating-toolbar hidden" id="sopToolbar">
-            <button class="toolbar-item" onclick="addSopStep('heading')">
-                <span class="icon">Tt</span> Header
-            </button>
-            <button class="toolbar-item" onclick="addSopStep('section')">
-                <span class="icon">🍱</span> Section
-            </button>
-            <div style="width:1px; height:24px; background:var(--border); margin:0 8px;"></div>
-            <button class="toolbar-item primary shadow" onclick="showFieldDrawer()">
-                <span class="icon">＋</span> Add Field
-            </button>
+                    <div id="fieldTypeDrawer" class="hidden" style="position:absolute; left:324px; top:80px; background:white; border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-lg); padding:16px; z-index:100; display:grid; grid-template-columns:1fr 1fr; gap:8px; width:400px;">
+                        <button class="btn-outline" style="text-align:left; font-size:13px;" onclick="addSopStep('heading')">Overskrift</button>
+                        <button class="btn-outline" style="text-align:left; font-size:13px;" onclick="addSopStep('section')">Sektion</button>
+                        <button class="btn-outline" style="text-align:left; font-size:13px;" onclick="addSopStep('checkbox')">Afkrydsningsfelt</button>
+                        <button class="btn-outline" style="text-align:left; font-size:13px;" onclick="addSopStep('number')">Tal-input</button>
+                        <button class="btn-outline" style="text-align:left; font-size:13px;" onclick="addSopStep('photo')">Billed-dokumentation</button>
+                        <button class="btn-outline" style="text-align:left; font-size:13px;" onclick="addSopStep('choice')">Fler-valg</button>
+                    </div>
+                </div>
+            </div>
+
         </div>
+    </main>
 
-        <!-- Field Type Drawer (Also inside Modal) -->
-        <div id="fieldTypeDrawer" class="hidden">
-            <div class="drawer-btn" onclick="addSopStep('checkbox')">
-                <div class="icon">☑️</div>
-                <span>Checkbox</span>
-            </div>
-            <div class="drawer-btn" onclick="addSopStep('inspection')">
-                <div class="icon">🔍</div>
-                <span>Pass/Fail</span>
-            </div>
-            <div class="drawer-btn" onclick="addSopStep('number')">
-                <div class="icon">🔢</div>
-                <span>Measurement</span>
-            </div>
-            <div class="drawer-btn" onclick="addSopStep('text')">
-                <div class="icon">✍️</div>
-                <span>Description</span>
-            </div>
-            <div class="drawer-btn" onclick="addSopStep('photo')">
-                <div class="icon">📷</div>
-                <span>Photo Upload</span>
-            </div>
-            <div class="drawer-btn" onclick="addSopStep('choice')">
-                <div class="icon">🔘</div>
-                <span>Choice</span>
-            </div>
-        </div>
-    </div> <!-- modal-sop -->
-
-    <div id="snackbar" class="snackbar"></div>
-
-    <!-- SCRIPTS -->
-    <script src="config.js" defer></script>
-    <script src="app.js?v=12" defer></script>
-    <script src="stress_test.js" defer></script>
+    <script src="config.js"></script>
+    <script src="easyon-lite-v83.js"></script>
 </body>
 </html>
