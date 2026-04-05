@@ -299,11 +299,45 @@ function simulatePhotoUpload() {
     document.getElementById('taskPhotoInput').click();
 }
 
+let mainChartInstance = null;
 function loadCharts() {
     if (window.Chart) {
         document.querySelectorAll('canvas').forEach(canvas => {
-            if (canvas.id.startsWith('chart')) {
-                new Chart(canvas, { type: 'line', data: { labels: ['M','T','O','T','F','L','S'], datasets: [{label: 'Aktivitet', data: [10, 15, 8, 12, 11, 2, 1], borderColor: 'rgb(75, 192, 192)', tension: 0.1}] } });
+            if (canvas.id === 'chart-main') {
+                if (mainChartInstance) mainChartInstance.destroy();
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
+
+                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, 'rgba(37, 99, 235, 0.2)');
+                gradient.addColorStop(1, 'rgba(37, 99, 235, 0)');
+
+                mainChartInstance = new Chart(canvas, { 
+                    type: 'line', 
+                    data: { 
+                        labels: ['Man','Tir','Ons','Tor','Fre','Lør','Søn'], 
+                        datasets: [{
+                            label: 'Opgave Aktivitet', 
+                            data: [14, 18, 12, 21, 16, 4, 3], 
+                            borderColor: '#2563EB',
+                            borderWidth: 3,
+                            backgroundColor: gradient,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#2563EB'
+                        }] 
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { display: false },
+                            x: { grid: { display: false }, ticks: { color: '#94A3B8', font: { weight: '600' } } }
+                        }
+                    }
+                });
             }
         });
     }
