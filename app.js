@@ -25,6 +25,13 @@ if (window.location.protocol === 'file:') {
     }, 1000);
 }
 
+// Global fejlhåndtering (v10 Black Box)
+window.onerror = function(msg, url, line, col, error) {
+    console.error("[Global Error]:", msg, "at", url, ":", line);
+    showSnackbar("En fejl opstod: " + msg, 500);
+    return false; 
+};
+
 // ---------------- UI HELPERS ----------------
 function togglePassVisibility(id) {
     const input = document.getElementById(id);
@@ -327,7 +334,7 @@ async function nextWizard(step, btn) {
 async function loadDashboard(providedProfile = null, retryCount = 0) {
     if (isLoggingOut) return;
     
-    // GUARD: Undgå parallelle indlæsninger der stjæler Supabase-låse
+    // NUCLEAR GUARD: Undgå parallelle indlæsninger
     if (isDashboardLoading && !providedProfile) {
         console.warn("[Dashboard]: Indlæsning er allerede i gang. Afbryder dublet.");
         return;
@@ -335,6 +342,13 @@ async function loadDashboard(providedProfile = null, retryCount = 0) {
     
     try {
         isDashboardLoading = true;
+        
+        // TIDLIG AKTIVERING: Gør UI klikbart MED DET SAMME (v10 fix)
+        const savedRole = localStorage.getItem('easyon_user_role') || "";
+        isGlobalAdmin = savedRole.includes('admin') || currentUser?.email === 'asze@gmail.com' || currentUser?.email === 'peter@easyon.dk';
+        isSuperUser = isGlobalAdmin || savedRole.includes('superbruger') || savedRole.includes('tekniker');
+        updateNavbar(); 
+
         let profile = providedProfile;
         
         if (!profile && currentUser?.email) {
@@ -346,11 +360,10 @@ async function loadDashboard(providedProfile = null, retryCount = 0) {
                 .maybeSingle();
 
             if (error) {
-                // Hvis vi rammer en Lock-fejl, vent og prøv igen (op til 3 gange)
+                // LOCK-PROTECTION: Vent længere og reset ikke guard undervejs
                 if (retryCount < 3 && (error.message.includes('lock') || error.message.includes('Timeout'))) {
-                    console.warn("[Dashboard]: Database lockout. Prøver igen om 1.5 sek...");
-                    await new Promise(r => setTimeout(r, 1500));
-                    isDashboardLoading = false; // Nulstil så vi kan prøve igen
+                    console.warn("[Dashboard]: Database lockout. Prøver igen om 2 sek...");
+                    await new Promise(r => setTimeout(r, 2000));
                     return loadDashboard(null, retryCount + 1);
                 }
                 throw error;
@@ -359,21 +372,18 @@ async function loadDashboard(providedProfile = null, retryCount = 0) {
         }
 
         if (profile) {
-            console.log("[Dashboard]: Profil fundet. Initialiserer UI...");
+            console.log("[Dashboard]: Profil klar. Opdaterer UI...");
             currentFirmaId = profile.firma_id;
             const lowRole = (profile.rolle || "").toLowerCase();
             
-            // SÆT RETTIGHEDER (Kritisk for at knapper virker)
             isGlobalAdmin = lowRole.includes('admin') || currentUser?.email === 'asze@gmail.com' || currentUser?.email === 'peter@easyon.dk' || profile.rolle === 'admin.admin';
             isSuperUser = isGlobalAdmin || lowRole.includes('superbruger') || lowRole.includes('tekniker');
             
             if (currentFirmaId) localStorage.setItem('easyon_firma_id', currentFirmaId);
             localStorage.setItem('easyon_user_role', lowRole);
             
-            // 1. AKTIVER MENU (Gør siden klikbar!)
-            updateNavbar();
+            updateNavbar(); 
             
-            // 2. OPDATER NAVNE OG STATS
             const f = allCompanies.find(fc => fc.id === currentFirmaId);
             document.querySelectorAll('.adminName').forEach(el => el.innerText = profile.navn + " - " + (f?.navn || "EasyON"));
             
@@ -381,18 +391,11 @@ async function loadDashboard(providedProfile = null, retryCount = 0) {
                 el.classList.toggle('hidden', !isGlobalAdmin);
             });
 
-            // 3. VIS DASHBOARD OG HENT DATA
             showView('view-dashboard');
             updateDashboardStats();
-            fetchTasks();
-            fetchRequests();
-            fetchAssets();
-            fetchLocations();
-            fetchTeam();
-            fetchLager();
-            fetchCategories();
-            fetchIndstillinger();
-            fetchProcedures();
+            // Async fetches (blokerer ikke UI)
+            fetchTasks(); fetchRequests(); fetchAssets(); fetchLocations();
+            fetchTeam(); fetchLager(); fetchCategories(); fetchIndstillinger(); fetchProcedures();
             
             console.log("[Dashboard]: Dashboard er nu fuldt aktivt.");
         } else {
@@ -400,8 +403,8 @@ async function loadDashboard(providedProfile = null, retryCount = 0) {
             showView('view-wizard');
         }
     } catch (err) {
-        console.error("[Dashboard]: Kritisk fejl under indlæsning:", err);
-        showSnackbar("Forbindelsen blev afbrudt. Prøv venligst igen.", 500);
+        console.error("[Dashboard]: Kritisk fejl:", err);
+        showSnackbar("Opstart fejlede. Prøv venligst F5.", 500);
     } finally {
         isDashboardLoading = false;
     }
