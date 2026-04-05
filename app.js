@@ -15,6 +15,7 @@ let tagSuggestionIndex = -1; // Til keyboard-navigation
 let sopSteps = []; 
 let currentFirma = null;
 let isLoggingOut = false; // Afbryder til logout-løkker
+let isDashboardLoading = false; // Guard mod dobbelt-indlæsning og Lock-fejl
 
 // ---------------- SECURITY CHECK ----------------
 if (window.location.protocol === 'file:') {
@@ -326,7 +327,14 @@ async function nextWizard(step, btn) {
 async function loadDashboard(providedProfile = null, retryCount = 0) {
     if (isLoggingOut) return;
     
+    // GUARD: Undgå parallelle indlæsninger der stjæler Supabase-låse
+    if (isDashboardLoading && !providedProfile) {
+        console.warn("[Dashboard]: Indlæsning er allerede i gang. Afbryder dublet.");
+        return;
+    }
+    
     try {
+        isDashboardLoading = true;
         let profile = providedProfile;
         
         if (!profile && currentUser?.email) {
@@ -338,9 +346,11 @@ async function loadDashboard(providedProfile = null, retryCount = 0) {
                 .maybeSingle();
 
             if (error) {
+                // Hvis vi rammer en Lock-fejl, vent og prøv igen (op til 3 gange)
                 if (retryCount < 3 && (error.message.includes('lock') || error.message.includes('Timeout'))) {
-                    console.warn("[Dashboard]: Database lockout. Prøver igen om 1 sek...");
-                    await new Promise(r => setTimeout(r, 1000));
+                    console.warn("[Dashboard]: Database lockout. Prøver igen om 1.5 sek...");
+                    await new Promise(r => setTimeout(r, 1500));
+                    isDashboardLoading = false; // Nulstil så vi kan prøve igen
                     return loadDashboard(null, retryCount + 1);
                 }
                 throw error;
@@ -349,15 +359,21 @@ async function loadDashboard(providedProfile = null, retryCount = 0) {
         }
 
         if (profile) {
+            console.log("[Dashboard]: Profil fundet. Initialiserer UI...");
             currentFirmaId = profile.firma_id;
             const lowRole = (profile.rolle || "").toLowerCase();
             
-            isGlobalAdmin = lowRole.includes('admin') || currentUser?.email === 'asze@gmail.com' || currentUser?.email === 'peter@easyon.dk';
+            // SÆT RETTIGHEDER (Kritisk for at knapper virker)
+            isGlobalAdmin = lowRole.includes('admin') || currentUser?.email === 'asze@gmail.com' || currentUser?.email === 'peter@easyon.dk' || profile.rolle === 'admin.admin';
             isSuperUser = isGlobalAdmin || lowRole.includes('superbruger') || lowRole.includes('tekniker');
             
             if (currentFirmaId) localStorage.setItem('easyon_firma_id', currentFirmaId);
+            localStorage.setItem('easyon_user_role', lowRole);
             
-            // Opdater UI Profil Navn
+            // 1. AKTIVER MENU (Gør siden klikbar!)
+            updateNavbar();
+            
+            // 2. OPDATER NAVNE OG STATS
             const f = allCompanies.find(fc => fc.id === currentFirmaId);
             document.querySelectorAll('.adminName').forEach(el => el.innerText = profile.navn + " - " + (f?.navn || "EasyON"));
             
@@ -365,7 +381,7 @@ async function loadDashboard(providedProfile = null, retryCount = 0) {
                 el.classList.toggle('hidden', !isGlobalAdmin);
             });
 
-            // Start dataindlæsning
+            // 3. VIS DASHBOARD OG HENT DATA
             showView('view-dashboard');
             updateDashboardStats();
             fetchTasks();
@@ -377,17 +393,17 @@ async function loadDashboard(providedProfile = null, retryCount = 0) {
             fetchCategories();
             fetchIndstillinger();
             fetchProcedures();
+            
+            console.log("[Dashboard]: Dashboard er nu fuldt aktivt.");
         } else {
             console.warn("[Dashboard]: Ingen profil -> Wizard");
             showView('view-wizard');
         }
     } catch (err) {
-        console.error("[Dashboard]: Kritisk fejl:", err);
-        if (retryCount < 2) {
-            await new Promise(r => setTimeout(r, 2000));
-            return loadDashboard(null, retryCount + 1);
-        }
-        showSnackbar("Kunne ikke forbinde til din profil. Prøv at genindlæse (F5).");
+        console.error("[Dashboard]: Kritisk fejl under indlæsning:", err);
+        showSnackbar("Forbindelsen blev afbrudt. Prøv venligst igen.", 500);
+    } finally {
+        isDashboardLoading = false;
     }
 }
 
