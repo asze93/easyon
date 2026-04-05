@@ -573,15 +573,17 @@ async function loadDashboard(providedProfile = null) {
     } else { 
         // FALLBACK: Check LocalStorage if database is slow or offline
         const savedFirmaId = localStorage.getItem('easyon_firma_id');
-        const savedRole = localStorage.getItem('easyon_user_role') || "";
+        const savedRole = localStorage.getItem('easyon_user_role') || "bruger";
         
-        if (savedFirmaId && currentUser) {
+        if (savedFirmaId) {
             currentFirmaId = savedFirmaId;
             isGlobalAdmin = savedRole.includes('admin');
             isSuperUser = isGlobalAdmin || savedRole.includes('superbruger');
+            console.log("Login v83: Database timeout, using cached profile.");
         } else {
-            isGlobalAdmin = false;
-            isSuperUser = false; 
+            console.error("Login v83: No profile found, redirecting to auth.");
+            showView('auth');
+            return;
         }
     }
 
@@ -1339,6 +1341,24 @@ function autoFillAssetLocation() {
             document.getElementById('assetLoc').value = parent.lokation_id;
             // Valgfrit: Disable lokationsfeltet s├Ñ man ikke kan ├ªndre arven?
         }
+    }
+}
+
+async function fetchStats() {
+    if (!currentFirmaId) return;
+    try {
+        const { count: tasks } = await supabaseClient.from('opgaver').select('*', { count: 'exact', head: true }).eq('firma_id', currentFirmaId).eq('er_faerdig', false);
+        document.getElementById('stat-active-tasks').innerText = tasks || 0;
+        
+        const { count: assets } = await supabaseClient.from('assets').select('*', { count: 'exact', head: true }).eq('firma_id', currentFirmaId);
+        document.getElementById('stat-total-assets').innerText = assets || 0;
+
+        const { count: reqs } = await supabaseClient.from('anmodninger').select('*', { count: 'exact', head: true }).eq('firma_id', currentFirmaId).eq('status', 'ny');
+        document.getElementById('stat-pending-requests').innerText = reqs || 0;
+        
+        loadCharts();
+    } catch (e) {
+        console.warn("Stats fetch failed, using mock zeros:", e.message);
     }
 }
 
