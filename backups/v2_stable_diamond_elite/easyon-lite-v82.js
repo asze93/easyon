@@ -7,15 +7,10 @@ let kraeverAnmodningReview = true;
 let authMode = 'login'; 
 let currentFirmaId = null;
 let allCompanies = [];
+let allLocations = [];
+let allAssets = [];
 let sopSteps = []; // Trin i SOP Builder
 let currentFirma = null;
-
-// DIAMOND ELITE STATE
-let allCategories = [];
-let allAssets = [];
-let allLocations = [];
-let selectedTaskTags = [];
-let focusedSuggestionIndex = -1;
 
 // ---------------- UI HELPERS ----------------
 function togglePassVisibility(id) {
@@ -125,178 +120,9 @@ async function loadDashboardStats() {
         if (elReqs) elReqs.innerText = reqs || 0;
         
         loadCharts();
-        initDiamondElite(); // NEW: Load Elite Lookups
     } catch (err) {
         console.warn("Dashboard stats fetch failed:", err);
     }
-}
-
-async function initDiamondElite() {
-    if (!currentFirmaId) return;
-    const { data: cats } = await supabaseClient.from('kategorier').select('*').eq('firma_id', currentFirmaId).order('navn');
-    allCategories = cats || [];
-    
-    const { data: assets } = await supabaseClient.from('assets').select('*, lokationer(navn)').eq('firma_id', currentFirmaId).order('navn');
-    allAssets = assets || [];
-    
-    const { data: locs } = await supabaseClient.from('lokationer').select('*').eq('firma_id', currentFirmaId).order('navn');
-    allLocations = locs || [];
-
-    setupEliteEventListeners();
-}
-
-function setupEliteEventListeners() {
-    // Autocomplete for Categories
-    const catInput = document.getElementById('categoryTagInput');
-    if (catInput) {
-        catInput.addEventListener('focus', () => showSuggestions('category', catInput.value));
-        catInput.addEventListener('input', (e) => showSuggestions('category', e.target.value));
-        catInput.addEventListener('keydown', (e) => handleSuggestionKey(e, 'category'));
-    }
-
-    // Autocomplete for Assets
-    const assetInput = document.getElementById('taskAssetSearch');
-    if (assetInput) {
-        assetInput.addEventListener('focus', () => showSuggestions('asset', assetInput.value));
-        assetInput.addEventListener('input', (e) => showSuggestions('asset', e.target.value));
-        assetInput.addEventListener('keydown', (e) => handleSuggestionKey(e, 'asset'));
-    }
-
-    // Autocomplete for Locations
-    const locInput = document.getElementById('taskLocSearch');
-    if (locInput) {
-        locInput.addEventListener('focus', () => showSuggestions('location', locInput.value));
-        locInput.addEventListener('input', (e) => showSuggestions('location', e.target.value));
-        locInput.addEventListener('keydown', (e) => handleSuggestionKey(e, 'location'));
-    }
-
-    // Close suggestions on click outside
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.tag-container')) {
-            document.querySelectorAll('.suggestion-list').forEach(el => el.classList.remove('show'));
-        }
-    });
-}
-
-function showSuggestions(type, query) {
-    let results = [];
-    let listEl;
-    let onSelect;
-
-    if (type === 'category') {
-        results = allCategories.filter(c => c.navn.toLowerCase().includes(query.toLowerCase()) && !selectedTaskTags.includes(c.navn));
-        listEl = document.getElementById('categorySuggestions');
-        onSelect = (item) => addCategoryTag(item.navn);
-    } else if (type === 'asset') {
-        results = allAssets.filter(a => a.navn.toLowerCase().includes(query.toLowerCase()));
-        listEl = document.getElementById('assetSuggestions');
-        onSelect = (item) => {
-            document.getElementById('taskAssetSearch').value = item.navn;
-            document.getElementById('taskAssetId').value = item.id;
-            if (item.lokation_id) {
-                const loc = allLocations.find(l => l.id === item.lokation_id);
-                if (loc) {
-                    document.getElementById('taskLocSearch').value = loc.navn;
-                    document.getElementById('taskLocId').value = loc.id;
-                }
-            }
-            listEl.classList.remove('show');
-        };
-    } else if (type === 'location') {
-        results = allLocations.filter(l => l.navn.toLowerCase().includes(query.toLowerCase()));
-        listEl = document.getElementById('locationSuggestions');
-        onSelect = (item) => {
-            document.getElementById('taskLocSearch').value = item.navn;
-            document.getElementById('taskLocId').value = item.id;
-            listEl.classList.remove('show');
-        };
-    }
-
-    if (!listEl) return;
-    if (results.length === 0) {
-        listEl.classList.remove('show');
-        return;
-    }
-
-    listEl.innerHTML = '';
-    focusedSuggestionIndex = -1;
-    results.forEach((item, idx) => {
-        const div = document.createElement('div');
-        div.className = 'suggestion-item';
-        div.innerText = item.navn;
-        div.onclick = () => onSelect(item);
-        listEl.appendChild(div);
-    });
-    listEl.classList.add('show');
-}
-
-function handleSuggestionKey(e, type) {
-    const listEl = document.getElementById(`${type === 'category' ? 'category' : type === 'asset' ? 'asset' : 'location'}Suggestions`);
-    if (!listEl || !listEl.classList.contains('show')) return;
-
-    const items = listEl.querySelectorAll('.suggestion-item');
-    if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        focusedSuggestionIndex = (focusedSuggestionIndex + 1) % items.length;
-        updateSelectedSuggestion(items);
-    } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        focusedSuggestionIndex = (focusedSuggestionIndex - 1 + items.length) % items.length;
-        updateSelectedSuggestion(items);
-    } else if (e.key === 'Enter') {
-        e.preventDefault();
-        if (focusedSuggestionIndex > -1) items[focusedSuggestionIndex].click();
-        else if (type === 'category') {
-            const val = e.target.value.trim();
-            if (val) addCategoryTag(val);
-        }
-    }
-}
-
-function updateSelectedSuggestion(items) {
-    items.forEach((item, idx) => item.classList.toggle('selected', idx === focusedSuggestionIndex));
-}
-
-function addCategoryTag(name) {
-    if (!selectedTaskTags.includes(name)) {
-        selectedTaskTags.push(name);
-        renderTaskTags();
-    }
-    const input = document.getElementById('categoryTagInput');
-    input.value = '';
-    document.getElementById('categorySuggestions').classList.remove('show');
-}
-
-function removeCategoryTag(name) {
-    selectedTaskTags = selectedTaskTags.filter(t => t !== name);
-    renderTaskTags();
-}
-
-function renderTaskTags() {
-    const container = document.getElementById('categoryTagContainer');
-    const input = document.getElementById('categoryTagInput');
-    if (!container || !input) return;
-
-    // Remove existing tags
-    container.querySelectorAll('.tag').forEach(el => el.remove());
-
-    selectedTaskTags.forEach(name => {
-        const tag = document.createElement('div');
-        tag.className = 'tag';
-        tag.innerHTML = `${name} <span onclick="removeCategoryTag('${name}')">✕</span>`;
-        container.insertBefore(tag, input);
-    });
-}
-
-function setTaskPriority(val) {
-    document.getElementById('taskPriority').value = val;
-    document.querySelectorAll('.prio-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.prio == val);
-    });
-}
-
-function simulatePhotoUpload() {
-    document.getElementById('taskPhotoInput').click();
 }
 
 function loadCharts() {
@@ -505,12 +331,14 @@ async function loadDashboard(providedProfile = null) {
                 
                 if (data) { profile = data; break; }
                 
-                // 2. FALLBACK REDNING: Hvis ID fejler, prøv via E-mail (Rescue Logic v83 - Final Diamond Link)
+                // 2. FALLBACK REDNING: Hvis ID fejler, prøv via E-mail (Rescue Logic v82)
                 if (currentUser.email) {
                     const { data: rescueData } = await supabaseClient.from('brugere').select('*, firmaer(navn)').eq('email', currentUser.email).maybeSingle();
                     if (rescueData) {
                         profile = rescueData;
-                        console.log("Login v83: Bruger fundet via email. Bruger eksisterende ID for at undgå FK-konflikt.");
+                        console.log("Login Rescue v82: Bruger fundet via email. Synkroniserer ID...");
+                        // Patch ID så fejlen bliver rettet permanent
+                        await supabaseClient.from('brugere').update({ id: currentUser.id }).eq('email', currentUser.email);
                         break;
                     }
                 }
@@ -1159,23 +987,11 @@ async function editTask(id) {
     const { data } = await supabaseClient.from('opgaver').select('*').eq('id', id).maybeSingle();
     if (!data) return;
     
-    // Reset Elite State
-    selectedTaskTags = data.kategori ? data.kategori.split(',').map(s => s.trim()) : [];
-    renderTaskTags();
-
     // Fill Modal
     document.getElementById('taskId').value = data.id;
     document.getElementById('taskTitle').value = data.titel || "";
     document.getElementById('taskDesc').value = data.beskrivelse || "";
-    
-    // Advanced Elite Fields
-    document.getElementById('taskAssetSearch').value = data.maskine_navn || "";
-    document.getElementById('taskAssetId').value = data.asset_id || "";
-    document.getElementById('taskLocSearch').value = data.placering || "";
-    document.getElementById('taskLocId').value = data.lokation_id || "";
-    document.getElementById('taskReporter').value = data.opretter_navn || "";
-    document.getElementById('taskAssignee').value = data.tildelt_titel || "";
-    setTaskPriority(data.prioritet || 1);
+    document.getElementById('taskStatus').value = data.status || "Venter";
     
     // If not SuperUser, disable the fields (View-only mode)
     const formInputs = document.getElementById('modal-task').querySelectorAll('input, textarea, select');
@@ -1190,7 +1006,7 @@ async function handleTaskSubmit(e) {
     e.preventDefault();
     const btn = e.submitter;
     if (!isSuperUser && document.getElementById('taskId').value) {
-        showSnackbar("Du har ikke rettigheder til at ændre denne opgave.");
+        showSnackbar("Du har ikke rettigheder til at ├ªndre denne opgave.");
         return;
     }
     
@@ -1198,33 +1014,19 @@ async function handleTaskSubmit(e) {
     const id = document.getElementById('taskId').value;
     const title = document.getElementById('taskTitle').value;
     const desc = document.getElementById('taskDesc').value;
-    const status = document.getElementById('taskStatus')?.value || 'Venter';
-    const priority = document.getElementById('taskPriority').value;
-    const assetId = document.getElementById('taskAssetId').value;
-    const locId = document.getElementById('taskLocId').value;
-    const reporter = document.getElementById('taskReporter').value;
-    const assignee = document.getElementById('taskAssignee').value;
-    const categories = selectedTaskTags.join(', ');
-
+    const status = document.getElementById('taskStatus').value;
+    
     const taskData = {
         firma_id: currentFirmaId,
         titel: title,
         beskrivelse: desc,
         status: status,
-        prioritet: parseInt(priority),
-        asset_id: assetId || null,
-        lokation_id: locId || null,
-        opretter_navn: reporter,
-        tildelt_titel: assignee,
-        kategori: categories,
-        maskine_navn: document.getElementById('taskAssetSearch').value,
-        placering: document.getElementById('taskLocSearch').value,
         created_at: new Date().toISOString()
     };
 
     let result;
     if (id) {
-        delete taskData.created_at;
+        delete taskData.created_at; // Don't overwrite original timestamp on update
         result = await supabaseClient.from('opgaver').update(taskData).eq('id', id);
     } else {
         result = await supabaseClient.from('opgaver').insert(taskData);
@@ -1232,13 +1034,7 @@ async function handleTaskSubmit(e) {
     
     setLoading(btn, false);
     if (result.error) showSnackbar("Fejl ved lagring", result.error.code);
-    else { 
-        showSnackbar(id ? "Opgave opdateret!" : "Opgave oprettet!"); 
-        closeAllModals(); 
-        selectedTaskTags = []; // Reset tags
-        fetchTasks(); 
-        loadDashboardStats(); 
-    }
+    else { showSnackbar(id ? "Opgave opdateret!" : "Opgave oprettet!"); closeAllModals(); fetchTasks(); loadDashboardStats(); }
 }
 
 // ---------------- ASSETS & LOCATIONS ----------------
