@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EasyON v83 - THE FINAL DIAMOND LINK</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="easyon-lite-v83.js?v=83.26" defer></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@400;700;800&display=swap');
 
@@ -68,7 +69,7 @@
         }
 
         .btn-outline {
-            background: rgba(255, 255, 255, 0.05); /* Skift fra hvid til gennemsigtig */
+            background: rgba(255, 255, 255, 0.05);
             color: var(--text-main);
             padding: 10px 20px;
             border-radius: 12px;
@@ -430,17 +431,25 @@
         }
 
         .hero-mockup { 
-            margin-top: 60px; 
-            max-width: 1000px; 
-            filter: drop-shadow(0 20px 50px rgba(0,0,0,0.5));
-            border-radius: 24px;
-            border: 1px solid rgba(255,255,255,0.1);
-            overflow: hidden;
-            background: #111827;
+            width: 100%; 
+            max-width: 900px; 
+            border-radius: 24px; 
+            box-shadow: 0 40px 100px rgba(0,0,0,0.5); 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
             transform: perspective(1000px) rotateX(2deg);
-            transition: 0.5s;
         }
         .hero-mockup:hover { transform: perspective(1000px) rotateX(0deg) scale(1.02); }
+
+        /* EXTREME SCAN CONTRAST (v83.26) ✨📸 */
+        .qr-box-pure {
+            background: white !important;
+            padding: 16px;
+            border-radius: 12px;
+            display: inline-block;
+            box-shadow: none !important;
+            border: 4px solid #F1F5F9;
+        }
 
         .mobile-download-card-elite {
             background: rgba(255, 255, 255, 0.05);
@@ -452,19 +461,15 @@
             gap: 40px;
             margin-top: 60px;
             max-width: 600px;
-            box-shadow: var(--shadow-lg);
-            border-bottom: 3px solid var(--primary);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border-bottom: 4px solid var(--primary);
             transition: 0.3s;
         }
         .mobile-download-card-elite:hover { border-color: white; transform: translateY(-4px); }
-        .qr-card-highres { 
-            width: 140px; 
-            height: 140px; 
-            border-radius: 16px; 
-            background: white; 
-            padding: 10px;
-            box-shadow: 0 0 20px rgba(255,255,255,0.2); 
-            flex-shrink: 0;
+        
+        @media (max-width: 768px) {
+            .mobile-download-card-elite { flex-direction: column; text-align: center; gap: 24px; padding: 24px; margin-top: 30px; border-radius: 24px; }
+            .qr-box-pure { padding: 12px; }
         }
     </style>
 </head>
@@ -507,14 +512,18 @@
                     </div>
                 </div>
                 
-                <div class="mobile-download-card-elite" style="flex-direction:column; text-align:center; padding:60px; max-width: 500px; margin: 40px auto 0;">
-                    <div style="background:white; padding:30px; border-radius:32px; box-shadow:0 0 60px rgba(59,130,246,0.5); display:inline-block; margin-bottom:30px;">
-                        <img src="qr-code-clean.png" alt="QR Kode" style="width:340px; height:340px; display:block;">
+                <div class="mobile-download-card-elite" id="downloadCard">
+                    <div class="qr-box-pure">
+                        <img src="qr-code-clean.png" alt="Scan QR" width="180" height="180" style="display:block; image-rendering: pixelated;">
                     </div>
-                    <div style="margin-top:10px;">
-                        <h4 style="font-weight:800; font-size:28px; color:white; margin-bottom:12px;">Scan & Hent Appen 💎</h4>
-                        <p style="font-size:17px; color:var(--text-muted); margin-bottom:32px;">Installer EasyON Mobile lynhurtigt på din Android enhed.</p>
-                        <a href="https://asze93.github.io/easyon/easyon-app.apk" class="btn-primary" style="padding:20px 48px; font-size:17px; border-radius:16px; width:100%; display:block;">📥 Hent APK Direkte</a>
+                    <div style="flex:1;">
+                        <h3 style="font-size:24px; font-weight:800; margin-bottom:12px; color:white;">Brug appen i marken?</h3>
+                        <p style="color:rgba(255,255,255,0.6); margin-bottom:24px; font-size:15px; line-height:1.6;">
+                            Scan QR-koden eller tryk på knappen herunder for at hente den nyeste APK direkte.
+                        </p>
+                        <a href="easyon-app.apk" class="btn btn-primary" style="padding:16px 28px; width:100%; text-align:center;">
+                            📥 Hent APK Direkte
+                        </a>
                     </div>
                 </div>
 
