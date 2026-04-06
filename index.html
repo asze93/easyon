@@ -268,23 +268,35 @@
             box-shadow: 0 4px 15px var(--primary-glow);
         }
 
-        /* MOBILE HARD-RESET (v83.27) 🏎️💨 */
+        /* MOBILE HARD-RESET (v83.29) 🏎️💨 */
         @media (max-width: 992px) {
-            .stat-card, .table-card, .auth-card, .sidebar, .sidebar-links a, .mobile-download-card-elite, .modal-card, .dash-main-container, .hero-mockup {
+            .stat-card, .table-card, .auth-card, .sidebar, .sidebar-links a, .mobile-download-card-elite, .modal-card, .dash-main-container, .hero-mockup, .qr-box-pure {
                 backdrop-filter: none !important;
                 background: #0F172A !important;
                 box-shadow: none !important;
-                border-color: rgba(255, 255, 255, 0.1) !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                animation: none !important;
+                transition: none !important;
             }
             .qr-box-pure {
                 background: white !important;
-                box-shadow: none !important;
-                padding: 16px !important;
-                border: none !important;
+                padding: 32px !important;
+                border-radius: 16px !important;
+                display: block !important;
+                margin: 0 auto !important;
+                width: 250px !important;
+                height: 250px !important;
+            }
+            .qr-box-pure img {
+                width: 100% !important;
+                height: 100% !important;
+                image-rendering: pixelated !important;
+                image-rendering: crisp-edges !important;
             }
             .btn-primary, .btn-outline {
                 box-shadow: none !important;
                 transform: none !important;
+                background: var(--primary) !important;
             }
         }
 
@@ -1317,9 +1329,9 @@
         </div>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-    <script src="config.js" defer></script>
-    <script src="easyon-lite-v83.js?v=83.28" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" async></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" async></script>
+    <script src="config.js" async></script>
+    <script src="easyon-lite-v83.js?v=83.29" async></script>
 </body>
 </html>
