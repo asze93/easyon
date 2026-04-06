@@ -41,6 +41,7 @@
         .view { display: none !important; }
         .view.active { display: block !important; }
         .view.active.dashboard-layout { display: flex !important; }
+        .view.active.landing-layout { display: block !important; min-height: 100vh; overflow: hidden; }
 
         .hidden { display: none !important; }
 
@@ -67,20 +68,43 @@
         }
 
         .btn-outline {
-            background: white;
+            background: rgba(255, 255, 255, 0.05); /* Skift fra hvid til gennemsigtig */
             color: var(--text-main);
-            padding: 11px 23px;
+            padding: 10px 20px;
             border-radius: 12px;
-            border: 1.5px solid var(--border);
+            border: 1px solid var(--border);
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-outline:hover { 
+            background: rgba(255, 255, 255, 0.1); 
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-danger-outline {
+            background: rgba(239, 68, 68, 0.05);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 8px 16px;
+            border-radius: 10px;
             font-weight: 600;
             cursor: pointer;
             transition: 0.2s;
         }
-
-        .btn-outline:hover { background: var(--bg-canvas); border-color: var(--text-muted); }
+        .btn-danger-outline:hover {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
 
         /* SIDEBAR PREMIUM */
-        .dashboard-layout { display: flex !important; height: 100vh; background: var(--bg-canvas); }
+        .view.active.dashboard-layout { display: flex !important; height: 100vh; background: var(--bg-canvas); }
         .sidebar { 
             width: 280px; 
             background: var(--bg-sidebar); 
@@ -177,14 +201,75 @@
         /* DASHBOARD GLASS CARDS (DARK DIAMOND) */
         .dash-main-container { padding: 40px; background: radial-gradient(circle at top right, #1E293B, #0F172A); min-height: 100vh; color: var(--text-main); }
         
-        .stat-card { background: var(--glass); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 30px; display: flex; align-items: center; gap: 20px; transition: 0.3s; backdrop-filter: blur(25px); box-shadow: var(--shadow-lg); }
+        .stat-card { background: var(--glass); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 30px; display: flex; align-items: center; gap: 20px; transition: 0.3s; }
         .stat-card:hover { transform: translateY(-8px); border-color: var(--primary); background: rgba(255, 255, 255, 0.1); }
         .stat-icon { width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.05); }
 
-        .table-card { background: var(--glass); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; margin-top: 32px; box-shadow: var(--shadow-lg); backdrop-filter: blur(25px); padding: 30px; }
+        .table-card { background: var(--glass); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; margin-top: 32px; padding: 30px; }
+
+        /* PERFORMANCE SHIELD (v83.24) ⚡ */
+        @media (min-width: 1024px) {
+            .stat-card, .table-card, .auth-card, .sidebar, .sidebar-links a, .modal-card {
+                backdrop-filter: blur(25px);
+            }
+            .stat-card, .table-card, .modal-card {
+                box-shadow: var(--shadow-lg);
+            }
+        }
 
         /* SIDEBAR GLASS */
-        #dashboardSidebar { background: var(--bg-sidebar); backdrop-filter: blur(15px); border-right: 1px solid rgba(255,255,255,0.05); }
+        .sidebar { 
+            width: 280px; 
+            height: 100vh; 
+            position: fixed; 
+            left: 0; 
+            top: 0; 
+            background: rgba(15, 23, 42, 0.95); 
+            border-right: 1px solid var(--border); 
+            z-index: 1000; 
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+        .dash-main-container { 
+            margin-left: 280px; 
+            padding: 40px; 
+            background: radial-gradient(circle at top right, #1E293B, #0F172A); 
+            min-height: 100vh; 
+            color: var(--text-main); 
+            transition: margin-left 0.3s ease;
+        }
+
+        /* MOBILE RESPONSIVE (v83.21) 📱 */
+        @media (max-width: 992px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.mobile-open { transform: translateX(0); box-shadow: 20px 0 50px rgba(0,0,0,0.5); }
+            .dash-main-container { margin-left: 0; padding: 20px; padding-top: 80px; }
+            .split-grid { grid-template-columns: 1fr; height: auto; display: flex; flex-direction: column; }
+            .list-container { max-height: 400px; }
+            .hamburger-btn { display: flex !important; }
+            .sidebar-overlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 999; display: none; }
+            .sidebar-overlay.active { display: block; }
+        }
+
+        .hamburger-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1100;
+            width: 44px;
+            height: 44px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
         .dash-nav { margin: 4px 12px; padding: 14px 20px; border-radius: 14px; font-weight: 600; color: rgba(255,255,255,0.6); transition: 0.2s; display: flex; align-items: center; gap: 14px; border: 1px solid transparent; }
         .dash-nav:hover { background: var(--sidebar-accent); color: white; border-color: rgba(255,255,255,0.05); }
         .dash-nav.active { background: var(--primary); color: white; box-shadow: 0 4px 12px var(--primary-glow); border-color: transparent; }
@@ -212,9 +297,175 @@
         .prio-btn.active[data-prio="3"] { background: #FEE2E2; color: #991B1B; border-color: #991B1B; }
         .prio-btn.active[data-prio="0"] { background: #F1F5F9; color: #475569; border-color: #475569; }
 
-        /* PHOTO PLACEHOLDER */
-        .photo-zone { width: 100%; height: 120px; border: 2px dashed var(--border); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; transition: 0.2s; background: rgba(255,255,255,0.3); }
-        .photo-zone:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+        /* AUTH PREMIUM (DIAMOND ELITE) */
+        .auth-card { 
+            background: rgba(15, 23, 42, 0.98); 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%; 
+            max-width: 500px; 
+            border-radius: 32px; 
+            padding: 48px; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 10;
+        }
+        .input-group { margin-bottom: 24px; position: relative; }
+        .input-group label { 
+            display: block; 
+            font-size: 13px; 
+            font-weight: 700; 
+            margin-bottom: 8px; 
+            color: var(--text-muted); 
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .input-group input { 
+            width: 100%; 
+            padding: 14px 18px; 
+            background: rgba(255, 255, 255, 0.05); 
+            border: 1.5px solid rgba(255, 255, 255, 0.1); 
+            border-radius: 14px; 
+            color: white; 
+            font-size: 15px; 
+            font-weight: 500;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+        .input-group input:focus { 
+            border-color: var(--primary); 
+            background: rgba(255, 255, 255, 0.08); 
+            box-shadow: 0 0 0 4px var(--primary-glow);
+        }
+        .input-group input::placeholder { color: rgba(255,255,255,0.2); }
+
+        /* SPLIT VIEW - MASTER-DETAIL */
+        .split-grid { display:grid; grid-template-columns: 320px 1fr; gap:32px; height: calc(100vh - 220px); }
+        .list-container { display:flex; flex-direction:column; gap:12px; overflow-y:auto; padding-right:10px; }
+        .list-card-item { 
+            background: var(--glass); 
+            border: 1px solid var(--border); 
+            border-radius: 16px; 
+            padding: 16px; 
+            cursor: pointer; 
+            transition: 0.2s; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px;
+        }
+        .list-card-item:hover { border-color: var(--primary); transform: translateX(5px); background: rgba(255,255,255,0.1); }
+        .list-card-item.active { border-color: var(--primary); background: var(--primary); color: white; }
+        .list-card-item.active .text-muted { color: rgba(255,255,255,0.7); }
+        
+        .detail-view-empty { height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-muted); text-align:center; }
+
+        /* MOBIL OPTIMERING: Fjern tunge effekter for at undgå timeout/frys */
+        @media (max-width: 768px) {
+            * { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+            .stat-card, .table-card, .modal-card, .detail-view { background: #1E293B !important; border: 1px solid rgba(255,255,255,0.1) !important; }
+            .dash-main-container { padding: 20px; }
+            .split-grid { grid-template-columns: 1fr; height: auto; }
+            .hero h1 { font-size: 32px; }
+        }
+
+        /* DIAMOND ELITE LANDING PAGE UPLIFT */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
+        .main-nav { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 20px 0; position: sticky; top: 0; z-index: 1000; }
+        .main-nav .container { display: flex; justify-content: space-between; align-items: center; }
+
+        .landing-layout {
+            background: radial-gradient(circle at center, #1E293B, #0F172A);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .hero { 
+            text-align: center; 
+            padding: 100px 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 32px;
+            position: relative;
+            z-index: 5;
+        }
+        
+        /* Diamond Glow Aura */
+        .diamond-aura {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.15), transparent 70%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .hero h1 { 
+            font-size: 64px; 
+            font-weight: 800; 
+            letter-spacing: -2px; 
+            line-height: 1.1; 
+            margin-bottom: 12px; 
+            color: white;
+        }
+        .hero h1 span { 
+            background: linear-gradient(135deg, #3B82F6, #60A5FA);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p { 
+            font-size: 20px; 
+            color: var(--text-muted); 
+            max-width: 700px; 
+            margin: 0 auto 16px;
+            font-weight: 500;
+        }
+
+        .hero-mockup { 
+            margin-top: 60px; 
+            max-width: 1000px; 
+            filter: drop-shadow(0 20px 50px rgba(0,0,0,0.5));
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+            overflow: hidden;
+            background: #111827;
+            transform: perspective(1000px) rotateX(2deg);
+            transition: 0.5s;
+        }
+        .hero-mockup:hover { transform: perspective(1000px) rotateX(0deg) scale(1.02); }
+
+        .mobile-download-card-elite {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 32px;
+            padding: 32px;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            margin-top: 60px;
+            max-width: 600px;
+            box-shadow: var(--shadow-lg);
+            border-bottom: 3px solid var(--primary);
+            transition: 0.3s;
+        }
+        .mobile-download-card-elite:hover { border-color: white; transform: translateY(-4px); }
+        .qr-card-highres { 
+            width: 140px; 
+            height: 140px; 
+            border-radius: 16px; 
+            background: white; 
+            padding: 10px;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2); 
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
@@ -222,7 +473,7 @@
     <main id="app">
         <div id="snackbar" class="snackbar"></div>
 
-        <section id="view-landing" class="view active">
+        <section id="view-landing" class="view active landing-layout">
             <nav class="main-nav">
                 <div class="container">
                     <div class="logo" onclick="showView('landing')">
@@ -232,70 +483,92 @@
                         Easy<span>ON</span>
                     </div>
                     <div class="nav-links">
-                        <button class="btn-primary" onclick="toggleAuthMode('login')">Log ind</button>
+                        <div id="guestNav">
+                            <button class="btn-primary" onclick="toggleAuthMode('login')">Log ind</button>
+                        </div>
+                        <div id="userNav" class="hidden">
+                            <button class="btn-primary" onclick="showView('dashboard')">Gå til Dashboard →</button>
+                        </div>
                     </div>
                 </div>
             </nav>
             <div class="hero container">
+                <div class="diamond-aura"></div>
                 <h1>Fremtidens vedligeholdelse<br>er <span>digital</span></h1>
                 <p>Saml dit team, dine maskiner og dine opgaver i en enkel sky-løsning. Slip for papirarbejde og få overblik over dit anlæg på få sekunder.</p>
-                <div class="hero-btns">
-                    <button class="btn-primary" style="padding: 20px 48px; font-size: 18px;" onclick="toggleAuthMode('signup')">Kom i gang gratis</button>
+                
+                <div class="hero-btns" style="display:flex; gap:20px; justify-content:center; flex-wrap: wrap;">
+                    <div id="guestHeroBtns" style="display:flex; gap:20px;">
+                        <button class="btn-primary" style="padding: 22px 56px; font-size: 20px;" onclick="toggleAuthMode('signup')">Kom i gang gratis</button>
+                        <button class="btn-outline" style="padding: 22px 56px; font-size: 20px;" onclick="toggleAuthMode('login')">Log ind</button>
+                    </div>
+                    <div id="userHeroBtns" class="hidden">
+                        <button class="btn-primary" style="padding: 22px 56px; font-size: 20px;" onclick="showView('dashboard')">Gå til Dashboard →</button>
+                    </div>
                 </div>
-                <div class="hero-mockup">
-                    <img src="dashboard_mockup.png" alt="Dashboard Preview">
+                
+                <div class="mobile-download-card-elite" style="flex-direction:column; text-align:center; padding:60px; max-width: 500px; margin: 40px auto 0;">
+                    <div style="background:white; padding:30px; border-radius:32px; box-shadow:0 0 60px rgba(59,130,246,0.5); display:inline-block; margin-bottom:30px;">
+                        <img src="qr-code-clean.png" alt="QR Kode" style="width:340px; height:340px; display:block;">
+                    </div>
+                    <div style="margin-top:10px;">
+                        <h4 style="font-weight:800; font-size:28px; color:white; margin-bottom:12px;">Scan & Hent Appen 💎</h4>
+                        <p style="font-size:17px; color:var(--text-muted); margin-bottom:32px;">Installer EasyON Mobile lynhurtigt på din Android enhed.</p>
+                        <a href="https://asze93.github.io/easyon/easyon-app.apk" class="btn-primary" style="padding:20px 48px; font-size:17px; border-radius:16px; width:100%; display:block;">📥 Hent APK Direkte</a>
+                    </div>
                 </div>
+
             </div>
         </section>
 
         <section id="view-auth" class="view">
-            <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.1), transparent);">
+            <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #1E293B, #0F172A); position: relative; overflow: hidden;">
+                <!-- Decorative Glows for Auth -->
+                <div style="position:absolute; width:400px; height:400px; background:radial-gradient(circle, var(--primary-glow), transparent); top:-100px; right:-100px; opacity:0.5;"></div>
+                <div style="position:absolute; width:400px; height:400px; background:radial-gradient(circle, var(--primary-glow), transparent); bottom:-100px; left:-100px; opacity:0.3;"></div>
+
                 <div class="auth-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 48px;">
-                        <div class="logo" onclick="showView('landing')">Easy<span>ON</span></div>
-                        <a href="javascript:void(0)" onclick="showView('landing')" style="text-decoration:none; color:var(--text-muted); font-weight:700;">← Tilbage</a>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+                        <div class="logo" onclick="showView('landing')" style="cursor:pointer;">Easy<span>ON</span></div>
+                        <a href="javascript:void(0)" onclick="showView('landing')" style="text-decoration:none; color:var(--text-muted); font-weight:700; font-size:13px; transition:0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--text-muted)'">← Tilbage</a>
                     </div>
-                    <h2 id="authTitle" style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">Log ind</h2>
-                    <p id="authSub" style="color: var(--text-muted); margin-bottom: 40px;">Indtast dine oplysninger nedenfor</p>
+                    <h2 id="authTitle" style="font-size: 32px; font-weight: 800; margin-bottom: 8px; color:white; letter-spacing:-1px;">Log ind på Easy<span>ON</span></h2>
+                    <p id="authSub" style="color: var(--text-muted); margin-bottom: 40px; font-weight:500;">Indtast dine oplysninger nedenfor</p>
                     
                     <form id="authForm" onsubmit="handleAuth(event)">
                         <div id="nameGroup" class="hidden" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:24px;">
                             <div class="input-group">
                                 <label>Fornavn</label>
-                                <input type="text" id="authFirstName" placeholder="Peter" autocomplete="off">
+                                <input type="text" id="auth_first_name_input" placeholder="Peter" autocomplete="off">
                             </div>
                             <div class="input-group">
                                 <label>Efternavn</label>
-                                <input type="text" id="authLastName" placeholder="Hansen" autocomplete="off">
-                            </div>
-                        </div>
-                        <div id="companyGroup" class="hidden">
-                            <div class="input-group">
-                                <label>Nyt Firmanavn</label>
-                                <input type="text" id="authCompanyName" placeholder="Mit Nye Firma" autocomplete="off">
+                                <input type="text" id="auth_last_name_input" placeholder="Hansen" autocomplete="off">
                             </div>
                         </div>
 
                         <div class="input-group" id="loginFirmaGroup">
-                            <label>Firmanavn / Domæne</label>
-                            <input type="text" id="authLoginFirma" placeholder="Mit-Firma" autocomplete="off">
+                            <label>Firmanavn (Kun for Teknikere)</label>
+                            <input type="text" id="auth_login_firma_input" placeholder="Indtast firmanavn..." autocomplete="off">
+                            <p style="font-size:11px; color:rgba(255,255,255,0.4); margin-top:4px;">💡 Master Admin: Lad dette felt stå helt tomt</p>
                         </div>
                         <div class="input-group">
-                            <label id="authEmailLabel">Login-ID (E-mail eller ID)</label>
-                            <input type="text" id="authEmail" required placeholder="navn@firma.dk" autocomplete="off">
+                            <label id="authEmailLabel">Login ID / E-mail</label>
+                            <input type="text" id="auth_email_input" required placeholder="Dit ID eller e-mail" autocomplete="off">
                         </div>
                         <div class="input-group">
-                            <label>Adgangskode</label>
-                            <input type="password" id="authPass" required placeholder="••••••••" autocomplete="off">
+                            <label>Adgangskode / PIN</label>
+                            <input type="password" id="auth_password_input" required placeholder="••••" autocomplete="off">
+                            <p style="font-size:11px; color:rgba(255,255,255,0.4); margin-top:6px;">Standard PIN er 1234 🔒</p>
                         </div>
                         <div id="passConfirmGroup" class="hidden">
                             <div class="input-group">
                                 <label>Bekræft Adgangskode</label>
-                                <input type="password" id="authPassConfirm" placeholder="••••••••" autocomplete="off">
+                                <input type="password" id="auth_pass_confirm_input" placeholder="••••" autocomplete="off">
                             </div>
                         </div>
 
-                        <button type="submit" id="authBtn" class="btn-primary" style="width: 100%; padding: 18px; margin-bottom:24px;">Log ind</button>
+                        <button type="submit" id="authBtn" class="btn-primary" style="width: 100%; padding: 20px; font-size:16px; margin-bottom:24px; border-radius:16px;">Log ind på Dashboard</button>
                         
                         <div id="toggleAuth" style="text-align:center; font-size:14px; font-weight:600; color:var(--text-muted);">
                             <span id="toggleText">Har du ikke en konto?</span> 
@@ -306,8 +579,81 @@
             </div>
         </section>
 
+        <!-- VERIFY EMAIL VIEW -->
+        <section id="view-verify-email" class="view">
+            <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #1E293B, #0F172A);">
+                <div class="auth-card" style="text-align:center;">
+                    <div style="font-size:64px; margin-bottom:24px;">📧</div>
+                    <h2 style="font-size:32px; font-weight:800; margin-bottom:16px; color:white;">Bekræft din e-mail</h2>
+                    <p style="color:var(--text-muted); margin-bottom:32px; font-size:16px;">
+                        Vi har sendt et bekræftelseslink til din e-mail.<br>Tjek venligst din indbakke (og evt. spam-mappe) for at aktivere din konto.
+                    </p>
+                    <button class="btn-primary" onclick="showView('landing')" style="width:100%; padding:20px;">Tilbage til forsiden</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- WIZARD VIEW (SETUP GUIDE) -->
+        <section id="view-wizard" class="view">
+             <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #1E293B, #0F172A);">
+                <div class="auth-card" style="max-width: 500px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:40px;">
+                        <div id="stepIndicator1" class="step-dot active"></div>
+                        <div id="stepIndicator2" class="step-dot"></div>
+                    </div>
+
+                    <div id="step1">
+                        <h2 style="font-size:32px; font-weight:800; margin-bottom:12px;">Velkommen!</h2>
+                        <p style="color:var(--text-muted); margin-bottom:40px;">Lad os få sat dit firma op i EasyON.</p>
+                        
+                        <div class="input-group">
+                            <label>Firmanavn</label>
+                            <input type="text" id="bizName" required placeholder="F.eks. Jensen Vedligehold">
+                        </div>
+                        <div class="input-group">
+                            <label>Branche</label>
+                            <select id="bizIndustry" style="width:100%; padding:15px; border-radius:12px; background:rgba(255,255,255,0.05); color:white; border:1px solid var(--border);">
+                                <option value="Logistik">Logistik & Transport</option>
+                                <option value="Produktion">Produktion & Industri</option>
+                                <option value="Facility">Facility Management</option>
+                                <option value="Andet">Andet</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Adresse (Valgfri)</label>
+                            <input type="text" id="bizAddress" placeholder="Vejnavn 1, 8000 Aarhus">
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                            <div class="input-group">
+                                <label>Telefon</label>
+                                <input type="text" id="bizPhone" placeholder="+45 12345678">
+                            </div>
+                            <div class="input-group">
+                                <label>CVR-nummer</label>
+                                <input type="text" id="bizCVR" placeholder="12345678">
+                            </div>
+                        </div>
+                        
+                        <button class="btn-primary" onclick="nextWizard(2, this)" style="width:100%; padding:20px; margin-top:20px;">Næste skridt ⮕</button>
+                    </div>
+
+                    <div id="step2" class="hidden" style="text-align:center;">
+                        <div style="font-size:64px; margin-bottom:24px;">💎</div>
+                        <h2 style="font-size:32px; font-weight:800; margin-bottom:16px;">Alt er klar!</h2>
+                        <p style="color:var(--text-muted); margin-bottom:32px;">Vi forbereder dit dashboard nu...</p>
+                        <div class="spinner" style="margin: 0 auto;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section id="view-dashboard" class="view dashboard-layout">
-            <aside class="sidebar">
+            <button class="hamburger-btn" onclick="toggleSidebar()">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+            
+            <aside class="sidebar" id="dashboardSidebar">
                 <div class="sidebar-logo" onclick="showView('landing')" style="cursor:pointer; opacity: 1;">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="color:var(--primary);">
                         <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
@@ -319,7 +665,7 @@
                     <div class="nav-group-title">Hovedmenu</div>
                     <a href="javascript:void(0)" class="dash-nav active" data-tab="overview" onclick="dashNavTab(event, 'overview')" id="nav-overview">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                        Dashboard
+                        Oversigt/Dashboard
                     </a>
                     <a href="javascript:void(0)" class="dash-nav" data-tab="tasks" onclick="dashNavTab(event, 'tasks')" id="nav-tasks">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
@@ -329,12 +675,16 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         Anmodninger
                     </a>
+                    <a href="javascript:void(0)" class="dash-nav" data-tab="procedures" onclick="dashNavTab(event, 'procedures')" id="nav-procedurer">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Procedurer
+                    </a>
+
+                    <div class="nav-group-title">Materialer & Sted</div>
                     <a href="javascript:void(0)" class="dash-nav" data-tab="lager" onclick="dashNavTab(event, 'lager')" id="nav-lager">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                         Lager & Dele
                     </a>
-
-                    <div class="nav-group-title admin-only">Materialer & Sted</div>
                     <a href="javascript:void(0)" class="dash-nav admin-only" data-tab="assets" onclick="dashNavTab(event, 'assets')" id="nav-assets">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                         Maskiner/Assets
@@ -352,10 +702,6 @@
                     <a href="javascript:void(0)" class="dash-nav admin-only" data-tab="team" onclick="dashNavTab(event, 'team')" id="nav-team">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                         Team & Folk
-                    </a>
-                    <a href="javascript:void(0)" class="dash-nav admin-only" data-tab="procedures" onclick="dashNavTab(event, 'procedures')" id="nav-procedures">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        SOP / Procedurer
                     </a>
                     <a href="javascript:void(0)" class="dash-nav admin-only" data-tab="kpi" onclick="dashNavTab(event, 'kpi')" id="nav-kpi">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002 2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
@@ -427,122 +773,170 @@
                             <h2 style="font-size:20px; font-weight:800; letter-spacing:-0.5px;">Seneste Aktivitet</h2>
                             <span class="badge" style="background:var(--primary-light); color:var(--primary); padding:6px 14px; border-radius:8px; font-size:12px; font-weight:800;">LIVE OPDATERET</span>
                         </div>
-                        <canvas id="chart-main" height="120" style="width:100%;"></canvas>
+                        <div class="chart-container" style="position: relative; height: 350px; width: 100%;">
+                            <canvas id="chart-main"></canvas>
+                        </div>
                     </div>
                 </div>
 
-                <!-- TAB: TASKS -->
+                <!-- TAB: TASKS (SPLIT VIEW) -->
                 <div id="dash-tasks" class="dash-tab">
                     <div class="dash-header">
-                        <h2 style="font-size:24px; font-weight:800;">Alle Opgaver</h2>
+                        <h2 style="font-size:24px; font-weight:800;">Opgaver</h2>
                         <div style="display:flex; gap:10px;">
-                            <input type="text" placeholder="Søg opgaver..." style="padding:10px 16px; border-radius:10px; border:1px solid var(--border); width:280px;">
+                            <input type="text" placeholder="Søg..." style="padding:10px 16px; border-radius:10px; border:1px solid var(--border); width:200px; background:rgba(255,255,255,0.05); color:white;">
                             <button class="btn-primary" onclick="openModal('modal-task', true)">+ Ny</button>
                         </div>
                     </div>
-                    <div class="table-card">
-                        <table>
-                            <thead>
-                                <tr><th>Titel</th><th>Maskine</th><th>Prioritet</th><th>Kategori</th><th>Handling</th></tr>
-                            </thead>
-                            <tbody id="tasksBody">
-                                <tr><td colspan="5" style="text-align:center; padding:40px;">Indlæser opgaver...</td></tr>
-                            </tbody>
-                        </table>
+                    <div class="split-grid">
+                        <div class="list-container" id="tasksList">
+                            <!-- Opgaver loades her -->
+                        </div>
+                        <div class="detail-view" id="tasksPreview">
+                             <div class="detail-view-empty">
+                                 <svg width="60" height="60" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-bottom:20px; opacity:0.3;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                                 <h3>Vælg en opgave</h3>
+                                 <p>Klik på en opgave til venstre for at se alle detaljer og historik.</p>
+                             </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- TAB: ASSETS -->
+                <!-- TAB: REQUESTS (SPLIT VIEW) -->
+                <div id="dash-requests" class="dash-tab">
+                    <div class="dash-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h2 style="font-size:24px; font-weight:800;">Anmodninger</h2>
+                        <button class="btn-primary" onclick="openModal('modal-request', true)">+ Ny Anmodning</button>
+                    </div>
+                    <div class="split-grid" style="display:grid; grid-template-columns: 350px 1fr; gap:24px; height: calc(100vh - 200px);">
+                        <div class="list-container" id="requestsList" style="overflow-y:auto; padding-right:10px;">
+                            <!-- Anmodninger loades her -->
+                        </div>
+                        <div class="detail-view" id="requestsPreview" style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:24px; padding:32px; overflow-y:auto;">
+                             <div class="detail-view-empty" style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; opacity:0.5; text-align:center;">
+                                 <svg width="60" height="60" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-bottom:20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                 <h3>Vælg en anmodning</h3>
+                                 <p>Her kan du se og godkende anmodninger fra dine kollegaer.</p>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: ASSETS (SPLIT VIEW) -->
                 <div id="dash-assets" class="dash-tab">
-                    <div class="dash-header">
+                    <div class="dash-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                         <h2 style="font-size:24px; font-weight:800;">Maskiner & Assets</h2>
                         <button class="btn-primary" onclick="openModal('modal-asset', true)">+ Ny Maskine</button>
                     </div>
-                    <div class="table-card">
-                        <table>
-                            <thead>
-                                <tr><th>Navn</th><th>Lokation</th><th>Handling</th></tr>
-                            </thead>
-                            <tbody id="assetsBody"></tbody>
-                        </table>
+                    <div class="split-grid" style="display:grid; grid-template-columns: 350px 1fr; gap:24px; height: calc(100vh - 200px);">
+                        <div class="list-container" id="assetsList" style="overflow-y:auto; padding-right:10px;">
+                            <!-- Maskiner loades her -->
+                        </div>
+                        <div class="detail-view" id="assetsPreview" style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:24px; padding:32px; overflow-y:auto;">
+                             <div class="detail-view-empty" style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; opacity:0.5; text-align:center;">
+                                 <svg width="60" height="60" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-bottom:20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                                 <h3>Vælg en maskine</h3>
+                                 <p>Klik på en maskine for at se servicehistorik, manualer og reservedele.</p>
+                             </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- TAB: TEAM -->
+                <!-- TAB: TEAM (ELITE SPLIT VIEW) -->
                 <div id="dash-team" class="dash-tab">
-                    <div class="dash-header">
-                        <h2 style="font-size:24px; font-weight:800;">Medarbejdere</h2>
-                        <button class="btn-primary" onclick="openModal('modal-team', true)">+ Tilf├©j Medlem</button>
+                    <div class="dash-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h2 style="font-size:24px; font-weight:800;">Medarbejdere & Folk</h2>
+                        <button class="btn-primary" onclick="openModal('modal-team', true)">+ Tilføj Medlem</button>
                     </div>
-                    <div class="table-card">
-                        <table>
-                            <thead>
-                                <tr><th>Navn</th><th>Medarbejder nr.</th><th>Rolle</th><th>Handling</th></tr>
-                            </thead>
-                            <tbody id="teamBody"></tbody>
-                        </table>
+                    <div class="split-grid" style="display:grid; grid-template-columns: 350px 1fr; gap:24px; height: calc(100vh - 200px);">
+                        <div class="list-container" id="teamList" style="overflow-y:auto; padding-right:10px;">
+                            <!-- Team loades her -->
+                        </div>
+                        <div id="teamPreview" class="detail-view" style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:24px; padding:32px; overflow-y:auto;">
+                             <div class="detail-view-empty" style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; opacity:0.5; text-align:center;">
+                                 <svg width="60" height="60" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-bottom:20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                 <h3>Vælg en medarbejder</h3>
+                                 <p>Her kan du styre roller, rettigheder og se statistik for din tekniker.</p>
+                             </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- TAB: LOKATIONER -->
+                <!-- TAB: LOKATIONER (ELITE SPLIT VIEW) -->
                 <div id="dash-locations" class="dash-tab">
-                    <div class="dash-header">
-                        <h2 style="font-size:24px; font-weight:800;">Lokationer</h2>
+                    <div class="dash-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h2 style="font-size:24px; font-weight:800;">Afdelinger & Områder</h2>
                         <button class="btn-primary" onclick="openModal('modal-location', true)">+ Ny Lokation</button>
                     </div>
-                    <div class="table-card">
-                        <table>
-                            <thead>
-                                <tr><th>Navn</th><th>Beskrivelse</th><th>Handling</th></tr>
-                            </thead>
-                            <tbody id="locationsBody"></tbody>
-                        </table>
+                    <div class="split-grid" style="display:grid; grid-template-columns: 350px 1fr; gap:24px; height: calc(100vh - 200px);">
+                        <div class="list-container" id="locationsList" style="overflow-y:auto; padding-right:10px;">
+                            <!-- Lokationer loades her -->
+                        </div>
+                        <div id="locationsPreview" class="detail-view" style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:24px; padding:32px; overflow-y:auto;">
+                             <div class="detail-view-empty" style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; opacity:0.5; text-align:center;">
+                                 <svg width="60" height="60" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-bottom:20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                 <h3>Vælg en lokation</h3>
+                                 <p>Organiser dine maskiner og opgaver i specifikke haller eller afdelinger.</p>
+                             </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- TAB: KATEGORIER -->
+                <!-- TAB: KATEGORIER (ELITE SPLIT VIEW) -->
                 <div id="dash-categories" class="dash-tab">
                     <div class="dash-header">
-                        <h2 style="font-size:24px; font-weight:800;">Kategorier</h2>
+                        <h2 style="font-size:24px; font-weight:800;">Kategorier (Smart Tags)</h2>
                         <button class="btn-primary" onclick="openModal('modal-category', true)">+ Ny Kategori</button>
                     </div>
-                    <div class="table-card">
-                        <table>
-                            <thead>
-                                <tr><th>Navn</th><th>Farve</th><th>Oprettet</th><th>Handling</th></tr>
-                            </thead>
-                            <tbody id="categoriesBody"></tbody>
-                        </table>
+                    <div class="split-grid">
+                        <div class="list-container" id="categoriesList">
+                            <!-- Kategorier loades her -->
+                        </div>
+                        <div class="detail-view" id="categoriesPreview">
+                             <div class="detail-view-empty">
+                                 <svg width="60" height="60" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-bottom:20px; opacity:0.3;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                                 <h3>Vælg en kategori</h3>
+                                 <p>Brug kategorier til at holde styr på f.eks. "Hasteopgaver" eller "Elektriske fejl".</p>
+                             </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- TAB: LAGER -->
+                <!-- TAB: LAGER (SPLIT VIEW) -->
                 <div id="dash-lager" class="dash-tab">
                     <div class="dash-header">
                         <h2 style="font-size:24px; font-weight:800;">Lager & Reservedele</h2>
-                        <button class="btn-primary" onclick="openModal('modal-lager', true)">+ Tilf├©j Vare</button>
+                        <button class="btn-primary" onclick="openModal('modal-lager', true)">+ Tilføj Vare</button>
                     </div>
-                    <div class="table-card">
-                        <table>
-                            <thead>
-                                <tr><th>Navn</th><th>Placering</th><th>Lager</th><th>Min.</th><th>Stregkode</th><th>Handling</th></tr>
-                            </thead>
-                            <tbody id="lagerBody"></tbody>
-                        </table>
+                    <div class="split-grid">
+                        <div class="list-container" id="lagerList">
+                            <!-- Lager loades her -->
+                        </div>
+                        <div class="detail-view" id="lagerPreview">
+                             <div class="detail-view-empty">
+                                 <svg width="60" height="60" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-bottom:20px; opacity:0.3;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                 <h3>Vælg en reservedel</h3>
+                                 <p>Her kan du se lokation, lagerstatus og historik for reservedele.</p>
+                             </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- TAB: PROCEDURER -->
+                <!-- TAB: PROCEDURER (ELITE SPLIT VIEW) -->
                 <div id="dash-procedures" class="dash-tab">
-                    <div class="dash-header">
-                        <h2 style="font-size:24px; font-weight:800;">SOP Bibliotek</h2>
-                        <button class="btn-primary" onclick="startNewSopFlow()">+ Opret SOP</button>
+                    <div class="dash-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h2 style="font-size:24px; font-weight:800;">Procedurer (SOP)</h2>
+                        <button class="btn-primary" onclick="openModal('modal-sop', true)">+ Opret Procedure</button>
                     </div>
-                    <div style="display:grid; grid-template-columns: 320px 1fr; gap:32px; height:600px;">
-                        <div class="table-card" style="padding:16px; display:flex; flex-direction:column; gap:12px;" id="sopTemplateList"></div>
-                        <div class="table-card" id="sopLibraryPreview" style="background:#F8FAFC;">
-                             <div style="height:100%; display:flex; align-items:center; justify-content:center; color:var(--text-muted); text-align:center; padding:40px;">
-                                 V├ªlg en procedure til venstre for at se detaljer
+                    <div class="split-grid" style="display:grid; grid-template-columns: 350px 1fr; gap:24px; height: calc(100vh - 200px);">
+                        <div class="list-container" id="sopTemplateList" style="overflow-y:auto; padding-right:10px;">
+                            <!-- Procedurer loades her -->
+                        </div>
+                        <div id="sopPreview" class="detail-view" style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:24px; padding:32px; overflow-y:auto;">
+                             <div class="detail-view-empty" style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; opacity:0.5; text-align:center;">
+                                 <svg width="60" height="60" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-bottom:20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                 <h3>Vælg en procedure</h3>
+                                 <p>Her kan du se og følge dine standardprocedurer (SOP'er) for vedligeholdelse.</p>
                              </div>
                         </div>
                     </div>
@@ -704,42 +1098,67 @@
                 </form>
             </div>
 
-            <!-- MODAL: TEAM -->
-            <div id="modal-team" class="modal-card hidden">
+            <!-- MODAL: TEAM (ELITE UPGRADE) -->
+            <div id="modal-team" class="modal-card hidden" style="max-width: 600px;">
                 <span class="close-modal" onclick="closeAllModals()">✕</span>
-                <h2>Tilføj Team Medlem</h2>
-                <p>Opret en ny bruger profil i systemet.</p>
+                <h2 style="font-size:28px; font-weight:800;">Håndter Medarbejder</h2>
+                <p style="color:var(--text-muted); margin-bottom:30px;">Opret eller rediger en profil med fuld system-synkronisering.</p>
                 <form onsubmit="handleTeamSubmit(event)">
-                    <div class="input-group">
-                        <label>Fulde Navn</label>
-                        <input type="text" id="teamName" required placeholder="Peter Hansen">
+                    <input type="hidden" id="teamId">
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
+                        <div class="input-group">
+                            <label style="font-weight:700;">Fornavn (Påkrævet) *</label>
+                            <input type="text" id="teamFirstName" required placeholder="Peter" style="padding:16px;">
+                        </div>
+                        <div class="input-group">
+                            <label style="font-weight:700;">Efternavn</label>
+                            <input type="text" id="teamLastName" placeholder="Hansen" style="padding:16px;">
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label>Medarbejder nr. (Login ID)</label>
-                        <input type="text" id="teamNr" required placeholder="1001">
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
+                        <div class="input-group">
+                            <label style="font-weight:700;">Telefon nr.</label>
+                            <input type="text" id="teamPhone" placeholder="+45 12345678" style="padding:16px;">
+                        </div>
+                        <div class="input-group">
+                            <label style="font-weight:700;">E-mail</label>
+                            <input type="email" id="teamEmail" placeholder="navn@firma.dk" style="padding:16px;">
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label>Rolle</label>
-                        <select id="teamRolle" style="width:100%; padding:14px; border-radius:12px; border:1px solid var(--border);">
-                            <option value="tekniker">Tekniker</option>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
+                        <div class="input-group">
+                            <label style="font-weight:700;">Medarbejder ID (Påkrævet) *</label>
+                            <input type="text" id="teamNr" required placeholder="F.eks. 1001" style="padding:16px;">
+                        </div>
+                        <div class="input-group">
+                            <label style="font-weight:700;">PIN-kode (Påkrævet) *</label>
+                            <input type="text" id="teamPin" required placeholder="1234" style="padding:16px;">
+                        </div>
+                    </div>
+
+                    <div class="input-group" style="margin-bottom:30px;">
+                        <label style="font-weight:700;">Rolle</label>
+                        <select id="teamRolle" style="width:100%; padding:16px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.05); color:white;">
+                            <option value="tekniker">Tekniker (Standard)</option>
                             <option value="superbruger">Superbruger</option>
-                            <option value="admin">Administrator</option>
+                            <option value="admin">Administrator (Fuld adgang)</option>
                         </select>
                     </div>
-                    <div class="input-group">
-                        <label>PIN-kode / Adgangskode</label>
-                        <input type="text" id="teamPin" required placeholder="1234">
-                    </div>
-                    <button type="submit" class="btn-primary" style="width:100%;">Opret Medarbejder</button>
+
+                    <button type="submit" class="btn-primary" style="width:100%; padding:20px; font-size:16px; border-radius:16px;">Gem & Synkroniser Medarbejder 🚀</button>
                 </form>
             </div>
 
             <!-- MODAL: LOKATION -->
             <div id="modal-location" class="modal-card hidden">
                 <span class="close-modal" onclick="closeAllModals()">✕</span>
-                <h2>Ny Lokation</h2>
-                <p>Tilføj en afdeling eller et område.</p>
+                <h2>Lokations Detaljer</h2>
+                <p>Tilføj eller rediger en afdeling eller et område.</p>
                 <form onsubmit="handleLocationSubmit(event)">
+                    <input type="hidden" id="locId">
                     <div class="input-group">
                         <label>Navn</label>
                         <input type="text" id="locName" required placeholder="Hal 1, Kølelager etc.">
@@ -754,18 +1173,44 @@
 
             <!-- MODAL: KATEGORI -->
             <div id="modal-category" class="modal-card hidden">
-                <span class="close-modal" onclick="closeAllModals()">✕</span>
-                <h2>Ny Kategori</h2>
+                <div class="modal-header">
+                    <h2>Kategori Detaljer</h2>
+                    <button onclick="closeAllModals()">✕</button>
+                </div>
                 <form onsubmit="handleCategorySubmit(event)">
-                    <div class="input-group">
+                    <input type="hidden" id="catId">
+                    <div class="form-group">
                         <label>Navn</label>
                         <input type="text" id="catName" required placeholder="Elektrisk, Hydraulik...">
                     </div>
-                    <div class="input-group">
+                    <div class="form-group">
                         <label>Farve</label>
-                        <input type="color" id="catColor" style="height:50px; padding:2px;">
+                        <input type="color" id="catColor" value="#ffffff">
                     </div>
-                    <button type="submit" class="btn-primary" style="width:100%;">Gem Kategori</button>
+                    <button type="submit" class="btn-primary" style="width:100%; margin-top:20px;">Gem Kategori</button>
+                </form>
+            </div>
+
+            <!-- MODAL: PROCEDURER (SOP) -->
+            <div id="modal-sop" class="modal-card hidden" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h2>Ny Procedure (SOP)</h2>
+                    <button onclick="closeAllModals()">✕</button>
+                </div>
+                <form onsubmit="handleSopSubmit(event)">
+                    <input type="hidden" id="sopId">
+                    <div class="form-group">
+                        <label>Producere Navn / Titel</label>
+                        <input type="text" id="sopTitle" required placeholder="F.eks. Månedligt eftersyn af CNC maskine">
+                    </div>
+                    <div class="form-group">
+                        <label>Trin-for-trin guide</label>
+                        <div id="sopStepsContainer" style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                            <!-- Dynamiske trin her -->
+                        </div>
+                        <button type="button" class="btn-outline" onclick="addSopStep()" style="margin-top:10px; width:100%;">+ Tilføj Trin</button>
+                    </div>
+                    <button type="submit" class="btn-primary" style="width:100%; margin-top:30px; padding:20px;">Gem Procedure 💎</button>
                 </form>
             </div>
 
@@ -847,6 +1292,6 @@
     </main>
 
     <script src="config.js"></script>
-    <script src="easyon-lite-v83.js"></script>
+    <script src="easyon-lite-v83.js?v=83.1"></script>
 </body>
 </html>
