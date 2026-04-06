@@ -4,24 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EasyON Mobile - Lyntilgang</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #3B82F6; --bg: #0F172A; --text: #F8FAFC; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; text-align: center; }
-        .logo { width: 120px; margin-bottom: 30px; filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.3)); }
-        h1 { font-size: 32px; font-weight: 800; margin-bottom: 12px; }
-        p { color: #94A3B8; margin-bottom: 40px; font-size: 16px; max-width: 300px; }
-        .qr-box { background: white; padding: 24px; border-radius: 16px; margin-bottom: 30px; display: inline-block; width: 250px; height: 250px; }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; text-align: center; }
+        
+        /* CSS DIAMOND LOGO (0 bytes download!) 💎 */
+        .css-diamond {
+            width: 80px; height: 80px; margin-bottom: 25px;
+            background: var(--primary);
+            clip-path: polygon(50% 0%, 100% 35%, 82% 100%, 18% 100%, 0% 35%);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+            display: flex; align-items: center; justify-content: center; font-size: 40px;
+        }
+
+        h1 { font-size: 28px; font-weight: 900; margin-bottom: 12px; letter-spacing: -1px; }
+        p { color: #94A3B8; margin-bottom: 40px; font-size: 15px; max-width: 280px; line-height: 1.4; }
+        .qr-box { background: white; padding: 24px; border-radius: 16px; margin-bottom: 30px; display: inline-block; width: 250px; height: 250px; box-shadow: 0 0 40px rgba(0,0,0,0.5); }
         .qr-box img { width: 100%; height: 100%; image-rendering: pixelated; }
-        .btn-primary { background: var(--primary); color: white; text-decoration: none; padding: 18px 32px; border-radius: 16px; font-weight: 700; width: 100%; max-width: 300px; display: block; font-size: 18px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); }
-        .footer { margin-top: 40px; color: #475569; font-size: 12px; }
+        .btn-primary { background: var(--primary); color: white; text-decoration: none; padding: 20px 32px; border-radius: 16px; font-weight: 700; width: 100%; max-width: 300px; display: block; font-size: 18px; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3); }
+        .footer { margin-top: 50px; color: #475569; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body>
-    <img src="https://asze93.github.io/easyon/logo_v16.png" class="logo" alt="EasyON Logo">
+    <div class="css-diamond">💎</div>
     <h1>EasyON Mobile</h1>
-    <p>Din genvej til lynhurtig vedligeholdelse og opgavestyring i marken.</p>
+    <p>Version v83.34 - NUCLEAR SPEED MODE.<br>Alt er strippet for maksimal fart på 5G/4G.</p>
 
     <div class="qr-box">
         <img src="https://asze93.github.io/easyon/qr-code-clean.png" alt="Scan QR">
@@ -30,12 +38,12 @@
     <a href="https://asze93.github.io/easyon/easyon-app.apk" class="btn-primary">Hent APK Direkte 🚀</a>
 
     <div class="footer">
-        EasyON v83.32 - The Absolute Zero Speed Mode 🛰️
+        Powered by EasyON Elite Engine 🛰️
     </div>
 
     <script>
-        // Simpel tjek for at sikre vi bliver på mobil-visning
-        if (window.innerWidth > 992) {
+        // SMART RADAR: Kun omdiriger hvis man IKKE er på mobil
+        if (window.innerWidth > 992 && !(/Mobi|Android|iPhone/i.test(navigator.userAgent))) {
             window.location.href = 'index.html';
         }
     </script>
