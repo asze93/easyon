@@ -271,6 +271,26 @@
             box-shadow: 0 4px 15px var(--primary-glow);
         }
 
+        /* MOBILE HARD-RESET (v83.27) 🏎️💨 */
+        @media (max-width: 992px) {
+            .stat-card, .table-card, .auth-card, .sidebar, .sidebar-links a, .mobile-download-card-elite, .modal-card, .dash-main-container, .hero-mockup {
+                backdrop-filter: none !important;
+                background: #0F172A !important;
+                box-shadow: none !important;
+                border-color: rgba(255, 255, 255, 0.1) !important;
+            }
+            .qr-box-pure {
+                background: white !important;
+                box-shadow: none !important;
+                padding: 16px !important;
+                border: none !important;
+            }
+            .btn-primary, .btn-outline {
+                box-shadow: none !important;
+                transform: none !important;
+            }
+        }
+
         .dash-nav { margin: 4px 12px; padding: 14px 20px; border-radius: 14px; font-weight: 600; color: rgba(255,255,255,0.6); transition: 0.2s; display: flex; align-items: center; gap: 14px; border: 1px solid transparent; }
         .dash-nav:hover { background: var(--sidebar-accent); color: white; border-color: rgba(255,255,255,0.05); }
         .dash-nav.active { background: var(--primary); color: white; box-shadow: 0 4px 12px var(--primary-glow); border-color: transparent; }
@@ -444,11 +464,11 @@
         /* EXTREME SCAN CONTRAST (v83.26) ✨📸 */
         .qr-box-pure {
             background: white !important;
-            padding: 16px;
-            border-radius: 12px;
+            padding: 24px;
+            border-radius: 16px;
             display: inline-block;
             box-shadow: none !important;
-            border: 4px solid #F1F5F9;
+            border: 8px solid #F1F5F9;
         }
 
         .mobile-download-card-elite {
