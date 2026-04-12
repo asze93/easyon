@@ -1,0 +1,65 @@
+/* EASYON DIAMOND SIDEBAR STYLES (v84.0) 🧭💎 */
+.sidebar { 
+    width: 280px; 
+    height: 100vh; 
+    background: rgba(15, 23, 42, 0.95); 
+    border-right: 1px solid var(--border); 
+    display: flex;
+    flex-direction: column;
+    color: white; 
+    padding: 24px 12px; 
+    position: sticky;
+    top: 0;
+    overflow-y: auto; /* Enable scrolling within the sidebar 💎 */
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) transparent;
+}
+
+.sidebar-logo { 
+    font-size: 26px; 
+    font-weight: 800; 
+    margin-bottom: 32px; 
+    padding: 0 20px; 
+    display: flex; 
+    align-items: center; 
+    gap: 12px;
+}
+.sidebar-logo span { color: var(--primary); }
+
+.nav-group-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin: 24px 0 12px 20px;
+}
+
+.sidebar-links a, .dash-nav { 
+    display: flex; 
+    align-items: center; 
+    gap: 14px;
+    padding: 12px 18px; 
+    color: rgba(255,255,255,0.65); 
+    text-decoration: none; 
+    border-radius: 12px; 
+    margin-bottom: 4px; 
+    font-weight: 600; 
+    font-size: 15px;
+    transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+    border: 1px solid transparent;
+}
+
+.sidebar-links a svg, .dash-nav svg { width: 20px; height: 20px; opacity: 0.7; transition: 0.2s; }
+.sidebar-links a.active, .dash-nav.active { background: var(--primary); color: white; box-shadow: 0 4px 12px var(--primary-glow); border-color: transparent; }
+.sidebar-links a.active svg, .dash-nav.active svg { opacity: 1; }
+.sidebar-links a:hover:not(.active), .dash-nav:hover:not(.active) { background: rgba(255,255,255,0.05); color: white; border-color: rgba(255,255,255,0.05); }
+
+@media (max-width: 992px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.mobile-open { transform: translateX(0); box-shadow: 20px 0 50px rgba(0,0,0,0.5); }
+    .sidebar-overlay { 
+        position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 999; display: none; 
+    }
+    .sidebar-overlay.active { display: block; }
+}

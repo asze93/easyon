@@ -1,0 +1,243 @@
+/* SOP BUILDER CSS (DIAMOND V84.0 - DARK MODE OPB_OPTIMIZED) */
+
+#dash-sop-builder {
+    /* Starter usynligt, ligesom andre faner */
+}
+
+/* Builder Canvas Box */
+.sop-item-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    transition: 0.2s all;
+    box-shadow: var(--shadow-sm);
+    color: var(--text-main);
+}
+
+.sop-item-card:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.sop-item-card.active {
+    border-color: var(--primary);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+/* Drag handle (6 prikker) */
+.sop-drag-handle {
+    position: absolute;
+    left: -24px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    cursor: grab;
+    opacity: 0;
+    transition: 0.2s;
+    display: flex;
+    flex-wrap: wrap;
+    width: 14px;
+    height: 20px;
+    align-content: space-between;
+}
+
+.sop-item-card:hover .sop-drag-handle {
+    opacity: 1;
+}
+
+.sop-drag-handle::before,
+.sop-drag-handle::after {
+    content: "⋮";
+    font-size: 20px;
+    line-height: 20px;
+    font-weight: 800;
+}
+
+.sop-drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Input Type Dropdown Style */
+.sop-type-selector {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: rgba(0,0,0,0.2);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-main);
+    cursor: pointer;
+    outline: none;
+}
+.sop-type-selector:hover {
+    background: rgba(255,255,255,0.05);
+}
+.sop-type-selector option {
+    background: var(--bg-site);
+    color: var(--text-main);
+}
+
+/* Action Icons */
+.sop-actions {
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    transition: 0.2s;
+}
+
+.sop-item-card:hover .sop-actions,
+.sop-item-card.active .sop-actions {
+    opacity: 1;
+}
+
+.sop-action-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 6px;
+    transition: 0.2s;
+}
+
+.sop-action-btn:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--primary);
+}
+
+.sop-action-btn.delete:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+
+/* Input for felt navn */
+.sop-field-name-input {
+    border: none;
+    outline: none;
+    font-size: 16px;
+    width: 100%;
+    border-bottom: 2px solid transparent;
+    transition: 0.2s;
+    font-weight: 500;
+    background: transparent;
+    color: var(--text-main);
+}
+.sop-field-name-input::placeholder, .sop-heading-input::placeholder {
+    color: rgba(255,255,255,0.3);
+}
+.sop-item-card.active .sop-field-name-input {
+    border-color: var(--primary);
+}
+.sop-field-name-input:focus {
+    border-color: var(--primary);
+}
+
+/* Field Description / Subtitle */
+.sop-field-desc-input {
+    border: 1px solid transparent;
+    outline: none;
+    font-size: 14px;
+    width: 100%;
+    transition: 0.2s;
+    background: transparent;
+    color: var(--text-muted);
+    resize: vertical;
+    min-height: 40px;
+    font-family: inherit;
+    padding-top: 4px;
+}
+.sop-field-desc-input::placeholder {
+    color: rgba(255,255,255,0.2);
+}
+.sop-field-desc-input:focus {
+    border-color: var(--primary);
+    background: rgba(0,0,0,0.1);
+    border-radius: 4px;
+}
+
+/* Heading Input Style */
+.sop-heading-input {
+    font-size: 24px;
+    font-weight: 800;
+    border: none;
+    outline: none;
+    width: 100%;
+    background: transparent;
+    color: var(--text-main);
+}
+
+/* Float toolbar buttons */
+.builder-tool-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--text-main);
+    transition: 0.2s;
+    text-align: left;
+}
+.builder-tool-btn:hover {
+    background: rgba(255,255,255,0.05);
+    transform: translateX(4px);
+}
+.builder-tool-btn .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+/* Inline Switch (Required) */
+.toggle-switch-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 20px;
+}
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(255,255,255,0.2);
+    transition: .2s;
+    border-radius: 34px;
+}
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .2s;
+    border-radius: 50%;
+}
+input:checked + .toggle-slider {
+    background-color: var(--primary);
+}
+input:checked + .toggle-slider:before {
+    transform: translateX(14px);
+}
