@@ -1,0 +1,15 @@
+navn,beskrivelse,lokations_sti,eksternt_navn,kategori
+Gaffeltruck 1,El-truck 2 tons kapacitet,Lager > Hal A > Sektion 1,M266,Asset
+Pallesuger,Model Nilfisk Industrial,Lager > Hal B,PS-01,Asset
+Hydraulikolie 10L,ISO 46 standard olie,Lager > Hal A > Reol 4,OIL-46,Lager
+Kilerem A-42,Reservedel til transportbånd,Værksted > Reservedelslager,RE-102,Lager
+Transportbånd 4,Hovedlinje til pakkeri,Produktion > Linje 1 > Zone A,TB-04,Asset
+Vakuumpumpe,Busch R5 - service hver 6. måned,Produktion > Linje 2,VP-99,Asset
+Svejseanlæg,Kemppi MasterTig,Værksted > Svejseafdeling,SVEJS-01,Asset
+Handsker (Kasse),Nitril str. L (100 stk),Lager > Hal B > Forbrugsvarer,G-L100,Lager
+LED Arbejdslampe,Genopladelig 50W,Værksted > Værktøjsvæg,LAMP-05,Asset
+Møtrikker M10,Rustfri syrefast (500 stk),Lager > Hal A > Reol 1 > Skuffe 12,M10-SS,Lager
+CNC Fræser,Haas VF-2,Produktion > Maskinhallen,CNC-01,Asset
+Luftfilter sæt,Passer til CNC-01,Lager > Hal A > Reol 2,FILT-CNC,Lager
+Fejemaskine,Hako Citymaster,Udeareal > Parkeringsplads,HAKO-01,Asset
+Sikkerhedsbriller,UV-beskyttelse,Værksted > Forbrugsvarer,SB-2024,Lager

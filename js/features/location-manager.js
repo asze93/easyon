@@ -23,6 +23,10 @@ export function selectLocation(l) {
             ${buildPath(l)}
         </div>
         <h1 style="font-size:32px; font-weight:800; margin-top:0;">${l.navn}</h1>
+        <div style="background:rgba(255,255,255,0.03); padding:16px; border-radius:14px; border:1px solid var(--border); display:inline-block; margin-bottom:16px;">
+            <div style="font-size:10px; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;">📍 Lokation ID</div>
+            <div style="font-weight:700; color:var(--primary); font-family:monospace;">${l.short_id || '-'}</div>
+        </div>
         <p class="text-muted">${l.beskrivelse || 'Ingen beskrivelse.'}</p>
         <div style="display:flex; gap:12px; margin-top:30px;">
             <button class="btn-primary" onclick='editLocation(${JSON.stringify(l).replace(/'/g, "&#39;")})'>📝 Rediger</button>

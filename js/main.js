@@ -30,6 +30,7 @@ import './features/logistics-manager.js';
 import './features/procurement-manager.js';
 import './features/pm-manager.js';
 import './features/settings-manager.js';
+import './features/feedback-manager.js';
 import './ui/navigation.js';
 
 import { dashNavTab, dashTab } from './ui/navigation.js';

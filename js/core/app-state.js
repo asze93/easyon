@@ -11,6 +11,7 @@ export const state = {
     currentFirmaId: null,
     isGlobalAdmin: false,
     isSuperUser: false,
+    isMasterAdmin: false,
     authMode: 'login',
     
     // DIAMOND ELITE DATA STATE

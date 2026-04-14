@@ -15,17 +15,20 @@ export async function handleLagerSubmit(e) {
     const data = {
         firma_id: state.currentFirmaId,
         navn: document.getElementById('lagerNavn')?.value || 'Ny Vare',
-        antal: parseInt(document.getElementById('lagerAntal')?.value || '0'),
-        antal_min: parseInt(document.getElementById('lagerMin')?.value || '0'),
+        antal_paa_lager: parseInt(document.getElementById('lagerAntal')?.value || '0'),
+        minimums_beholdning: parseInt(document.getElementById('lagerMin')?.value || '0'),
         stregkode: document.getElementById('lagerCode')?.value || '',
-        lokation: document.getElementById('lagerLokation')?.value || ''
+        lokation_tekst: document.getElementById('lagerLokation')?.value || ''
     };
 
     try {
         if (id) await state.supabaseClient.from('lager').update(data).eq('id', id);
         else await state.supabaseClient.from('lager').insert(data);
         
-        fetchLager(); fetchStats(); closeAllModals(); showSnackbar("Vare opdateret på lager! 💎");
+        if (window.renderLagerList) window.renderLagerList();
+        else fetchLager(); // Fallback
+        
+        fetchStats(); closeAllModals(); showSnackbar("Vare opdateret på lager! 💎");
     } catch(err) {
         showSnackbar("Fejl ved lagring!");
     }
@@ -49,18 +52,22 @@ export function selectLagerItem(item) {
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
                 <div>
                     <div style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">📦 Antal på lager</div>
-                    <div style="font-size:24px; font-weight:800; color:var(--primary);">${item.antal || 0}</div>
+                    <div style="font-size:24px; font-weight:800; color:var(--primary);">${item.antal_paa_lager || 0}</div>
                 </div>
                 <div>
                     <div style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">🚨 Min. Beholdning</div>
-                    <div style="font-size:24px; font-weight:800; color:var(--danger);">${item.antal_min || 0}</div>
+                    <div style="font-size:24px; font-weight:800; color:var(--danger);">${item.minimums_beholdning || 0}</div>
                 </div>
                 <div>
                     <div style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">📍 Lokation</div>
-                    <div style="font-size:18px; font-weight:700;">${item.lokation || 'Ukendt'}</div>
+                    <div style="font-size:18px; font-weight:700;">${item.lokation_tekst || 'Ukendt'}</div>
                 </div>
                 <div>
-                    <div style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">📑 Stregkode / SSCC</div>
+                    <div style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">📑 Item ID / Short ID</div>
+                    <div style="font-size:18px; font-weight:700; font-family:monospace; color:var(--primary);">${item.short_id || '-'}</div>
+                </div>
+                <div>
+                    <div style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">🏷️ Stregkode / SSCC</div>
                     <div style="font-size:18px; font-weight:700; font-family:monospace;">${item.stregkode || '-'}</div>
                 </div>
             </div>
@@ -76,10 +83,10 @@ export function selectLagerItem(item) {
 export function editLager(item) {
     document.getElementById('lagerId').value = item.id;
     document.getElementById('lagerNavn').value = item.navn;
-    document.getElementById('lagerAntal').value = item.antal;
-    document.getElementById('lagerMin').value = item.antal_min || 0;
+    document.getElementById('lagerAntal').value = item.antal_paa_lager || 0;
+    document.getElementById('lagerMin').value = item.minimums_beholdning || 0;
     document.getElementById('lagerCode').value = item.stregkode || '';
-    document.getElementById('lagerLokation').value = item.lokation || '';
+    document.getElementById('lagerLokation').value = item.lokation_tekst || '';
     openModal('modal-lager');
 }
 
@@ -107,9 +114,9 @@ export async function handleLagerCsvImport(input) {
                 return {
                     firma_id: state.currentFirmaId,
                     navn: r[0],
-                    antal: parseInt(r[1]) || 0,
-                    antal_min: parseInt(r[2]) || 0,
-                    lokation: r[3] || '',
+                    antal_paa_lager: parseInt(r[1]) || 0,
+                    minimums_beholdning: parseInt(r[2]) || 0,
+                    lokation_tekst: r[3] || '',
                     stregkode: r[4] || ''
                 };
             }));
@@ -145,11 +152,14 @@ export async function renderLagerList() {
                 const div = document.createElement('div');
                 div.className = 'list-card-item';
                 div.onclick = () => { if (window.selectLagerItem) window.selectLagerItem(item); };
-                const lowStock = item.antal <= item.antal_min ? 'color:var(--danger); font-weight:800;' : '';
+                const lowStock = item.antal_paa_lager <= item.minimums_beholdning ? 'color:var(--danger); font-weight:800;' : '';
                 div.innerHTML = `
-                    <div style="font-weight:800;">${item.navn}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="font-weight:800;">${item.navn}</div>
+                        <div style="font-size:10px; font-weight:900; background:rgba(255,255,255,0.05); color:white; padding:2px 6px; border-radius:4px;">${item.short_id || ''}</div>
+                    </div>
                     <div style="font-size:12px; color:var(--text-muted);">
-                        <span style="${lowStock}">Antal: ${item.antal || 0}</span> (Min: ${item.antal_min || 0}) • 📍 ${item.lokation || 'Ukendt'}
+                        <span style="${lowStock}">Antal: ${item.antal_paa_lager || 0}</span> (Min: ${item.minimums_beholdning || 0}) • 📍 ${item.lokation_tekst || 'Ukendt'}
                     </div>
                 `;
                 list.appendChild(div);

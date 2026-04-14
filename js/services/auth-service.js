@@ -85,10 +85,18 @@ export async function loadDashboard(providedProfile = null) {
         const lowRole = (profile.rolle || "").toLowerCase();
         state.isGlobalAdmin = lowRole.includes('admin');
         state.isSuperUser = state.isGlobalAdmin || lowRole.includes('superbruger');
+        state.isMasterAdmin = (profile.email || "").toLowerCase() === 'asze@gmail.com';
 
         localStorage.setItem('easyon_user_role', lowRole);
         localStorage.setItem('easyon_session_profile', JSON.stringify(profile));
         localStorage.setItem('easyon_firma_id', state.currentFirmaId);
+
+        // UI VISIBILITY 🎭
+        document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !state.isGlobalAdmin));
+        document.querySelectorAll('.master-only').forEach(el => el.classList.remove('hidden'));
+        if (!state.isMasterAdmin) {
+            document.querySelectorAll('.master-only').forEach(el => el.classList.add('hidden'));
+        }
 
         // Smart Name Mapping 👋✨
         const displayName = profile.full_name || (profile.fornavn ? `${profile.fornavn} ${profile.efternavn || ''}` : null) || profile.navn || profile.email || "Bruger";
@@ -107,6 +115,7 @@ export async function loadDashboard(providedProfile = null) {
         showView('dashboard');
         updateLandingUI(); // Update landing page state 🧭
         document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !state.isGlobalAdmin));
+        document.querySelectorAll('.master-only').forEach(el => el.classList.toggle('hidden', !state.isMasterAdmin));
 
         // INITIALIZE ALL DATA (FROM API-SERVICE)
         fetchStats(); 

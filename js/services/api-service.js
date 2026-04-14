@@ -171,7 +171,13 @@ export async function fetchLocations() {
             div.className = 'list-card-item';
             div.id = `loc-item-${l.id}`;
             div.onclick = () => { if (window.selectLocation) window.selectLocation(l); };
-            div.innerHTML = `<div style="font-weight:800;">${l.navn}</div><div style="font-size:12px; color:var(--text-muted);">📍 ${l.beskrivelse || 'Lokation'}</div>`;
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="font-weight:800;">${l.navn}</div>
+                    <div style="font-size:10px; font-weight:900; background:rgba(255,255,255,0.05); color:white; padding:2px 6px; border-radius:4px;">${l.short_id || ''}</div>
+                </div>
+                <div style="font-size:12px; color:var(--text-muted);">📍 ${l.beskrivelse || 'Lokation'}</div>
+            `;
             list.appendChild(div);
         });
     } catch (e) { console.warn("Locations Fetch Error:", e); }
@@ -245,11 +251,11 @@ export async function ensureLocationPath(pathStr) {
         );
 
         if (!loc) {
-            const { data, error } = await state.supabaseClient.from('lokationer').insert({
+            const { data, error } = await state.supabaseClient.from('lokationer').upsert({
                 firma_id: state.currentFirmaId,
                 navn: part,
                 parent_id: currentParentId
-            }).select().single();
+            }, { onConflict: 'navn,firma_id' }).select().single();
             
             if (error) throw error;
             loc = data;
@@ -264,10 +270,10 @@ export async function ensureCategory(name) {
     if (!name) return null;
     let cat = state.allCategories?.find(c => c.navn.toLowerCase() === name.trim().toLowerCase());
     if (!cat) {
-        const { data, error } = await state.supabaseClient.from('kategorier').insert({
+        const { data, error } = await state.supabaseClient.from('kategorier').upsert({
             firma_id: state.currentFirmaId,
             navn: name.trim()
-        }).select().single();
+        }, { onConflict: 'navn,firma_id' }).select().single();
         if (error) return null;
         cat = data;
         if (state.allCategories) state.allCategories.push(cat);
@@ -299,3 +305,18 @@ export async function exportToCsv(type) {
 }
 
 window.exportToCsv = exportToCsv;
+
+export async function fetchFeedback() {
+    if (!state.isMasterAdmin) return;
+    try {
+        const { data, error } = await state.supabaseClient
+            .from('feedback')
+            .select('*') // Fjernet join midlertidigt for stabilitet
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        if (window.renderFeedbackList) window.renderFeedbackList(data);
+    } catch (e) {
+        console.warn("Feedback Fetch Error:", e);
+    }
+}

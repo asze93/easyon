@@ -92,6 +92,8 @@ export function openModal(id, reset = false) {
     
     // Feature Specific Prep
     if (id === 'modal-pm' && window.preparePmModal) window.preparePmModal();
+    if (id === 'modal-sscc' && window.prepareSsccModal) window.prepareSsccModal();
+    if (id === 'modal-indkoeb' && window.preparePoModal) window.preparePoModal();
 }
 
 /**

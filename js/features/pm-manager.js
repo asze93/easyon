@@ -218,58 +218,31 @@ export async function checkAndProcessPm() {
     if (!state.currentFirmaId) return;
 
     try {
-        // Fix: Use local date to avoid UTC Midnight Displacement
-        const now = new Date();
-        const offset = now.getTimezoneOffset() * 60000;
-        const localDate = new Date(now.getTime() - offset).toISOString().split('T')[0];
+        // Step 1: Inform the user (Silent logic check)
+        showSnackbar("Tjekker for nye planlagte opgaver... 🛰️");
         
-        console.log(`--- [PM AUDIT] Local Today: ${localDate} --- 🛰️`);
+        console.log(`--- [PM AUDIT] Requesting server-side processing for firma: ${state.currentFirmaId} --- 🚀`);
 
-        const { data: duePlans, error: pullErr } = await state.supabaseClient
-            .from('pm_planer')
-            .select('*, assets(lokation_id)')
-            .eq('firma_id', state.currentFirmaId)
-            .eq('aktiv', true)
-            .lte('naeste_service_dato', localDate);
+        // Step 2: Call the Hardened PM RPC
+        const { data: tasksCreatedCount, error: rpcErr } = await state.supabaseClient.rpc('process_pm_tasks', {
+            p_firma_id: state.currentFirmaId
+        });
 
-        if (pullErr) throw pullErr;
-        if (!duePlans || duePlans.length === 0) {
+        if (rpcErr) throw rpcErr;
+
+        // Step 3: UI Feedback based on result
+        if (tasksCreatedCount > 0) {
+            showSnackbar(`${tasksCreatedCount} nye automatiske opgaver oprettet! 🚜⚡`);
+            if (typeof window.fetchTasks === 'function') window.fetchTasks();
+        } else {
             console.log("No PM tasks due. System stable. 💎");
-            return;
+            // Optional: Final toast to confirm stability
+            setTimeout(() => showSnackbar("Alle planlagte opgaver er up-to-date. 💎"), 1500);
         }
-
-        for (const plan of duePlans) {
-            // Opret opgave med fuld integration context
-            const { error: tErr } = await state.supabaseClient.from('opgaver').insert({
-                firma_id: plan.firma_id,
-                titel: `[PLANLAGT] ${plan.titel}`,
-                beskrivelse: `OPRETTET AUTOMATISK AF SERVICEPLAN: ${plan.titel}\n---\n${plan.beskrivelse || "Følg den tilknyttede SOP guide."}`,
-                status: 'Venter',
-                prioritet: plan.prioritet || 1,
-                asset_id: plan.asset_id,
-                sop_id: plan.sop_id,
-                lokation_id: plan.assets?.lokation_id || null, // Auto-derive location
-            });
-
-            if (tErr) throw tErr;
-
-            const nextDateObj = new Date(plan.naeste_service_dato);
-            if (plan.interval_type === 'days') nextDateObj.setDate(nextDateObj.getDate() + plan.interval_vaerdi);
-            else if (plan.interval_type === 'weeks') nextDateObj.setDate(nextDateObj.getDate() + (plan.interval_vaerdi * 7));
-            else if (plan.interval_type === 'months') nextDateObj.setMonth(nextDateObj.getMonth() + plan.interval_vaerdi);
-            else if (plan.interval_type === 'years') nextDateObj.setFullYear(nextDateObj.getFullYear() + plan.interval_vaerdi);
-            
-            await state.supabaseClient.from('pm_planer').update({ 
-                sidste_service_dato: plan.naeste_service_dato,
-                naeste_service_dato: nextDateObj.toISOString().split('T')[0]
-            }).eq('id', plan.id);
-            
-            console.log(`Generated task for: ${plan.titel} ✅`);
-        }
-
-        showSnackbar(`${duePlans.length} automatiske opgaver er sat i gang! 🚜⚡`);
-        if (typeof window.fetchTasks === 'function') window.fetchTasks();
-    } catch (err) { console.warn("PM Automation Error:", err); }
+    } catch (err) { 
+        console.warn("PM Automation Error:", err); 
+        showSnackbar("Kunne ikke behandle serviceplaner automatisk.");
+    }
 }
 
 export async function deletePmPlan(id) {

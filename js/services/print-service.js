@@ -71,14 +71,15 @@ export function printQrTag(id, name, type = 'Asset') {
                         h2 { font-size:26px; font-weight:900; color:#0F172A; margin-top:16px; line-height:1.1; }
                         p { font-size:12px; color:#64748B; margin-top:8px; font-weight:600; }
                         .id-code { 
-                            font-size:9px; 
-                            color:#CBD5E1; 
-                            margin-top:20px; 
-                            font-family:monospace; 
-                            background:#F8FAFC;
-                            padding:8px;
-                            border-radius:8px;
-                            word-break:break-all;
+                            font-size:14px; 
+                            color:#0F172A; 
+                            margin-top:16px; 
+                            font-weight:900;
+                            letter-spacing:1px;
+                            background:#F1F5F9;
+                            padding:6px 16px;
+                            border-radius:10px;
+                            display:inline-block;
                         }
                         .footer { margin-top:30px; border-top:1px solid #E2E8F0; padding-top:10px; width:100%; }
                         .brand { font-size:12px; font-weight:900; letter-spacing:1px; color:#3B82F6; }

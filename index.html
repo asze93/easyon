@@ -6,15 +6,16 @@
     <title>EasyON v86.8 - ENTERPRISE DIAMOND 💎</title>
 <!-- RESPONSIVE DIAMOND CORE (v86.8) 💎🛰️ -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/core/diamond-vars.css">
-    <link rel="stylesheet" href="css/core/diamond-base.css">
-    <link rel="stylesheet" href="css/components/buttons.css">
-    <link rel="stylesheet" href="css/components/sidebar.css">
-    <link rel="stylesheet" href="css/components/dashboard.css">
-    <link rel="stylesheet" href="css/components/modals.css">
-    <link rel="stylesheet" href="css/components/sop-builder.css">
-    <link rel="stylesheet" href="css/core/landing-premium.css">
-    <link rel="stylesheet" href="css/core/responsive.css">
+    <link rel="stylesheet" href="css/core/diamond-vars.css?v=87.4">
+    <link rel="stylesheet" href="css/core/diamond-base.css?v=87.4">
+    <link rel="stylesheet" href="css/components/buttons.css?v=87.4">
+    <link rel="stylesheet" href="css/components/sidebar.css?v=87.4">
+    <link rel="stylesheet" href="css/components/dashboard.css?v=87.4">
+    <link rel="stylesheet" href="css/components/modals.css?v=87.4">
+    <link rel="stylesheet" href="css/components/sop-builder.css?v=87.4">
+    <link rel="stylesheet" href="css/core/landing-premium.css?v=87.4">
+    <link rel="stylesheet" href="css/core/responsive.css?v=87.4">
+    <link rel="stylesheet" href="css/components/feedback.css?v=87.4">
     <!-- QR CODE LIBRARY (QRCode.js) -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
@@ -334,20 +335,17 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                         Team & Folk
                     </a>
-                    <a href="javascript:void(0)" class="dash-nav admin-only" data-tab="kpi" onclick="dashNavTab(event, 'kpi')" id="nav-kpi">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002 2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                        KPI Dashboard
-                    </a>
+
                     <a href="javascript:void(0)" class="dash-nav admin-only" data-tab="indstillinger" onclick="dashNavTab(event, 'indstillinger')" id="nav-indst">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         Indstillinger
                     </a>
-
-                    <div id="sidebar-data-divider" class="nav-group-title admin-only" style="margin-top:20px;">System Data</div>
-                    <a href="javascript:void(0)" class="dash-nav admin-only" data-tab="data-hub" onclick="dashNavTab(event, 'data-hub')" id="nav-data-hub">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
-                        Data Håndtering 💎
+                    <a href="javascript:void(0)" class="dash-nav master-only hidden" data-tab="feedback" onclick="dashNavTab(event, 'feedback')" id="nav-feedback-inbox">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                        Feedback Indbakke 📩
                     </a>
+
+
 
                     <a href="javascript:void(0)" onclick="logout()" style="margin-top:auto; color:var(--danger); background: rgba(239, 68, 68, 0.1); border:none; padding:14px 18px; font-weight:700;">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
@@ -357,21 +355,22 @@
             </aside>
 
             <main class="dash-main-container">
-                <header class="dash-header">
-                    <div>
-                        <h1 style="font-size:32px; font-weight:800; letter-spacing:-1px;">Velkommen, <span class="adminName">...</span></h1>
-                        <p id="user-display-identity" style="color:var(--primary); font-size:13px; font-weight:700; opacity:0.8; margin-top:2px;"></p>
-                        <p style="color:var(--text-muted); font-weight:500;">Her er dit overblik over EasyON Hovedkvarteret</p>
-                    </div>
-                    <div style="display:flex; gap:12px;">
-                        <button class="btn-outline" onclick="dashNavTab(null, 'indstillinger')">
-                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        </button>
-                    </div>
-                </header>
+                <!-- Header fjernet herfra (GLOBAL) og flyttet ind i OVERVIEW fane 🏗️ -->
 
                 <!-- TAB: OVERVIEW (DIAMOND UPGRADE) -->
                 <div id="dash-overview" class="dash-tab active">
+                    <header class="dash-header" style="margin-bottom:40px;">
+                        <div>
+                            <h1 style="font-size:32px; font-weight:800; letter-spacing:-1px;">Velkommen, <span class="adminName">...</span></h1>
+                            <p id="user-display-identity" style="color:var(--primary); font-size:13px; font-weight:700; opacity:0.8; margin-top:2px;"></p>
+                            <p style="color:var(--text-muted); font-weight:500;">Her er dit overblik over EasyON Hovedkvarteret</p>
+                        </div>
+                        <div style="display:flex; gap:12px;">
+                            <button class="btn-outline" onclick="dashNavTab(null, 'indstillinger')">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            </button>
+                        </div>
+                    </header>
                     <div class="stats-grid">
 
                         <div class="stat-card">
@@ -410,6 +409,33 @@
                         </div>
                         <div class="chart-container" style="position: relative; height: 350px; width: 100%;">
                             <canvas id="chart-main"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: FEEDBACK INDBAKKE 📩 (KUN MASTER) -->
+                <div id="dash-feedback" class="dash-tab">
+                    <div class="view-header" style="margin-bottom:30px;">
+                        <div>
+                            <div style="font-size:10px; font-weight:900; color:var(--primary); letter-spacing:2px; margin-bottom:8px; opacity:0.8;">DIAMOND LIVE v87.4 💎🛰️</div>
+                            <h1 style="font-size:28px; font-weight:800; margin:0;">Feedback Indbakke 📩</h1>
+                            <p class="text-muted" style="margin-top:4px;">Bruger-feedback på tværs af hele EasyON Diamond platformen.</p>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 350px 1fr; gap:30px; margin-top:20px;">
+                        <!-- Liste Panel -->
+                        <div style="background:rgba(255,255,255,0.02); border-radius:24px; border:1px solid var(--border); padding:24px; min-height:600px;">
+                            <div id="feedback-list-container" style="display:flex; flex-direction:column; gap:12px;">
+                                <div class="spinner" style="margin:40px auto;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Detalje Panel -->
+                        <div id="feedback-detail-panel" style="background:var(--bg-card); border-radius:24px; border:1px solid var(--border); padding:40px; display:none;">
+                            <div id="feedback-detail-content">
+                                <!-- JS fylder dette ud -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -491,6 +517,9 @@
                     <div class="dash-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                         <h2 style="font-size:24px; font-weight:800;">Maskiner & Assets</h2>
                         <div style="display:flex; gap:12px;">
+                            <input type="text" id="assetListSearch" placeholder="Søg (Navn el. M-1001)..." 
+                                style="padding:10px 16px; border-radius:10px; border:1px solid var(--border); width:200px; background:rgba(255,255,255,0.05); color:white;"
+                                oninput="window.renderAssetsList()">
                             <button class="btn-primary" onclick="openModal('modal-asset', true)" title="Registrér en ny maskine eller udstyr i systemet">+ Ny Maskine</button>
                         </div>
                     </div>
@@ -657,123 +686,118 @@
                     </div>
                 </div>
 
-                <!-- TAB: KPI -->
-                <div id="dash-kpi" class="dash-tab">
-                    <div class="dash-header">
-                        <h2 style="font-size:24px; font-weight:800;">KPI Konfiguration</h2>
-                        <button class="btn-primary" onclick="saveKpiSettings()">Gem Indstillinger</button>
-                    </div>
-                    <div class="table-card" style="padding:40px; max-width:600px;">
-                        <div class="input-group" style="display:flex; align-items:center; gap:16px;">
-                            <input type="checkbox" id="kpi_svartid" style="width:24px; height:24px;">
-                            <label style="margin:0;">Vis gennemsnitlig svartid</label>
-                        </div>
-                        <div class="input-group" style="display:flex; align-items:center; gap:16px;">
-                            <input type="checkbox" id="kpi_materiale" style="width:24px; height:24px;">
-                            <label style="margin:0;">Vis materialeforbrug (lager)</label>
-                        </div>
-                        <div class="input-group" style="display:flex; align-items:center; gap:16px;">
-                            <input type="checkbox" id="kpi_maskin" style="width:24px; height:24px;">
-                            <label style="margin:0;">Vis maskinstilstand (OEE estimat)</label>
-                        </div>
-                        <div class="input-group" style="display:flex; align-items:center; gap:16px;">
-                            <input type="checkbox" id="kpi_fordeling" style="width:24px; height:24px;">
-                            <label style="margin:0;">Vis opgavefordeling pr. tekniker</label>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- TAB: INDSTILLINGER -->
+
+                <!-- TAB: INDSTILLINGER (CONSOLIDATED) -->
                 <div id="dash-indstillinger" class="dash-tab">
                     <div class="dash-header">
-                        <h2 style="font-size:24px; font-weight:800;">Firma Indstillinger</h2>
-                        <button class="btn-primary" onclick="saveIndstillinger()">Gem Alt</button>
+                        <h2 style="font-size:24px; font-weight:800;">Indstillinger & System ⚙️</h2>
+                        <button class="btn-primary" onclick="saveIndstillinger(); if(window.saveKpiSettings) window.saveKpiSettings();">Gem Alle Ændringer</button>
+                    </div>
+
+                    <!-- Sub-navigation -->
+                    <div style="display:flex; gap:30px; border-bottom:1px solid var(--border); margin-bottom:40px; padding-bottom:2px;">
+                        <button class="settings-nav active" onclick="switchSettings(this, 'firma')" style="background:none; border:none; color:var(--text-main); font-weight:800; cursor:pointer; padding:12px 0; font-size:14px; position:relative; transition:all 0.2s;">Firma Profil</button>
+                        <button class="settings-nav" onclick="switchSettings(this, 'kpi')" style="background:none; border:none; color:var(--text-muted); font-weight:800; cursor:pointer; padding:12px 0; font-size:14px; position:relative; transition:all 0.2s;">KPI & Statistik</button>
+                        <button class="settings-nav" onclick="switchSettings(this, 'data')" style="background:none; border:none; color:var(--text-muted); font-weight:800; cursor:pointer; padding:12px 0; font-size:14px; position:relative; transition:all 0.2s;">Data Håndtering</button>
                     </div>
                     
-                    <div class="table-card" style="padding:40px; margin-bottom:30px;">
-                        <h3 style="font-size:18px; font-weight:800; margin-bottom:10px;">Vælg Layout Tema 🎨</h3>
-                        <p style="color:var(--text-muted); margin-bottom:30px; font-size:14px;">Skift EasyONs udseende til din foretrukne arbejdsstil.</p>
-                        
-                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px;">
-                            <!-- Midnight -->
-                            <div class="theme-card" onclick="setTheme('midnight')" style="background:#0b1a33; border:2px solid #3B82F6;">
-                                <div style="height:60px; background:linear-gradient(135deg, #1E293B, #0b1a33); border-radius:8px 8px 0 0;"></div>
-                                <div style="padding:15px; text-align:center;">
-                                    <span style="font-weight:800; color:white;">Midnight</span>
+                    <!-- SECTION: FIRMA PROFIL -->
+                    <div id="set-firma" class="settings-section">
+                        <div class="table-card" style="padding:40px; margin-bottom:30px;">
+                            <h3 style="font-size:18px; font-weight:800; margin-bottom:10px;">Vælg Layout Tema 🎨</h3>
+                            <p style="color:var(--text-muted); margin-bottom:30px; font-size:14px;">Skift EasyONs udseende til din foretrukne arbejdsstil.</p>
+                            
+                            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px;">
+                                <!-- Midnight -->
+                                <div class="theme-card" onclick="setTheme('midnight')" style="background:#0b1a33; border:2px solid #3B82F6;">
+                                    <div style="height:60px; background:linear-gradient(135deg, #1E293B, #0b1a33); border-radius:8px 8px 0 0;"></div>
+                                    <div style="padding:15px; text-align:center;">
+                                        <span style="font-weight:800; color:white;">Midnight</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <!-- Deep Blue -->
-                            <div class="theme-card" onclick="setTheme('deep-blue')" style="background:#122b4f; border:1px solid var(--border);">
-                                <div style="height:60px; background:linear-gradient(135deg, #1a3a6d, #122b4f); border-radius:8px 8px 0 0;"></div>
-                                <div style="padding:15px; text-align:center;">
-                                    <span style="font-weight:800; color:white;">Deep Blue</span>
+                                <!-- Deep Blue -->
+                                <div class="theme-card" onclick="setTheme('deep-blue')" style="background:#122b4f; border:1px solid var(--border);">
+                                    <div style="height:60px; background:linear-gradient(135deg, #1a3a6d, #122b4f); border-radius:8px 8px 0 0;"></div>
+                                    <div style="padding:15px; text-align:center;">
+                                        <span style="font-weight:800; color:white;">Deep Blue</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <!-- Gold Elite -->
-                            <div class="theme-card" onclick="setTheme('gold')" style="background:#0b1a33; border:1px solid var(--border);">
-                                <div style="height:60px; background:linear-gradient(135deg, #d4af37, #0b1a33); border-radius:8px 8px 0 0;"></div>
-                                <div style="padding:15px; text-align:center;">
-                                    <span style="font-weight:800; color:#d4af37;">Gold Elite</span>
+                                <!-- Gold Elite -->
+                                <div class="theme-card" onclick="setTheme('gold')" style="background:#0b1a33; border:1px solid var(--border);">
+                                    <div style="height:60px; background:linear-gradient(135deg, #d4af37, #0b1a33); border-radius:8px 8px 0 0;"></div>
+                                    <div style="padding:15px; text-align:center;">
+                                        <span style="font-weight:800; color:#d4af37;">Gold Elite</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <!-- Clean Light -->
-                            <div class="theme-card" onclick="setTheme('light')" style="background:#f4f1e8; border:1px solid var(--border);">
-                                <div style="height:60px; background:#ffffff; border-radius:8px 8px 0 0;"></div>
-                                <div style="padding:15px; text-align:center;">
-                                    <span style="font-weight:800; color:#1e293b;">Clean Light</span>
+                                <!-- Clean Light -->
+                                <div class="theme-card" onclick="setTheme('light')" style="background:#f4f1e8; border:1px solid var(--border);">
+                                    <div style="height:60px; background:#ffffff; border-radius:8px 8px 0 0;"></div>
+                                    <div style="padding:15px; text-align:center;">
+                                        <span style="font-weight:800; color:#1e293b;">Clean Light</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Andre indstillinger herunder -->
+                    <!-- SECTION: KPI CONFIG -->
+                    <div id="set-kpi" class="settings-section" style="display:none;">
+                        <div class="table-card" style="padding:40px; max-width:640px;">
+                            <h3 style="font-size:18px; font-weight:800; margin-bottom:10px;">KPI Konfiguration 📈</h3>
+                            <p style="color:var(--text-muted); margin-bottom:30px; font-size:14px;">Vælg hvilke nøgletal der skal prioriteres i dashboardet.</p>
+
+                            <div style="display:flex; flex-direction:column; gap:16px;">
+                                <div class="input-group" style="display:flex; align-items:center; gap:16px;">
+                                    <input type="checkbox" id="kpi_svartid" style="width:24px; height:24px;">
+                                    <label style="margin:0;">Vis gennemsnitlig svartid</label>
+                                </div>
+                                <div class="input-group" style="display:flex; align-items:center; gap:16px;">
+                                    <input type="checkbox" id="kpi_materiale" style="width:24px; height:24px;">
+                                    <label style="margin:0;">Vis materialeforbrug (lager)</label>
+                                </div>
+                                <div class="input-group" style="display:flex; align-items:center; gap:16px;">
+                                    <input type="checkbox" id="kpi_maskin" style="width:24px; height:24px;">
+                                    <label style="margin:0;">Vis maskinstilstand (OEE estimat)</label>
+                                </div>
+                                <div class="input-group" style="display:flex; align-items:center; gap:16px;">
+                                    <input type="checkbox" id="kpi_fordeling" style="width:24px; height:24px;">
+                                    <label style="margin:0;">Vis opgavefordeling pr. tekniker</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION: DATA HUB -->
+                    <div id="set-data" class="settings-section" style="display:none;">
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:24px;">
+                            <!-- IMPORT CARD: UNIVERSAL MASTER IMPORT -->
+                            <div class="table-card" style="padding:32px; transition:transform 0.2s; border:1px solid var(--border);" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                                <div style="font-size:32px; margin-bottom:16px;">🧙‍♂️</div>
+                                <h3 style="font-size:20px; font-weight:800; margin-bottom:8px;">Universal Master Import</h3>
+                                <p style="color:var(--text-muted); font-size:13px; margin-bottom:24px; line-height:1.5;">Smart-importér maskiner og lager i én samlet fil. Systemet sorterer automatisk dataene for dig.</p>
+                                
+                                <input type="file" id="universalCsvInput" style="display:none;" accept=".csv" onchange="handleUniversalCsvImport(this)">
+                                <button class="btn-primary" style="width:100%; justify-content:center;" onclick="document.getElementById('universalCsvInput').click()">🚀 Start Smart Import</button>
+                                <a href="javascript:void(0)" onclick="window.downloadCsvTemplate('universal')" style="display:block; text-align:center; margin-top:16px; font-size:12px; color:var(--primary); font-weight:700; text-decoration:none;">📥 Hent Skabelon (.csv)</a>
+                            </div>
+
+                            <!-- EXPORT CARD -->
+                            <div class="table-card" style="padding:32px; background:rgba(255,255,255,0.01);">
+                                <div style="font-size:32px; margin-bottom:16px;">📉</div>
+                                <h3 style="font-size:20px; font-weight:800; margin-bottom:8px;">Data Eksport</h3>
+                                <p style="color:var(--text-muted); font-size:13px; margin-bottom:24px; line-height:1.5;">Træk jeres komplette data ud til revision eller ekstern analyse.</p>
+                                
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                                    <button class="btn-outline" style="font-size:12px;" onclick="window.exportToCsv('assets')">Maskiner ↓</button>
+                                    <button class="btn-outline" style="font-size:12px;" onclick="window.exportToCsv('lager')">Lager ↓</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- TAB: DATA HUB (CENTRALIZED MANAGEMENT) -->
-                <div id="dash-data-hub" class="dash-tab">
-                    <div class="dash-header" style="margin-bottom:40px;">
-                        <div>
-                            <h2 style="font-size:32px; font-weight:800; letter-spacing:-1.5px;">Diamond Data Hub 🚀</h2>
-                            <p style="color:var(--text-muted); font-size:16px;">Centraliseret styring af virksomhedens data, import og eksport.</p>
-                        </div>
-                    </div>
 
-                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:24px;">
-                        <!-- IMPORT CARD: ASSETS -->
-                        <div class="table-card" style="padding:32px; transition:transform 0.2s; border:1px solid var(--border);" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
-                            <div style="font-size:32px; margin-bottom:16px;">🚜</div>
-                            <h3 style="font-size:20px; font-weight:800; margin-bottom:8px;">Bulk Import: Maskiner</h3>
-                            <p style="color:var(--text-muted); font-size:13px; margin-bottom:24px; line-height:1.5;">Upload en CSV-fil for at oprette hundreder af maskiner på én gang. Systemet opretter automatisk nye lokationer og kategorier.</p>
-                            
-                            <input type="file" id="assetCsvInput" style="display:none;" accept=".csv" onchange="handleAssetCsvImport(this)">
-                            <button class="btn-primary" style="width:100%; justify-content:center;" onclick="document.getElementById('assetCsvInput').click()">🚀 Start Maskin-import</button>
-                            <a href="javascript:void(0)" onclick="window.downloadCsvTemplate('assets')" style="display:block; text-align:center; margin-top:16px; font-size:12px; color:var(--primary); font-weight:700; text-decoration:none;">📥 Hent Skabelon (.csv)</a>
-                        </div>
-
-                        <!-- IMPORT CARD: LAGER -->
-                        <div class="table-card" style="padding:32px; transition:transform 0.2s; border:1px solid var(--border);" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
-                            <div style="font-size:32px; margin-bottom:16px;">📦</div>
-                            <h3 style="font-size:20px; font-weight:800; margin-bottom:8px;">Bulk Import: Lager</h3>
-                            <p style="color:var(--text-muted); font-size:13px; margin-bottom:24px; line-height:1.5;">Indlæs hele jeres reservedelslager med ét klik. Understøtter stregkoder og lagerlokationer.</p>
-                            
-                            <input type="file" id="lagerCsvInput" style="display:none;" accept=".csv" onchange="handleLagerCsvImport(this)">
-                            <button class="btn-primary" style="width:100%; justify-content:center;" onclick="document.getElementById('lagerCsvInput').click()">📦 Start Lager-import</button>
-                            <a href="javascript:void(0)" onclick="window.downloadCsvTemplate('lager')" style="display:block; text-align:center; margin-top:16px; font-size:12px; color:var(--primary); font-weight:700; text-decoration:none;">📥 Hent Skabelon (.csv)</a>
-                        </div>
-
-                        <!-- EXPORT CARD -->
-                        <div class="table-card" style="padding:32px; background:rgba(255,255,255,0.01);">
-                            <div style="font-size:32px; margin-bottom:16px;">📉</div>
-                            <h3 style="font-size:20px; font-weight:800; margin-bottom:8px;">Data Eksport</h3>
-                            <p style="color:var(--text-muted); font-size:13px; margin-bottom:24px; line-height:1.5;">Træk jeres komplette data ud til revision eller ekstern analyse. Filerne gemmes i standard Excel-venligt format.</p>
-                            
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                                <button class="btn-outline" style="font-size:12px;" onclick="window.exportToCsv('assets')">Maskiner ↓</button>
-                                <button class="btn-outline" style="font-size:12px;" onclick="window.exportToCsv('lager')">Lager ↓</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- TAB: SOP BUILDER -->
                 <div id="dash-sop-builder" class="dash-tab">
@@ -935,9 +959,15 @@
                 <p>Tilføj en ny maskine til jeres anlæg.</p>
                 <form onsubmit="handleAssetSubmit(event)">
                     <input type="hidden" id="assetId">
-                    <div style="margin-bottom:20px;">
-                        <label style="font-weight:800; font-size:12px; margin-bottom:6px; display:block; text-transform:uppercase; color:var(--text-muted);">Navn / ID</label>
-                        <input type="text" id="assetName" required placeholder="Maskinens navn eller nr. (f.eks. Drejebænk #01)" oninput="this.style.borderColor='var(--border)'" style="padding:14px; width:100%; border-radius:14px; border:2px solid var(--border); background:rgba(255,255,255,0.03); color:white;">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:20px;">
+                        <div class="input-group">
+                            <label style="font-weight:800; font-size:12px; margin-bottom:6px; display:block; text-transform:uppercase; color:var(--text-muted);">Navn / Beskrivelse</label>
+                            <input type="text" id="assetName" required placeholder="f.eks. Hydraulik Pumpe 1" oninput="this.style.borderColor='var(--border)'" style="padding:14px; width:100%; border-radius:14px; border:2px solid var(--border); background:rgba(255,255,255,0.03); color:white;">
+                        </div>
+                        <div class="input-group">
+                            <label style="font-weight:800; font-size:12px; margin-bottom:6px; display:block; text-transform:uppercase; color:var(--text-muted);">Alias / Eksternt ID</label>
+                            <input type="text" id="assetAlias" placeholder="f.eks. M266" style="padding:14px; width:100%; border-radius:14px; border:2px solid var(--border); background:rgba(255,255,255,0.03); color:white;">
+                        </div>
                     </div>
                     <div style="margin-bottom:20px;">
                         <label style="font-weight:800; font-size:12px; margin-bottom:6px; display:block; text-transform:uppercase; color:var(--text-muted);">Detaljer</label>
@@ -1411,10 +1441,57 @@
                 </div>
             </div>
 
-        </div>
+            <!-- TAB: FEEDBACK INDBAKKE 📩 flyttet op 🏗️ -->
+            <!-- MODAL: GIV FEEDBACK 💎💬 -->
+            <div id="modal-feedback" class="modal-card hidden" style="max-width:500px; padding:0; overflow:hidden;">
+                <div style="padding:30px 40px; background:linear-gradient(135deg, #0F172A, #1E293B); text-align:center;">
+                    <div style="font-size:40px; margin-bottom:12px;">💎</div>
+                    <h2 style="font-weight:800; color:white; margin:0;">Giv Feedback</h2>
+                    <p style="color:var(--text-muted); font-size:13px; margin-top:5px;">Hjælp os med at gøre EasyON endnu bedre</p>
+                </div>
+                
+                <form onsubmit="handleFeedbackSubmit(event)" style="padding:30px 40px 40px;">
+                    <div class="input-group" style="margin-bottom:20px;">
+                        <label style="font-weight:800; font-size:12px; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px; display:block;">Hvad vil du sige?</label>
+                        <select id="feedbackType" style="width:100%; padding:14px; border-radius:12px; background:var(--bg-card); border:1px solid var(--border); color:white; font-weight:700;">
+                            <option value="Ros 💎">Ros 💎</option>
+                            <option value="Ris 🛠️">Ris 🛠️</option>
+                            <option value="Forslag 💡">Forslag 💡</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group" style="margin-bottom:20px;">
+                        <label style="font-weight:800; font-size:12px; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px; display:block;">Din besked...</label>
+                        <textarea id="feedbackMsg" required placeholder="Beskriv hvad du oplever... Skriv gerne dit navn eller mail i beskeden, hvis jeg må vende tilbage til dig på dit feedback! 😊" style="width:100%; min-height:120px; padding:16px; border-radius:12px; background:rgba(255,255,255,0.02); border:2px solid var(--border); color:white; font-family:inherit; resize:vertical;"></textarea>
+                    </div>
+
+                    <!-- Screenshot Upload -->
+                    <div class="upload-zone" onclick="document.getElementById('feedbackImageInput').click()" style="border:2px dashed var(--border); border-radius:16px; padding:20px; text-align:center; cursor:pointer; margin-bottom:20px; background:rgba(255,255,255,0.02);">
+                        <div id="feedbackUploadLabel">
+                            <span style="font-size:24px;">📸</span><br>
+                            <span style="font-size:12px; font-weight:700; color:var(--text-muted);">Vedhæft screenshot / foto</span>
+                        </div>
+                        <img id="feedbackImagePreview" style="width:100%; max-height:150px; object-fit:contain; border-radius:12px; display:none; border:1px solid var(--border);">
+                        <input type="file" id="feedbackImageInput" accept="image/*" style="display:none;" onchange="previewFeedbackImage(this)">
+                        <input type="hidden" id="feedbackImageUrl">
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <button type="button" class="btn-outline" onclick="closeAllModals()" style="border:none; color:var(--text-muted); font-weight:700;">Annuller</button>
+                        <button type="submit" class="btn-primary" style="padding:14px 40px; border-radius:12px;">Send feedback 🚀</button>
+                    </div>
+                </form>
+            </div>
+
+        </div> <!-- Slut på modal-overlay -->
     </main>
 
+    <!-- FLOATING ACTION BUTTON (FAB) -->
+    <div class="fab-feedback" onclick="openModal('modal-feedback', true)">
+        <span>💬</span>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script type="module" src="js/main.js?v=86.8"></script>
+    <script type="module" src="js/main.js?v=87.4"></script>
 </body>
 </html>

@@ -182,14 +182,41 @@ window.convertRequestToTask = convertRequestToTask;
 window.confirmDelete = async (id, table) => {
     if (confirm("Er du sikker på, at du vil slette dette element?")) {
         await state.supabaseClient.from(table).delete().eq('id', id);
-        if (table === 'opgaver') fetchTasks();
+        
+        // Dynamisk import af api-service for at få adgang til fetch-funktioner for specifikke tabeller
+        const api = await import('../services/api-service.js');
+        
+        if (table === 'opgaver') api.fetchTasks();
+        if (table === 'anmodninger') api.fetchRequests();
+        if (table === 'brugere') api.fetchTeam();
+        if (table === 'lokationer') api.fetchLocations();
+        if (table === 'kategorier') api.fetchCategories();
+        
         if (table === 'assets') {
-            const { fetchAssets } = await import('../services/api-service.js');
-            fetchAssets();
+            if (window.renderAssetsList) window.renderAssetsList();
         }
-        if (table === 'anmodninger') fetchRequests();
-        fetchStats();
+        if (table === 'lager') {
+            if (window.renderLagerList) window.renderLagerList();
+        }
+        if (table === 'procedurer') {
+            if (window.fetchProcedures) window.fetchProcedures(); // Ligger oftest i sop-builder.js
+        }
+        
+        api.fetchStats();
         showSnackbar("Element slettet!");
+        
+        // Ryd eventuel form/preview for slettede element
+        const previews = { 
+            'lager': 'lagerPreview', 
+            'assets': 'assetPreview', 
+            'opgaver': 'tasksPreview', 
+            'anmodninger': 'requestsPreview' 
+            // brugere/lokationer/kategorier renderes direkte i indstillings-tabeller
+        };
+        if (previews[table]) {
+            const p = document.getElementById(previews[table]);
+            if (p) p.innerHTML = '<div style="padding:40px; text-align:center; opacity:0.5;">Vælg et emne til venstre for at se detaljer</div>';
+        }
     }
 };
 
@@ -201,13 +228,23 @@ export function initTaskSearch() {
     if (assetInput && assetSugg) {
         assetInput.addEventListener('input', () => {
             const q = assetInput.value.toLowerCase();
-            const matches = state.allAssets.filter(a => a.navn?.toLowerCase().includes(q));
+            const matches = state.allAssets.filter(a => 
+                a.navn?.toLowerCase().includes(q) || 
+                a.short_id?.toLowerCase().includes(q) ||
+                a.alias?.toLowerCase().includes(q)
+            );
             if (!q || matches.length === 0) { assetSugg.style.display = 'none'; return; }
             assetSugg.innerHTML = '';
             matches.slice(0, 8).forEach(a => {
                 const div = document.createElement('div');
                 div.className = 'suggestion-item';
-                div.innerHTML = `<strong>${a.navn}</strong><span style="font-size:11px; color:var(--text-muted); margin-left:8px;">📍 ${a.lokationer?.navn || ''}</span>`;
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <strong>${a.navn}</strong>
+                        <span style="font-size:10px; font-weight:800; background:var(--primary); color:white; padding:2px 6px; border-radius:4px;">${a.alias || a.short_id || ''}</span>
+                    </div>
+                    <div style="font-size:11px; color:var(--text-muted);">📍 ${a.lokationer?.navn || ''} ${a.alias ? '• ID: ' + a.short_id : ''}</div>
+                `;
                 div.onclick = () => {
                     // Udfyld maskine
                     assetInput.value = a.navn;

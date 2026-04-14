@@ -28,7 +28,7 @@ export function dashTab(tabId) {
 export async function dashNavTab(e, tabId) {
     if (e) e.preventDefault();
     
-    const adminTabs = ['team', 'indstillinger', 'categories', 'locations', 'assets', 'lager', 'kpi', 'sscc', 'indkoeb', 'data-hub'];
+    const adminTabs = ['team', 'indstillinger', 'categories', 'locations', 'assets', 'lager', 'kpi', 'sscc', 'indkoeb', 'data-hub', 'feedback'];
     
     // Defensive check: If we're an admin or the tab is NOT in adminTabs, allow.
     if (adminTabs.includes(tabId)) {
@@ -41,6 +41,15 @@ export async function dashNavTab(e, tabId) {
 
     if (window.innerWidth < 992) toggleSidebar(); 
     
+    // Handle redirected tabs
+    if (tabId === 'kpi' || tabId === 'data-hub') {
+        const subTab = tabId === 'kpi' ? 'kpi' : 'data';
+        dashTab('indstillinger');
+        const navBtn = document.querySelector(`.settings-nav[onclick*="'${subTab}'"]`);
+        if (navBtn) window.switchSettings(navBtn, subTab);
+        return;
+    }
+
     // Switch Tab Immediately (Visual feedback)
     dashTab(tabId);
 
@@ -58,6 +67,11 @@ export async function dashNavTab(e, tabId) {
         if (tabId === 'pm') fetchPmPlans();
         if (tabId === 'indkoeb') { fetchSuppliers(); fetchPurchaseOrders(); }
         if (tabId === 'overview') fetchStats();
+        if (tabId === 'feedback' && window.fetchFeedback) window.fetchFeedback();
+        if (tabId === 'indstillinger') {
+            // Data for sub-tabs
+            if (typeof window.fetchKpiStats === 'function') window.fetchKpiStats();
+        }
     } catch (err) {
         console.warn(`Data refresh failed for ${tabId}:`, err);
     }

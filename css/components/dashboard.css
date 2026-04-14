@@ -58,3 +58,37 @@ tr:last-child td { border-bottom: none; }
     .dash-main-container { margin-left: 0; padding: 20px; padding-top: 80px; }
     .split-grid { grid-template-columns: 1fr; height: auto; display: flex; flex-direction: column; }
 }
+
+/* SETTINGS SUB-NAV ⚙️ */
+.settings-nav {
+    position: relative;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.settings-nav:hover {
+    opacity: 1;
+    color: var(--text-main) !important;
+}
+
+.settings-nav.active {
+    opacity: 1;
+    color: var(--text-main) !important;
+}
+
+.settings-nav::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 3px;
+    background: var(--primary);
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 4px;
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+
+.settings-nav.active::after {
+    width: 100%;
+}

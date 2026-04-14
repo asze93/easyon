@@ -23,6 +23,14 @@ export async function renderAssetsList() {
         const data = await fetchAssets(); 
         list.innerHTML = "";
         
+        // Filter search 🔍
+        const q = document.getElementById('assetListSearch')?.value?.toLowerCase() || "";
+        const filtered = data.filter(a => 
+            a.navn?.toLowerCase().includes(q) || 
+            a.short_id?.toLowerCase().includes(q) ||
+            a.alias?.toLowerCase().includes(q)
+        );
+
         if (!data || data.length === 0) {
             list.innerHTML = `
                 <div style="padding:40px; text-align:center; opacity:0.5;">
@@ -32,14 +40,17 @@ export async function renderAssetsList() {
             return;
         }
 
-        data.forEach(a => {
+        filtered.forEach(a => {
             const div = document.createElement('div');
             div.className = 'list-card-item';
             div.id = `asset-item-${a.id}`;
             div.onclick = () => selectAsset(a);
             div.innerHTML = `
-                <div style="font-weight:800;">${a.navn}</div>
-                <div style="font-size:12px; color:var(--text-muted);">📍 ${a.lokationer?.navn || 'Ukendt'}</div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="font-weight:800;">${a.navn}</div>
+                    <span style="font-size:9px; font-weight:900; background:var(--primary); color:white; padding:1px 5px; border-radius:4px; opacity:0.8;">${a.alias || a.short_id || ''}</span>
+                </div>
+                <div style="font-size:12px; color:var(--text-muted);">📍 ${a.lokationer?.navn || 'Ukendt'} ${a.alias ? '• ID: ' + a.short_id : ''}</div>
             `;
             list.appendChild(div);
         });
@@ -64,8 +75,18 @@ export function selectAsset(a) {
             Tilbage til listen
         </div>
 
-        <h1 style="font-size:28px; font-weight:800; margin-bottom:8px;">${a.navn}</h1>
-        <p class="text-muted">${a.beskrivelse || 'Ingen beskrivelse.'}</p>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+            <h1 style="font-size:28px; font-weight:800; margin:0;">${a.navn}</h1>
+            <div style="display:flex; gap:8px;">
+                <div style="background:var(--primary); color:white; padding:4px 12px; border-radius:8px; font-size:14px; font-weight:900; letter-spacing:1px;" title="System ID">
+                    ${a.short_id || 'M-NEW'}
+                </div>
+                ${a.alias ? `<div style="background:rgba(255,255,255,0.1); color:white; padding:4px 12px; border-radius:8px; font-size:14px; font-weight:900; border:1px solid var(--border);" title="Eksternt Alias">
+                    ${a.alias}
+                </div>` : ''}
+            </div>
+        </div>
+        <p class="text-muted" style="margin-bottom:24px;">${a.beskrivelse || 'Ingen beskrivelse.'}</p>
         
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:24px;">
             <div style="background:rgba(255,255,255,0.03); padding:16px; border-radius:14px; border:1px solid var(--border);">
@@ -101,7 +122,7 @@ export function selectAsset(a) {
                 <div>
                     <div style="font-weight:700; font-size:14px; margin-bottom:6px;">${a.navn}</div>
                     <div style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">Scan koden med EasyON-appen for at åbne maskinen automatisk</div>
-                    <button onclick="printPreviewQR('${a.id}', '${a.navn.replace(/'/g, "\\'")}')"
+                    <button onclick="printPreviewQR('${a.short_id || a.id}', '${a.navn.replace(/'/g, "\\'")}')"
                         style="background:linear-gradient(135deg,#3B82F6,#1D4ED8); color:white; border:none; padding:10px 18px; border-radius:10px; cursor:pointer; font-weight:700; font-size:13px;">
                         🖨️ Print QR-kode
                     </button>
@@ -121,7 +142,7 @@ export function selectAsset(a) {
         if (qrEl && typeof QRCode !== 'undefined') {
             try {
                 new QRCode(qrEl, {
-                    text: a.id, width: 120, height: 120,
+                    text: a.short_id || a.id, width: 120, height: 120,
                     colorDark: '#0F172A', colorLight: '#FFFFFF',
                     correctLevel: QRCode.CorrectLevel.M
                 });
@@ -148,6 +169,7 @@ export async function handleAssetSubmit(e) {
     const data = {
         firma_id: state.currentFirmaId,
         navn: navnEl.value.trim(),
+        alias: document.getElementById('assetAlias')?.value?.trim() || null,
         beskrivelse: (descEl?.value?.trim()) || null,
         lokation_id: (locEl?.value) || null,
         kategori_id: (catEl?.value) || null,
@@ -188,6 +210,7 @@ export function autoFillAssetLocation() {
 window.editAsset = (a) => {
     document.getElementById('assetId').value = a.id;
     document.getElementById('assetName').value = a.navn;
+    if(document.getElementById('assetAlias')) document.getElementById('assetAlias').value = a.alias || '';
     
     if(document.getElementById('assetDesc')) document.getElementById('assetDesc').value = a.beskrivelse || '';
     if(document.getElementById('assetLoc')) document.getElementById('assetLoc').value = a.lokation_id || '';

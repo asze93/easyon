@@ -1,0 +1,9 @@
+navn;beskrivelse;lokations_sti;kategori_id;koebs_dato;garanti_udloeb
+Gaffeltruck 1;El-truck 2 tons kapacitet (M266);Lager > Hal A > Sektion 1;Asset;;
+Pallesuger;Model Nilfisk Industrial (PS-01);Lager > Hal B;Asset;;
+Transportbånd 4;Hovedlinje til pakkeri (TB-04);Produktion > Linje 1 > Zone A;Asset;;
+Vakuumpumpe;Busch R5 - service hver 6. måned (VP-99);Produktion > Linje 2;Asset;;
+Svejseanlæg;Kemppi MasterTig (SVEJS-01);Værksted > Svejseafdeling;Asset;;
+LED Arbejdslampe;Genopladelig 50W (LAMP-05);Værksted > Værktøjsvæg;Asset;;
+CNC Fræser;Haas VF-2 (CNC-01);Produktion > Maskinhallen;Asset;;
+Fejemaskine;Hako Citymaster (HAKO-01);Udeareal > Parkeringsplads;Asset;;
