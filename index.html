@@ -402,14 +402,81 @@
                         </div>
                     </div>
 
-                    <div class="table-card" style="padding: 40px;">
+                    <div class="table-card" style="padding: 40px; margin-bottom: 40px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-                            <h2 style="font-size:20px; font-weight:800; letter-spacing:-0.5px;">Seneste Aktivitet</h2>
-                            <span class="badge" style="background:var(--primary-light); color:var(--primary); padding:6px 14px; border-radius:8px; font-size:12px; font-weight:800;">LIVE OPDATERET</span>
+                            <h2 style="font-size:20px; font-weight:800; letter-spacing:-0.5px;">📋 Test-Missioner for EasyON Elite</h2>
+                            <span class="badge" style="background:rgba(34, 197, 94, 0.1); color:var(--success); padding:6px 14px; border-radius:8px; font-size:12px; font-weight:800;">INTERAKTIV GUIDE</span>
                         </div>
-                        <div class="chart-container" style="position: relative; height: 350px; width: 100%;">
-                            <canvas id="chart-main"></canvas>
+                        <div style="max-height: 450px; overflow-y: auto; padding-right:15px;" id="mission-container">
+                            
+                            <style>
+                                .mission-box { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 20px; transition:all 0.2s; }
+                                .mission-box:hover { border-color:rgba(59,130,246,0.3); background: rgba(59,130,246,0.05); }
+                                .mission-box h3 { font-size: 16px; font-weight: 800; margin-bottom: 15px; color: var(--primary); display:flex; align-items:center; gap:8px;}
+                                .mission-task { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; font-size: 14px; color: var(--text-muted); cursor: pointer; }
+                                .mission-task input[type="checkbox"] { width: 18px; height: 18px; margin-top:2px; accent-color: var(--primary); cursor: pointer; }
+                                .mission-result { margin-top:15px; font-size: 13px; font-weight: 700; color: white; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border-left: 3px solid var(--primary); }
+                                
+                                /* Scrollbar styles */
+                                #mission-container::-webkit-scrollbar { width: 6px; }
+                                #mission-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); border-radius: 10px; }
+                                #mission-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+                                #mission-container::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+                            </style>
+
+                            <!-- Mission 2 -->
+                            <div class="mission-box">
+                                <h3>🎯 Mission 2: Inviter dit Team (Forenklet Login) 👷‍♂️</h3>
+                                <label class="mission-task"><input type="checkbox" id="m2_1" onchange="saveMissionState(this)"> <span>Gå til <strong>Team & Folk</strong> og tryk "Tilføj Bruger / Medarbejder".</span></label>
+                                <label class="mission-task"><input type="checkbox" id="m2_2" onchange="saveMissionState(this)"> <span>Vælg rollen <strong>"Tekniker/Operatør"</strong>.</span></label>
+                                <div class="mission-result">💡 Det smarte: Teknikere logger ind med Firmanavn, Arbejdsnummer og Kode – ingen e-mail påkrævet!</div>
+                            </div>
+                            
+                            <!-- Mission 3 -->
+                            <div class="mission-box">
+                                <h3>🎯 Mission 3: Master Import & QR-Koder 🧙‍♂️</h3>
+                                <label class="mission-task"><input type="checkbox" id="m3_1" onchange="saveMissionState(this)"> <span>Gå til <strong>Indstillinger</strong> -> <strong>Data Håndtering</strong>.</span></label>
+                                <label class="mission-task"><input type="checkbox" id="m3_2" onchange="saveMissionState(this)"> <span>Hent skabelon, tilføj data og tryk <strong>"Start Smart Import"</strong>.</span></label>
+                                <label class="mission-task"><input type="checkbox" id="m3_3" onchange="saveMissionState(this)"> <span>Tjek dine <strong>Maskiner/Assets</strong>: Systemet har automatisk skabt unikke QR-koder til alt!</span></label>
+                            </div>
+
+                            <!-- Mission 4 -->
+                            <div class="mission-box">
+                                <h3>🎯 Mission 4: Ud på Gulvet (Mobil App) 📱</h3>
+                                <label class="mission-task"><input type="checkbox" id="m4_1" onchange="saveMissionState(this)"> <span>Åbn appen på mobilen og vælg <strong>"Ny Opgave / Fejl"</strong>.</span></label>
+                                <label class="mission-task"><input type="checkbox" id="m4_2" onchange="saveMissionState(this)"> <span>Tryk på <strong>Scanner-ikonet</strong> og scan en QR-kode fra Mission 3.</span></label>
+                                <label class="mission-task"><input type="checkbox" id="m4_3" onchange="saveMissionState(this)"> <span>Opret opgaven "Smørelse af lejer" og se den poppe op i Admin-panelet med det samme.</span></label>
+                            </div>
+
+                            <!-- Mission 5 -->
+                            <div class="mission-box">
+                                <h3>🎯 Mission 5: Byg din egen Procedure (SOP) 📋</h3>
+                                <label class="mission-task"><input type="checkbox" id="m5_1" onchange="saveMissionState(this)"> <span>Gå til <strong>Procedurer (SOP)</strong> i web-menuen og tryk "+ Ny Procedure".</span></label>
+                                <label class="mission-task"><input type="checkbox" id="m5_2" onchange="saveMissionState(this)"> <span>Tilføj trin som f.eks. "1. Husk høreværn" og "2. Aflås strøm".</span></label>
+                                <div class="mission-result">💡 Resultat: Guiden kan nu sendes direkte ud til teknikerens smartphone for en valgt opgave.</div>
+                            </div>
+                            
+                            <!-- Mission 6 -->
+                            <div class="mission-box" style="border-color: rgba(34, 197, 94, 0.4); background: rgba(34, 197, 94, 0.05);">
+                                <h3>🏁 Mission 6: Giv Feedback (Afslutningen) 📩</h3>
+                                <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px; margin-top:-5px;"><em>Scenarie: Du har testet systemet og skal nu give din professionelle mening til kende.</em></p>
+                                <label class="mission-task"><input type="checkbox" id="m6_1" onchange="saveMissionState(this)"> <span>Find knappen <strong>"Feedback Indbakke"</strong> (eller lignende feedback-område) nederst i menuen.</span></label>
+                                <label class="mission-task"><input type="checkbox" id="m6_2" onchange="saveMissionState(this)"> <span>Skriv din oplevelse: Var det nemt? Hvad var den fedeste funktion? Mangler der noget?</span></label>
+                                <label class="mission-task"><input type="checkbox" id="m6_3" onchange="saveMissionState(this)"> <span>Tryk <strong>Send</strong> – så er dit test-forløb officielt gennemført! 🎉</span></label>
+                            </div>
+
                         </div>
+                        <script>
+                            function saveMissionState(cb) {
+                                localStorage.setItem('easyon_' + cb.id, cb.checked);
+                            }
+                            // Vi bruger setTimeout for at sikre DOM er klar, især pga. Single Page App logik (evt.)
+                            setTimeout(() => {
+                                document.querySelectorAll('.mission-task input[type="checkbox"]').forEach(cb => {
+                                    if (localStorage.getItem('easyon_' + cb.id) === "true") cb.checked = true;
+                                });
+                            }, 500);
+                        </script>
                     </div>
                 </div>
 
