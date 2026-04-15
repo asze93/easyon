@@ -56,7 +56,7 @@
 .sidebar-links a:hover:not(.active), .dash-nav:hover:not(.active) { background: rgba(255,255,255,0.05); color: white; border-color: rgba(255,255,255,0.05); }
 
 @media (max-width: 992px) {
-    .sidebar { transform: translateX(-100%); }
+    .sidebar { transform: translateX(-100%); padding-bottom: 100px; }
     .sidebar.mobile-open { transform: translateX(0); box-shadow: 20px 0 50px rgba(0,0,0,0.5); }
     .sidebar-overlay { 
         position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 999; display: none; 
