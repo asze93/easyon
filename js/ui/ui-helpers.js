@@ -50,6 +50,16 @@ export function showView(viewId) {
         document.body.classList.add('dashboard-mode');
     } else {
         document.body.classList.remove('dashboard-mode');
+        // Sikrer at scroll lock fjernes, hvis menuen var åben på mobil
+        document.body.style.overflow = '';
+        document.body.classList.remove('sidebar-locked');
+        document.body.classList.remove('sidebar-open');
+        
+        const sidebar = document.getElementById('dashboardSidebar');
+        if (sidebar) sidebar.classList.remove('mobile-open');
+        
+        const overlay = document.getElementById('sidebarOverlay');
+        if (overlay) overlay.classList.remove('active');
     }
     
     const target = document.getElementById('view-' + viewId);
